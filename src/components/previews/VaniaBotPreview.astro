@@ -1,0 +1,243 @@
+---
+/**
+ * VaniaBotPreview — "Chat Simulator"
+ * WhatsApp-style chat with command buttons, typing indicators, circuit breaker state.
+ * Mock data, no backend.
+ */
+---
+
+<div class="vb-preview" data-component="vaniabot-preview">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 border border-surface-border rounded-lg overflow-hidden">
+    <!-- Left: Chat window -->
+    <div class="bg-[#0D1117] flex flex-col">
+      <!-- Chat header -->
+      <div class="bg-surface-raised px-4 py-3 border-b border-surface-border flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.74.45 3.38 1.24 4.81L2 22l5.19-1.24C8.62 21.55 10.26 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+        </div>
+        <div>
+          <div class="font-heading text-sm text-text-primary font-semibold">VaniaBot</div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald animate-pulse"></span>
+            <span class="font-mono text-[10px] text-emerald">Online</span>
+          </div>
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+          <div id="vb-circuit-badge" class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald/15 text-emerald border border-emerald/30">
+            Circuit: CLOSED
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages area -->
+      <div id="vb-messages" class="flex-1 overflow-y-auto p-4 space-y-3 min-h-[320px] max-h-[420px]">
+        <div class="vb-msg-in text-sm">
+          <div class="vb-bubble-in rounded-2xl rounded-tl-sm px-3 py-2 max-w-[80%]">
+            Hola! Soy VaniaBot. Escribe un comando o elige uno abajo.
+          </div>
+        </div>
+      </div>
+
+      <!-- Command buttons -->
+      <div class="px-4 py-3 border-t border-surface-border">
+        <div class="flex gap-2 flex-wrap">
+          <button class="vb-cmd font-mono text-[11px] px-3 py-1.5 rounded-full border border-accent/40 text-accent hover:bg-accent/10 transition-colors duration-150" data-cmd="/status">
+            /status
+          </button>
+          <button class="vb-cmd font-mono text-[11px] px-3 py-1.5 rounded-full border border-accent/40 text-accent hover:bg-accent/10 transition-colors duration-150" data-cmd="/screenshot">
+            /screenshot
+          </button>
+          <button class="vb-cmd font-mono text-[11px] px-3 py-1.5 rounded-full border border-accent/40 text-accent hover:bg-accent/10 transition-colors duration-150" data-cmd="/ping">
+            /ping
+          </button>
+          <button class="vb-cmd font-mono text-[11px] px-3 py-1.5 rounded-full border border-cyan/40 text-cyan hover:bg-cyan/10 transition-colors duration-150" data-cmd="/reboot">
+            /reboot
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Request/Response inspector -->
+    <div class="bg-surface-raised p-4 md:p-6 border-t lg:border-t-0 lg:border-l border-surface-border flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-2 h-2 rounded-full bg-accent"></span>
+        <span class="font-mono text-xs text-text-muted uppercase tracking-wider">Webhook Inspector</span>
+      </div>
+      <div id="vb-inspector" class="font-mono text-xs leading-relaxed flex-1 overflow-y-auto">
+        <div class="text-text-muted mb-2">// Waiting for command...</div>
+        <div class="text-text-muted">Click a command or type in the chat.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function initVaniaBotPreview() {
+    const root = document.querySelector('[data-component="vaniabot-preview"]');
+    if (!root) return;
+
+    const messagesEl = root.querySelector('#vb-messages') as HTMLDivElement;
+    const inspectorEl = root.querySelector('#vb-inspector') as HTMLDivElement;
+    const circuitBadge = root.querySelector('#vb-circuit-badge') as HTMLSpanElement;
+    const cmdBtns = root.querySelectorAll('.vb-cmd') as NodeListOf<HTMLButtonElement>;
+
+    let circuitOpen = false;
+    let typingTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const COMMANDS: Record<string, { response: string; latency: number; showImage?: boolean }> = {
+      '/status': {
+        response: '🟢 Bot is healthy. Uptime: 14d 7h 32m. Memory: 128MB/512MB. Messages processed: 4,203.',
+        latency: 180,
+      },
+      '/screenshot': {
+        response: '📸 Screenshot captured. Generating thumbnail...',
+        latency: 650,
+        showImage: true,
+      },
+      '/ping': {
+        response: '🏓 Pong! Latency: 23ms. WebSocket: connected.',
+        latency: 80,
+      },
+      '/reboot': {
+        response: '⚠️ Circuit breaker OPEN — 3 consecutive failures. Auto-retry in 30s.',
+        latency: 300,
+      },
+    };
+
+    function scrollToBottom() {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function addMessage(text: string, isBot: boolean, delay: number) {
+      setTimeout(() => {
+        const div = document.createElement('div');
+        div.className = isBot ? 'vb-msg-in' : 'vb-msg-out flex justify-end';
+        const bubble = document.createElement('div');
+        bubble.className = isBot ? 'vb-bubble-in rounded-2xl rounded-tl-sm px-3 py-2 max-w-[80%] text-sm' : 'vb-bubble-out rounded-2xl rounded-tr-sm px-3 py-2 max-w-[80%] text-sm';
+        bubble.textContent = text;
+        div.appendChild(bubble);
+        messagesEl.appendChild(div);
+        scrollToBottom();
+      }, delay);
+    }
+
+    function showTypingIndicator() {
+      const div = document.createElement('div');
+      div.className = 'vb-msg-in vb-typing';
+      div.innerHTML = '<div class="vb-bubble-in rounded-2xl rounded-tl-sm px-3 py-2"><div class="flex gap-1"><span class="w-1.5 h-1.5 rounded-full bg-text-muted animate-bounce" style="animation-delay:0ms"></span><span class="w-1.5 h-1.5 rounded-full bg-text-muted animate-bounce" style="animation-delay:150ms"></span><span class="w-1.5 h-1.5 rounded-full bg-text-muted animate-bounce" style="animation-delay:300ms"></span></div></div>';
+      messagesEl.appendChild(div);
+      scrollToBottom();
+      return div;
+    }
+
+    function removeTypingIndicator(el: HTMLDivElement) {
+      el.remove();
+    }
+
+    function updateInspector(cmd: string, response: string, status: number) {
+      inspectorEl.innerHTML = '';
+      const lines = [
+        '<span class="text-emerald">POST</span> <span class="text-text-primary">/webhook/vania</span>',
+        '',
+        '{',
+        `  <span class="text-cyan">"command"</span>: <span class="text-amber-300">"${cmd}"</span>,`,
+        `  <span class="text-cyan">"chatId"</span>: <span class="text-amber-300">"waba_3EBG793sb1LmuaU"</span>,`,
+        `  <span class="text-cyan">"timestamp"</span>: <span class="text-amber-300">"${new Date().toISOString()}"</span>`,
+        '}',
+        '',
+        `<span class="${status === 200 ? 'text-emerald' : 'text-red-400'}">← ${status} ${status === 200 ? 'OK' : 'OPEN'} (${COMMANDS[cmd]?.latency || 0}ms)</span>`,
+        '',
+        '{',
+        `  <span class="text-cyan">"status"</span>: ${status},`,
+        `  <span class="text-cyan">"reply"</span>: <span class="text-amber-300">"${response.slice(0, 50)}..."</span>,`,
+        `  <span class="text-cyan">"circuit"</span>: <span class="${circuitOpen ? 'text-red-400' : 'text-emerald'}">"${circuitOpen ? 'OPEN' : 'CLOSED'}"</span>`,
+        '}',
+      ];
+      lines.forEach((line, i) => {
+        const div = document.createElement('div');
+        div.innerHTML = line;
+        div.style.opacity = '0';
+        div.style.transform = 'translateY(3px)';
+        div.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+        inspectorEl.appendChild(div);
+        setTimeout(() => {
+          div.style.opacity = '1';
+          div.style.transform = 'translateY(0)';
+        }, i * 40);
+      });
+    }
+
+    function updateCircuitBadge() {
+      circuitBadge.textContent = circuitOpen ? 'Circuit: OPEN' : 'Circuit: CLOSED';
+      circuitBadge.className = circuitOpen
+        ? 'font-mono text-[10px] px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30'
+        : 'font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald/15 text-emerald border border-emerald/30';
+    }
+
+    function handleCommand(cmd: string) {
+      const cmdData = COMMANDS[cmd];
+      if (!cmdData) return;
+
+      // User message
+      addMessage(cmd, false, 0);
+
+      if (cmd === '/reboot') {
+        circuitOpen = true;
+        updateCircuitBadge();
+      } else if (circuitOpen && cmd !== '/reboot') {
+        circuitOpen = false;
+        updateCircuitBadge();
+      }
+
+      // Typing indicator
+      setTimeout(() => {
+        const typing = showTypingIndicator();
+        setTimeout(() => {
+          removeTypingIndicator(typing);
+          addMessage(cmdData.response, true, 0);
+          updateInspector(cmd, cmdData.response, cmd === '/reboot' ? 503 : 200);
+        }, cmdData.latency);
+      }, 200);
+    }
+
+    // Button clicks
+    cmdBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        handleCommand(btn.dataset.cmd || '');
+      });
+    });
+
+    // Text input on Enter
+    messagesEl.closest('.vb-preview')?.querySelector('input')?.addEventListener('keydown', (e: any) => {
+      if (e.key === 'Enter' && e.target.value.trim()) {
+        const cmd = e.target.value.trim();
+        e.target.value = '';
+        handleCommand(cmd.startsWith('/') ? cmd : '/' + cmd);
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', initVaniaBotPreview);
+  initVaniaBotPreview();
+</script>
+
+<style>
+  .vb-bubble-in {
+    background: #1E293B;
+    color: #F1F5F9;
+  }
+  .vb-bubble-out {
+    background: #2563EB;
+    color: white;
+  }
+  .vb-typing {
+    opacity: 0.7;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  .animate-bounce {
+    animation: bounce 0.6s ease-in-out infinite;
+  }
+</style>

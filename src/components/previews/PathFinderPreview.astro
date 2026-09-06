@@ -1,0 +1,377 @@
+---
+/**
+ * PathFinderPreview — "API Playground"
+ * A* pathfinding matching the real repo algorithm:
+ *   src/business/services/pathFinderService.js
+ * Euclidean-style heuristic, 8-directional movement, obstacle collision.
+ *
+ * FIX: previously the visual obstacles (drawn in the SVG below) and the
+ * collision matrix used by aStar() were two separate, hand-written data
+ * structures — and they didn't match. Result: the algorithm computed a
+ * route against a "phantom" map that didn't line up with what was drawn,
+ * so the animated path appeared to cut through gray obstacle cells.
+ *
+ * Now OBSTACLES is the ONLY definition of blocked cells. It's used to
+ * render the gray cells AND passed into isBlocked() for the algorithm,
+ * so what you see is exactly what the pathfinder reasons about.
+ */
+const OBSTACLES: [number, number][] = [
+  [3,1],[3,2],[3,3],[3,4],
+  [6,5],[6,6],[6,7],[6,8],
+  [1,6],[2,6],
+  [8,2],[8,3],
+  [5,0],[5,1],
+  [0,8],[1,8],
+];
+---
+
+<div class="pf-preview" data-component="pathfinder-preview">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 border border-surface-border rounded-lg overflow-hidden">
+    <!-- Left: Grid -->
+    <div class="bg-surface-raised p-4 md:p-6 border-b lg:border-b-0 lg:border-r border-surface-border">
+      <div class="flex items-center justify-between mb-4">
+        <span class="font-mono text-xs text-text-muted uppercase tracking-wider">Map</span>
+        <button
+          class="pf-run-btn font-mono text-xs px-3 py-1.5 rounded bg-accent text-white hover:bg-accent-muted transition-colors duration-150"
+          aria-label="Calculate route"
+        >
+          Calcular ruta
+        </button>
+      </div>
+      <div class="pf-grid-wrap">
+        <svg viewBox="0 0 10 10" class="pf-grid-svg" role="img" aria-label="Pathfinding grid with waypoints and obstacles">
+          <rect x="0" y="0" width="10" height="10" fill="#0A0E1A" />
+          {Array.from({ length: 11 }, (_, i) => (
+            <line x1={i} y1="0" x2={i} y2="10" stroke="#1E293B" stroke-width="0.05" />
+            <line x1="0" y1={i} x2="10" y2={i} stroke="#1E293B" stroke-width="0.05" />
+          ))}
+          {OBSTACLES.map(([x, y]) => (
+            <rect x={x} y={y} width="1" height="1" fill="#334155" rx="0.08" class="pf-obstacle" />
+          ))}
+          <rect x="0.1" y="4.1" width="0.8" height="0.8" rx="0.12" fill="#3B82F6" class="pf-node-start" />
+          <text x="0.5" y="4.65" text-anchor="middle" fill="white" font-size="0.38" font-family="JetBrains Mono, monospace" font-weight="700">A</text>
+          <rect x="9.1" y="4.1" width="0.8" height="0.8" rx="0.12" fill="#34D399" class="pf-node-end" />
+          <text x="9.5" y="4.65" text-anchor="middle" fill="white" font-size="0.38" font-family="JetBrains Mono, monospace" font-weight="700">B</text>
+          <g class="pf-path-layer"></g>
+          <g class="pf-visited-layer"></g>
+        </svg>
+      </div>
+      <div class="flex items-center gap-4 mt-3 text-xs font-mono text-text-muted">
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-accent inline-block"></span> Start</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-emerald inline-block"></span> End</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-surface-border inline-block"></span> Obstacle</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-cyan/60 inline-block"></span> Path</span>
+      </div>
+    </div>
+
+    <!-- Right: Console -->
+    <div class="bg-[#0D1117] p-4 md:p-6 flex flex-col">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="w-2.5 h-2.5 rounded-full bg-red-500/70"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/70"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-green-500/70"></span>
+        <span class="font-mono text-xs text-text-muted ml-2">request.json</span>
+      </div>
+      <div class="pf-console font-mono text-xs leading-relaxed flex-1 overflow-y-auto" aria-live="polite">
+        <div class="text-text-muted">// Click "Calcular ruta" to simulate</div>
+        <div class="text-text-muted">// a pathfinding API request</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ OBSTACLES }}>
+  function initPathFinderPreview() {
+    const root = document.querySelector('[data-component="pathfinder-preview"]');
+    if (!root) return;
+
+    const btn = root.querySelector('.pf-run-btn');
+    const consoleEl = root.querySelector('.pf-console');
+    const pathLayer = root.querySelector('.pf-path-layer');
+    const visitedLayer = root.querySelector('.pf-visited-layer');
+
+    const WIDTH = 10;
+    const HEIGHT = 10;
+
+    // Single source of truth: identical to the coordinates rendered
+    // in the SVG above. No separate hand-written grid to drift out of sync.
+    const OBSTACLE_SET = new Set(OBSTACLES.map(([x, y]) => `${x},${y}`));
+
+    const START = { x: 0, y: 4 };
+    const END = { x: 9, y: 4 };
+
+    let isRunning = false;
+    let animTimeouts = [];
+
+    function isBlocked(x, y) {
+      if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return true;
+      return OBSTACLE_SET.has(`${x},${y}`);
+    }
+
+    function heuristic(a, b) {
+      return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+    }
+
+    const DIRECTIONS = [
+      [0,-1],[0,1],[-1,0],[1,0],
+      [-1,-1],[-1,1],[1,-1],[1,1],
+    ];
+
+    function getNeighbors(node) {
+      const neighbors = [];
+      for (const [dx, dy] of DIRECTIONS) {
+        const nx = node.x + dx;
+        const ny = node.y + dy;
+        if (isBlocked(nx, ny)) continue;
+        // Diagonal: block if both adjacent cardinal cells are blocked (corner cut)
+        if (dx !== 0 && dy !== 0) {
+          if (isBlocked(node.x + dx, node.y) && isBlocked(node.x, node.y + dy)) continue;
+        }
+        neighbors.push({ x: nx, y: ny });
+      }
+      return neighbors;
+    }
+
+    // ─── A* pathfinding (matching repo logic) ───
+    function aStar() {
+      const key = (x, y) => `${x},${y}`;
+
+      const startNode = { ...START, g: 0, f: heuristic(START, END), parent: null };
+      const open = [startNode];
+      const closed = new Set();
+      const gScores = new Map();
+      gScores.set(key(START.x, START.y), 0);
+
+      while (open.length > 0) {
+        open.sort((a, b) => a.f - b.f);
+        const current = open.shift();
+
+        if (current.x === END.x && current.y === END.y) {
+          const path = [];
+          let node = current;
+          while (node) {
+            path.unshift({ x: node.x, y: node.y });
+            node = node.parent;
+          }
+          return {
+            path,
+            visited: Array.from(closed).map(k => {
+              const [x, y] = k.split(',').map(Number);
+              return { x, y };
+            }),
+          };
+        }
+
+        closed.add(key(current.x, current.y));
+
+        for (const neighbor of getNeighbors(current)) {
+          const nk = key(neighbor.x, neighbor.y);
+          if (closed.has(nk)) continue;
+
+          const dx = Math.abs(current.x - neighbor.x);
+          const dy = Math.abs(current.y - neighbor.y);
+          const cost = (dx > 0 && dy > 0) ? 1.414 : 1;
+          const tentativeG = current.g + cost;
+          const existingG = gScores.get(nk);
+
+          if (existingG === undefined || tentativeG < existingG) {
+            gScores.set(nk, tentativeG);
+            const f = tentativeG + heuristic(neighbor, END);
+            const existing = open.find(n => n.x === neighbor.x && n.y === neighbor.y);
+            if (existing) {
+              existing.g = tentativeG;
+              existing.f = f;
+              existing.parent = current;
+            } else {
+              open.push({ ...neighbor, g: tentativeG, f, parent: current });
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    function clearAnimation() {
+      animTimeouts.forEach(t => clearTimeout(t));
+      animTimeouts = [];
+      pathLayer.innerHTML = '';
+      visitedLayer.innerHTML = '';
+    }
+
+    function renderRect(g, x, y, fill, delay, className) {
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', String(x + 0.05));
+      rect.setAttribute('y', String(y + 0.05));
+      rect.setAttribute('width', '0.9');
+      rect.setAttribute('height', '0.9');
+      rect.setAttribute('rx', '0.1');
+      rect.setAttribute('fill', fill);
+      rect.setAttribute('opacity', '0');
+      rect.style.transition = 'opacity 0.2s ease';
+      if (className) rect.classList.add(className);
+      g.appendChild(rect);
+      const t = setTimeout(() => rect.setAttribute('opacity', '1'), delay);
+      animTimeouts.push(t);
+    }
+
+    function writeConsole(lines, startDelay) {
+      let delay = startDelay;
+      lines.forEach((line) => {
+        const t = setTimeout(() => {
+          const div = document.createElement('div');
+          if (line.startsWith('POST') || line.startsWith('GET')) {
+            const [method, ...rest] = line.split(' ');
+            div.innerHTML = `<span class="text-emerald">${method}</span> <span class="text-text-primary">${rest.join(' ')}</span>`;
+          } else if (line.includes('"status"')) {
+            div.innerHTML = `<span class="text-cyan">${line}</span>`;
+          } else if (line.startsWith('✓') || line.startsWith('Distance')) {
+            div.innerHTML = `<span class="text-accent">${line}</span>`;
+          } else if (line.startsWith('✗')) {
+            div.innerHTML = `<span class="text-red-400">${line}</span>`;
+          } else if (line.startsWith('//')) {
+            div.innerHTML = `<span class="text-text-muted">${line}</span>`;
+          } else {
+            div.textContent = line;
+          }
+          div.style.opacity = '0';
+          div.style.transform = 'translateY(4px)';
+          div.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+          consoleEl.appendChild(div);
+          requestAnimationFrame(() => {
+            div.style.opacity = '1';
+            div.style.transform = 'translateY(0)';
+          });
+          consoleEl.scrollTop = consoleEl.scrollHeight;
+        }, delay);
+        animTimeouts.push(t);
+        delay += 120;
+      });
+    }
+
+    btn.addEventListener('click', () => {
+      if (isRunning) return;
+      isRunning = true;
+      btn.textContent = 'Calculando...';
+      btn.disabled = true;
+
+      clearAnimation();
+      consoleEl.innerHTML = '';
+
+      const result = aStar();
+
+      if (!result || result.path.length === 0) {
+        writeConsole([
+          '// Simulated API request',
+          'POST /api/routes/optimal',
+          '',
+          '{',
+          '  "start": { "x": 0, "y": 4 },',
+          '  "end": { "x": 9, "y": 4 }',
+          '}',
+          '',
+          '✗ 400 NO_PATH_FOUND',
+          '// No valid route exists between',
+          '// the specified points.',
+        ], 100);
+        setTimeout(() => {
+          isRunning = false;
+          btn.textContent = 'Calcular ruta';
+          btn.disabled = false;
+        }, 2000);
+        return;
+      }
+
+      // Animate visited nodes
+      const visitedFiltered = result.visited.filter((_, i) => i % 2 === 0);
+      let delay = 100;
+      visitedFiltered.forEach((v) => {
+        renderRect(visitedLayer, v.x, v.y, 'rgba(34, 211, 238, 0.15)', delay);
+        delay += 30;
+      });
+
+      // Animate path
+      const pathDelay = delay;
+      result.path.forEach((p, i) => {
+        const isStart = p.x === START.x && p.y === START.y;
+        const isEnd = p.x === END.x && p.y === END.y;
+        renderRect(pathLayer, p.x, p.y, isStart ? '#3B82F6' : isEnd ? '#34D399' : 'rgba(34, 211, 238, 0.6)', pathDelay + i * 80, 'pf-path-cell');
+      });
+
+      const totalDelay = pathDelay + result.path.length * 80 + 200;
+
+      const jwtToken = 'eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4iLCJyb2xlIjoiRWRpdG9yIn0';
+      writeConsole([
+        '// Simulated API request',
+        `POST /api/routes/optimal`,
+        `Authorization: Bearer ${jwtToken.slice(0, 20)}...`,
+        '',
+        '{',
+        '  "mapId": "64f1a2b3c4d5e6f7a8b9c0d1",',
+        '  "start": { "x": 0, "y": 4 },',
+        '  "end": { "x": 9, "y": 4 },',
+        '  "algorithm": "astar"',
+        '}',
+        '',
+        '// Processing...',
+        '// A* explored ' + result.visited.length + ' nodes',
+        '',
+        `✓ 200 OK — ${result.path.length}ms`,
+      ], 100);
+
+      writeConsole([
+        '{',
+        `  "status": 200,`,
+        `  "data": {`,
+        `    "distance": ${result.path.length},`,
+        `    "waypoints": [${result.path.map(p => `{"x":${p.x},"y":${p.y}}`).join(', ')}],`,
+        `    "explored": ${result.visited.length},`,
+        `    "cached": false`,
+        '  }',
+        '}',
+      ], pathDelay + 500);
+
+      setTimeout(() => {
+        isRunning = false;
+        btn.textContent = 'Calcular ruta';
+        btn.disabled = false;
+      }, totalDelay + 1000);
+    });
+  }
+
+  document.addEventListener('astro:page-load', initPathFinderPreview);
+  initPathFinderPreview();
+</script>
+
+<style>
+  .pf-grid-wrap {
+    aspect-ratio: 1;
+    max-width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--color-surface-border, #1E293B);
+  }
+  .pf-grid-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .pf-console {
+    min-height: 280px;
+    max-height: 400px;
+  }
+  .pf-node-start, .pf-node-end {
+    filter: drop-shadow(0 0 3px currentColor);
+  }
+  .pf-path-cell {
+    filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.5));
+  }
+  .pf-run-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  @media (max-width: 1023px) {
+    .pf-console {
+      min-height: 200px;
+    }
+  }
+</style>

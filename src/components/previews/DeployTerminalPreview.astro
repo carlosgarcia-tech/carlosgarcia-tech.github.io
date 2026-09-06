@@ -1,0 +1,247 @@
+---
+/**
+ * DeployTerminalPreview — "Deployment Terminal + Pipeline"
+ * Auto-typing terminal with ansible/docker commands, synchronized Blue/Green traffic switch.
+ * Mock data, no backend.
+ */
+---
+
+<div class="dt-preview" data-component="deploy-preview">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 border border-surface-border rounded-lg overflow-hidden">
+    <!-- Left: Terminal -->
+    <div class="bg-[#0D1117] p-4 md:p-6 flex flex-col">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="w-2.5 h-2.5 rounded-full bg-red-500/70"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/70"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-green-500/70"></span>
+        <span class="font-mono text-xs text-text-muted ml-2">deploy.sh — bash</span>
+        <button class="dt-run-btn ml-auto font-mono text-xs px-3 py-1.5 rounded bg-emerald/90 text-white hover:bg-emerald transition-colors duration-150" aria-label="Run deployment">
+          ▶ Run Deploy
+        </button>
+      </div>
+      <div id="dt-terminal" class="font-mono text-xs leading-relaxed flex-1 overflow-y-auto min-h-[280px] max-h-[400px]" aria-live="polite">
+        <div class="text-text-muted">$ ./deploy.sh --env production</div>
+      </div>
+    </div>
+
+    <!-- Right: Blue/Green Pipeline Diagram -->
+    <div class="bg-surface-raised p-4 md:p-6 border-t lg:border-t-0 lg:border-l border-surface-border flex flex-col">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="w-2 h-2 rounded-full bg-accent"></span>
+        <span class="font-mono text-xs text-text-muted uppercase tracking-wider">Traffic Pipeline</span>
+      </div>
+
+      <div class="flex-1 flex items-center justify-center">
+        <svg viewBox="0 0 200 140" class="w-full max-w-[300px]" role="img" aria-label="Blue/Green deployment pipeline">
+          <!-- Users icon -->
+          <g transform="translate(10,60)">
+            <circle cx="10" cy="5" r="4" fill="#94A3B8"/>
+            <path d="M2,15 Q10,20 18,15" stroke="#94A3B8" fill="none" stroke-width="1.5"/>
+            <text x="10" y="25" text-anchor="middle" fill="#94A3B8" font-size="6" font-family="JetBrains Mono, monospace">Users</text>
+          </g>
+
+          <!-- Arrow from users to loadbalancer -->
+          <line x1="30" y1="67" x2="50" y2="67" stroke="#475569" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <polygon points="48,64 54,67 48,70" fill="#475569"/>
+
+          <!-- Load Balancer -->
+          <rect x="55" y="55" width="30" height="24" rx="3" fill="#1E293B" stroke="#3B82F6" stroke-width="1"/>
+          <text x="70" y="66" text-anchor="middle" fill="#3B82F6" font-size="5" font-family="JetBrains Mono, monospace">NGINX</text>
+          <text x="70" y="74" text-anchor="middle" fill="#94A3B8" font-size="4" font-family="JetBrains Mono, monospace">LB</text>
+
+          <!-- Arrows to Blue and Green -->
+          <line x1="85" y1="62" x2="105" y2="42" stroke="#3B82F6" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <polygon points="103,40 108,40 105,45" fill="#3B82F6" class="dt-arrow-blue"/>
+
+          <line x1="85" y1="72" x2="105" y2="92" stroke="#475569" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <polygon points="103,90 108,90 105,95" fill="#475569" class="dt-arrow-green" opacity="0.4"/>
+
+          <!-- Blue Server -->
+          <rect x="110" y="28" width="40" height="28" rx="3" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5" class="dt-server-blue"/>
+          <text x="130" y="40" text-anchor="middle" fill="#3B82F6" font-size="5.5" font-family="JetBrains Mono, monospace" font-weight="600">BLUE</text>
+          <text x="130" y="48" text-anchor="middle" fill="#94A3B8" font-size="4" font-family="JetBrains Mono, monospace">v1.8.2</text>
+          <circle cx="148" cy="32" r="2.5" fill="#3B82F6" class="dt-status-blue">
+            <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
+          </circle>
+
+          <!-- Green Server -->
+          <rect x="110" y="78" width="40" height="28" rx="3" fill="#1E293B" stroke="#475569" stroke-width="1" class="dt-server-green" opacity="0.5"/>
+          <text x="130" y="90" text-anchor="middle" fill="#64748B" font-size="5.5" font-family="JetBrains Mono, monospace" font-weight="600">GREEN</text>
+          <text x="130" y="98" text-anchor="middle" fill="#475569" font-size="4" font-family="JetBrains Mono, monospace">v1.9.0</text>
+          <circle cx="148" cy="82" r="2.5" fill="#475569" class="dt-status-green"/>
+
+          <!-- Traffic label -->
+          <text x="97" y="50" text-anchor="middle" fill="#3B82F6" font-size="4" font-family="JetBrains Mono, monospace" class="dt-traffic-label">100%</text>
+          <text x="97" y="84" text-anchor="middle" fill="#475569" font-size="4" font-family="JetBrains Mono, monospace" class="dt-traffic-label-green" opacity="0.4">0%</text>
+        </svg>
+      </div>
+
+      <div class="flex items-center justify-center gap-4 mt-4 text-[10px] font-mono text-text-muted">
+        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-accent inline-block"></span> Active</span>
+        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-surface-border inline-block"></span> Standby</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function initDeployPreview() {
+    const root = document.querySelector('[data-component="deploy-preview"]');
+    if (!root) return;
+
+    const term = root.querySelector('#dt-terminal') as HTMLDivElement;
+    const btn = root.querySelector('.dt-run-btn') as HTMLButtonElement;
+    const serverBlue = root.querySelector('.dt-server-blue') as SVGRectElement;
+    const serverGreen = root.querySelector('.dt-server-green') as SVGRectElement;
+    const arrowBlue = root.querySelector('.dt-arrow-blue') as SVGPolygonElement;
+    const arrowGreen = root.querySelector('.dt-arrow-green') as SVGPolygonElement;
+    const statusBlue = root.querySelector('.dt-status-blue') as SVGCircleElement;
+    const statusGreen = root.querySelector('.dt-status-green') as SVGCircleElement;
+    const trafficLabel = root.querySelector('.dt-traffic-label') as SVGTextElement;
+    const trafficLabelGreen = root.querySelector('.dt-traffic-label-green') as SVGTextElement;
+
+    let isRunning = false;
+    let timeouts: ReturnType<typeof setTimeout>[] = [];
+
+    function clearAll() {
+      timeouts.forEach(t => clearTimeout(t));
+      timeouts = [];
+    }
+
+    function typeLine(text: string, delay: number, colorClass: string = 'text-text-primary'): Promise<void> {
+      return new Promise(resolve => {
+        const t = setTimeout(() => {
+          const div = document.createElement('div');
+          div.className = colorClass;
+          term.appendChild(div);
+
+          let i = 0;
+          const interval = setInterval(() => {
+            if (i < text.length) {
+              div.textContent += text[i];
+              i++;
+              term.scrollTop = term.scrollHeight;
+            } else {
+              clearInterval(interval);
+              resolve();
+            }
+          }, 18);
+        }, delay);
+        timeouts.push(t);
+      });
+    }
+
+    function addLine(text: string, delay: number, colorClass: string = 'text-text-primary') {
+      const t = setTimeout(() => {
+        const div = document.createElement('div');
+        div.className = colorClass;
+        div.textContent = text;
+        term.appendChild(div);
+        term.scrollTop = term.scrollHeight;
+      }, delay);
+      timeouts.push(t);
+    }
+
+    function switchToGreen() {
+      // Blue becomes standby
+      serverBlue.setAttribute('stroke', '#475569');
+      serverBlue.setAttribute('stroke-width', '1');
+      serverBlue.setAttribute('opacity', '0.5');
+      statusBlue.setAttribute('fill', '#475569');
+      statusBlue.querySelector('animate')?.remove();
+
+      // Green becomes active
+      serverGreen.setAttribute('stroke', '#3B82F6');
+      serverGreen.setAttribute('stroke-width', '1.5');
+      serverGreen.setAttribute('opacity', '1');
+      statusGreen.setAttribute('fill', '#3B82F6');
+      const animGreen = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+      animGreen.setAttribute('attributeName', 'opacity');
+      animGreen.setAttribute('values', '1;0.4;1');
+      animGreen.setAttribute('dur', '2s');
+      animGreen.setAttribute('repeatCount', 'indefinite');
+      statusGreen.appendChild(animGreen);
+
+      // Arrow swap
+      arrowGreen.setAttribute('fill', '#3B82F6');
+      arrowGreen.setAttribute('opacity', '1');
+      arrowBlue.setAttribute('fill', '#475569');
+      arrowBlue.setAttribute('opacity', '0.4');
+
+      // Traffic labels
+      trafficLabel.textContent = '0%';
+      trafficLabel.setAttribute('fill', '#475569');
+      trafficLabelGreen.textContent = '100%';
+      trafficLabelGreen.setAttribute('fill', '#3B82F6');
+      trafficLabelGreen.setAttribute('opacity', '1');
+    }
+
+    btn.addEventListener('click', async () => {
+      if (isRunning) return;
+      isRunning = true;
+      btn.textContent = '⟳ Running...';
+      btn.disabled = true;
+
+      clearAll();
+      term.innerHTML = '';
+
+      await typeLine('$ ./deploy.sh --env production', 0, 'text-text-muted');
+      await typeLine('Deploying to production cluster...', 400, 'text-text-primary');
+
+      addLine('Step 1/5: Running Ansible playbook...', 800, 'text-text-secondary');
+      addLine('  PLAY [webservers] ******', 1100, 'text-cyan');
+      addLine('  TASK [Gathering Facts]', 1300, 'text-text-secondary');
+      addLine('    ok: [web-01.prod]', 1500, 'text-emerald');
+      addLine('    ok: [web-02.prod]', 1600, 'text-emerald');
+      addLine('  PLAY RECAP', 1800, 'text-text-secondary');
+      addLine('    web-01.prod: ok=8  changed=0  unreachable=0', 2000, 'text-emerald');
+      addLine('    web-02.prod: ok=8  changed=0  unreachable=0', 2050, 'text-emerald');
+
+      addLine('Step 2/5: Building Docker image...', 2500, 'text-text-secondary');
+      addLine('  => [internal] load .dockerignore', 2800, 'text-text-muted');
+      addLine('  => [internal] load build definition', 2900, 'text-text-muted');
+      addLine('  => [stage-0] node:20-alpine', 3100, 'text-text-muted');
+      addLine('  => [stage-1] npm ci --production', 3400, 'text-text-muted');
+      addLine('  => exporting to image', 3800, 'text-text-muted');
+
+      addLine('Step 3/5: Running tests...', 4200, 'text-text-secondary');
+      addLine('  ✓ unit tests (47 passed)', 4600, 'text-emerald');
+      addLine('  ✓ integration tests (23 passed)', 4800, 'text-emerald');
+      addLine('  ✓ e2e tests (12 passed)', 5000, 'text-emerald');
+
+      addLine('Step 4/5: Rolling update (Green → Blue)...', 5500, 'text-text-secondary');
+      addLine('  Draining Blue connections...', 5800, 'text-amber-300');
+      addLine('  Blue idle, routing 100% to Green...', 6200, 'text-amber-300');
+
+      // Visual switch at 6.5s
+      const t6 = setTimeout(() => switchToGreen(), 6500);
+      timeouts.push(t6);
+
+      addLine('  ✓ Blue drained. Green active.', 6800, 'text-emerald');
+
+      addLine('Step 5/5: Health check...', 7200, 'text-text-secondary');
+      addLine('  GET /health → 200 OK (12ms)', 7500, 'text-emerald');
+      addLine('  GET /health → 200 OK (8ms)', 7700, 'text-emerald');
+
+      addLine('', 8000);
+      await typeLine('$ echo "Deploy complete!"', 8100, 'text-text-muted');
+      addLine('Deploy complete!', 8400, 'text-accent font-semibold');
+
+      setTimeout(() => {
+        isRunning = false;
+        btn.textContent = '▶ Run Deploy';
+        btn.disabled = false;
+      }, 9000);
+    });
+  }
+
+  document.addEventListener('astro:page-load', initDeployPreview);
+  initDeployPreview();
+</script>
+
+<style>
+  .dt-run-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
