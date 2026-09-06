@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@astrojs/compiler": "^2.10.0",
+    "@astrojs/sitemap": "3.6.0",
     "@astrojs/tailwind": "^5.1.2",
     "@fontsource/inter": "^5.1.0",
     "@fontsource/jetbrains-mono": "^5.1.0",
