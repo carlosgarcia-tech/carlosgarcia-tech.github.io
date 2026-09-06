@@ -1,0 +1,236 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import OnionDiagram from '../../components/diagrams/OnionDiagram.astro';
+
+const project = {
+  title: 'Commons Marketplace',
+  subtitle: 'Backend API',
+  description: 'Production-grade e-commerce backend built with Node.js, Express and Onion Architecture. Manages users, stores, products, categories, reviews and real-time messaging — deployed with Docker, Nginx and a Blue/Green CI/CD pipeline for zero-downtime releases.',
+  github: 'https://github.com/carlosgarcia-tech/commons-marketplace',
+  tags: ['Node.js 18+', 'Express 5.x', 'JavaScript', 'Onion Architecture', 'MongoDB', 'Supabase', 'Socket.io', 'Ably', 'Jest 29', 'Docker', 'Nginx'],
+};
+
+const metrics = [
+  { value: '1010', label: 'tests passing', detail: 'across 114 suites' },
+  { value: '80%', label: 'statement coverage', detail: 'use cases at 100%' },
+  { value: '50+', label: 'API endpoints', detail: 'across 7 domains' },
+  { value: '202', label: 'commits', detail: 'on main branch' },
+];
+
+const architecture = {
+  title: 'Onion Architecture',
+  description: 'Dependencies only point inward. The core layer has zero knowledge of MongoDB, Supabase, or any external framework. This makes unit testing use cases trivial — no database setup needed, just mock the repository interface.',
+  layers: [
+    { name: 'Presentation', detail: 'Controllers, Routes, Middlewares', color: '#1976d2' },
+    { name: 'Application', detail: 'Use Cases, DTOs', color: '#7b1fa2' },
+    { name: 'Core', detail: 'Entities, Repository Interfaces, Domain Services', color: '#388e3c' },
+    { name: 'Infrastructure', detail: 'MongoDB, Supabase, Ably, Socket.io, DI', color: '#f57c00' },
+  ],
+};
+
+const decisions = [
+  {
+    title: 'Why Onion Architecture over MVC?',
+    answer: 'At ~50 endpoints with role-based auth, ownership checks, and multiple external services, a flat MVC structure mixes concerns in ways that make testing painful. Onion makes the business logic layer independently testable.',
+  },
+  {
+    title: 'Why two real-time implementations?',
+    answer: 'Both Socket.io and Ably implement the same IChatRepository interface. Socket.io gives full control with zero external dependency. Ably handles reconnection, presence, and delivery guarantees. Switching is a single DI binding change.',
+  },
+  {
+    title: 'Why Supabase for auth?',
+    answer: 'JWT signing, token rotation, and session management are security-critical and easy to get wrong. Delegating to Supabase means not writing or maintaining that code.',
+  },
+];
+
+const stack = [
+  { layer: 'Runtime', technology: 'Node.js 18+' },
+  { layer: 'Framework', technology: 'Express.js 5.x' },
+  { layer: 'Language', technology: 'JavaScript (ES Modules)' },
+  { layer: 'Architecture', technology: 'Onion / DDD' },
+  { layer: 'Database', technology: 'MongoDB + Mongoose' },
+  { layer: 'Auth', technology: 'Supabase (JWT)' },
+  { layer: 'Real-time', technology: 'Socket.io + Ably' },
+  { layer: 'Storage', technology: 'Supabase Storage' },
+  { layer: 'Testing', technology: 'Jest 29' },
+  { layer: 'Logging', technology: 'Winston' },
+  { layer: 'Docs', technology: 'Swagger / OpenAPI 3.0' },
+  { layer: 'Containers', technology: 'Docker + Nginx' },
+  { layer: 'Deployment', technology: 'Blue/Green CI/CD' },
+];
+
+const testCoverage = [
+  { layer: 'Use Cases', coverage: '100%', note: 'Core business logic, fully mocked' },
+  { layer: 'Core Entities', coverage: '100%', note: 'Domain models' },
+  { layer: 'Validators', coverage: '100%', note: 'All input paths covered' },
+  { layer: 'Controllers', coverage: '~90%', note: 'HTTP handling layer' },
+  { layer: 'Services', coverage: '~80%', note: 'Domain logic' },
+  { layer: 'Infrastructure', coverage: '~25%', note: 'Intentionally excluded from unit tests' },
+];
+
+const apiDomains = [
+  { domain: 'Auth', endpoints: 'Register, Login, Logout' },
+  { domain: 'Users', endpoints: 'Profile, CRUD, Avatar upload' },
+  { domain: 'Stores', endpoints: 'CRUD, Approval workflow' },
+  { domain: 'Products', endpoints: 'CRUD, Inventory, Image upload' },
+  { domain: 'Categories', endpoints: 'Hierarchical (parent / child)' },
+  { domain: 'Reviews', endpoints: 'Ratings + comments' },
+  { domain: 'Chat', endpoints: 'Conversations, Messages, Real-time' },
+];
+---
+
+<Layout title={`${project.title} — Carlos García`}>
+  <article class="section-spacing">
+    <div class="container-narrow">
+      <div class="mb-12 reveal">
+        <a href="/" class="font-mono text-sm text-accent hover:text-accent-muted transition-colors duration-150 mb-4 inline-block">
+          ← Back to projects
+        </a>
+        <h1 class="text-display font-heading text-text-primary mb-2">{project.title}</h1>
+        <p class="text-text-muted font-mono text-sm mb-6">{project.subtitle}</p>
+        <p class="text-text-secondary text-lg leading-relaxed max-w-2xl">
+          {project.description}
+        </p>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mb-12 reveal reveal-delay-1">
+        {project.tags.map((tag) => (
+          <span class="tech-badge">{tag}</span>
+        ))}
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+        {metrics.map((metric) => (
+          <div class="metric-card reveal">
+            <span class="metric-value count-up-value">{metric.value}</span>
+            <p class="metric-label">{metric.label}</p>
+            <p class="text-xs text-text-muted mt-0.5">{metric.detail}</p>
+          </div>
+        ))}
+      </div>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Architecture</h2>
+        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
+          <h3 class="font-heading font-semibold text-text-primary mb-2">{architecture.title}</h3>
+          <p class="text-text-secondary text-sm leading-relaxed mb-8 max-w-2xl">
+            {architecture.description}
+          </p>
+          <OnionDiagram />
+          <div class="flex flex-col gap-3 mt-8">
+            {architecture.layers.map((layer) => (
+              <div class="flex items-center gap-4">
+                <div class="w-3 h-3 rounded-sm" style={`background-color: ${layer.color}`}></div>
+                <div>
+                  <span class="font-mono text-sm font-semibold text-text-primary">{layer.name}</span>
+                  <span class="text-text-muted text-sm ml-2">— {layer.detail}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Key decisions</h2>
+        <div class="grid gap-4 stagger-children">
+          {decisions.map((decision, i) => (
+            <div class="card-surface card-hover p-6">
+              <h3 class="font-heading font-semibold text-text-primary mb-2">{decision.title}</h3>
+              <p class="text-text-secondary text-sm leading-relaxed">{decision.answer}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Test coverage</h2>
+        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
+          <div class="grid gap-3">
+            {testCoverage.map((item) => (
+              <div class="flex items-center justify-between py-2 border-b border-surface-border last:border-0">
+                <div>
+                  <span class="font-mono text-sm text-text-primary">{item.layer}</span>
+                  <span class="text-text-muted text-xs ml-2">{item.note}</span>
+                </div>
+                <span class="font-mono text-sm font-semibold text-accent">{item.coverage}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">API surface</h2>
+        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
+          <div class="grid gap-3">
+            {apiDomains.map((item) => (
+              <div class="flex items-center justify-between py-2 border-b border-surface-border last:border-0">
+                <span class="font-mono text-sm text-text-primary">{item.domain}</span>
+                <span class="text-text-secondary text-sm">{item.endpoints}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Stack</h2>
+        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
+          <div class="grid gap-3">
+            {stack.map((item) => (
+              <div class="flex items-center justify-between py-2 border-b border-surface-border last:border-0">
+                <span class="font-mono text-sm text-text-muted">{item.layer}</span>
+                <span class="text-text-primary text-sm font-medium">{item.technology}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Project structure</h2>
+        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
+          <pre class="font-mono text-sm text-text-secondary leading-relaxed overflow-x-auto"><code>src/
+├── core/                   # Domain — no external dependencies
+│   ├── entities/           # Domain models
+│   ├── repositories/       # Repository interfaces
+│   └── services/           # Domain services
+├── application/            # Use cases + DTOs
+│   ├── use-cases/
+│   └── dtos/
+├── infrastructure/         # Implementations
+│   ├── supabase/           # Auth + storage client
+│   ├── ably/               # Ably real-time client
+│   ├── websocket/          # Native Socket.io server
+│   ├── di/                 # Dependency injection
+│   └── logger/             # Winston config
+├── presentation/           # HTTP layer
+│   ├── controllers/
+│   ├── routes/
+│   ├── middlewares/        # Auth · role · ownership
+│   ├── validators/
+│   └── exceptions/         # Custom error hierarchy
+└── app.js</code></pre>
+        </div>
+      </section>
+
+      <div class="flex flex-wrap gap-4 reveal">
+        <a
+          href={project.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center px-6 py-3 bg-accent text-white font-medium rounded-md hover:bg-accent-muted transition-colors duration-150"
+        >
+          View Source Code
+        </a>
+        <a
+          href="/"
+          class="inline-flex items-center px-6 py-3 border border-surface-border text-text-secondary font-medium rounded-md hover:border-text-muted hover:text-text-primary transition-colors duration-150"
+        >
+          Back to Projects
+        </a>
+      </div>
+    </div>
+  </article>
+</Layout>

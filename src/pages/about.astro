@@ -1,0 +1,104 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About — Carlos García">
+  <section class="section-spacing">
+    <div class="container-narrow">
+      <div class="mb-12 reveal">
+        <p class="font-mono text-sm text-accent mb-2">About</p>
+        <h1 class="text-display font-heading text-text-primary">Carlos García</h1>
+      </div>
+
+      <div class="max-w-2xl mb-16">
+        <div class="space-y-6 text-text-secondary leading-relaxed reveal reveal-delay-1">
+          <p>
+            I'm a software developer focused on backend engineering, clean architecture and DevOps.
+            I design and build systems that are scalable, maintainable and modular.
+          </p>
+          <p>
+            My work spans the full path from code to production: writing backend services with
+            clear architecture, containerizing with Docker, automating infrastructure with Ansible,
+            and deploying with CI/CD pipelines that include health checks and rollback.
+          </p>
+          <p>
+            I believe the interesting engineering problems aren't in the code itself — they're
+            in how systems connect, how failures are handled, and how deployments stay reliable
+            when things go wrong.
+          </p>
+        </div>
+      </div>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">What I focus on</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="card-surface p-5 reveal reveal-delay-1">
+            <h3 class="font-heading font-semibold text-text-primary text-sm mb-2">Backend Architecture</h3>
+            <p class="text-text-muted text-xs leading-relaxed">
+              Clean architecture, separation of concerns, testable business logic. I've worked with
+              Onion Architecture, middleware pipelines, and dependency injection.
+            </p>
+          </div>
+          <div class="card-surface p-5 reveal reveal-delay-2">
+            <h3 class="font-heading font-semibold text-text-primary text-sm mb-2">DevOps & Automation</h3>
+            <p class="text-text-muted text-xs leading-relaxed">
+              Docker, Ansible, CI/CD pipelines, Blue/Green deployments. I automate the path from
+              code commit to production.
+            </p>
+          </div>
+          <div class="card-surface p-5 reveal reveal-delay-3">
+            <h3 class="font-heading font-semibold text-text-primary text-sm mb-2">Testing</h3>
+            <p class="text-text-muted text-xs leading-relaxed">
+              Automated tests as a design tool. I've written 1000+ tests covering use cases,
+              entities, validators and controllers.
+            </p>
+          </div>
+          <div class="card-surface p-5 reveal reveal-delay-4">
+            <h3 class="font-heading font-semibold text-text-primary text-sm mb-2">Resilience</h3>
+            <p class="text-text-muted text-xs leading-relaxed">
+              Circuit breakers, fallback chains, health checks, auto-recovery. Systems that stay
+              online when external dependencies fail.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Current focus</h2>
+        <div class="card-surface p-6 reveal reveal-delay-1">
+          <ul class="space-y-3 text-text-secondary text-sm">
+            <li class="flex items-start gap-3">
+              <span class="font-mono text-xs text-accent mt-0.5">→</span>
+              <span>Building backend systems with clear architecture</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="font-mono text-xs text-accent mt-0.5">→</span>
+              <span>Automating deployment pipelines with CI/CD</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="font-mono text-xs text-accent mt-0.5">→</span>
+              <span>Improving system reliability and failure handling</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="flex flex-wrap gap-4 reveal">
+        <a
+          href="https://github.com/carlosgarcia-tech"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center px-6 py-3 bg-accent text-white font-medium rounded-md hover:bg-accent-muted transition-colors duration-150"
+        >
+          GitHub Profile
+        </a>
+        <a
+          href="mailto:contact@carlosgarcia.dev"
+          class="inline-flex items-center px-6 py-3 border border-surface-border text-text-secondary font-medium rounded-md hover:border-text-muted hover:text-text-primary transition-colors duration-150"
+        >
+          Get in Touch
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>

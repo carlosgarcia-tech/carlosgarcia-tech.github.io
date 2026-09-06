@@ -1,0 +1,196 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BlueGreenDiagram from '../../components/diagrams/BlueGreenDiagram.astro';
+import DeployTerminalPreview from '../../components/previews/DeployTerminalPreview.astro';
+
+const project = {
+  title: 'Deployment Automation',
+  subtitle: 'Infrastructure & Deployment Automation',
+  description: 'Infrastructure-as-code for automated server provisioning and Blue/Green deployment. Evolved from GitLab CI/CD + Ansible + SSH to GitHub Actions + Tailscale + Ansible — the same engineering problem, two implementations.',
+  github: 'https://github.com/carlosgarcia-tech/commons-deploy',
+  tags: ['Ansible', 'GitHub Actions', 'Tailscale', 'Docker', 'Nginx', 'PostgreSQL', 'SonarQube'],
+};
+
+const metrics = [
+  { value: 'B/G', label: 'deployment', detail: 'zero-downtime releases' },
+  { value: '< 1m', label: 'rollback', detail: 'instant traffic flip' },
+  { value: '2', label: 'implementations', detail: 'GitLab → GitHub Actions' },
+  { value: '171', label: 'total commits', detail: 'across both repos' },
+];
+
+const evolution = [
+  {
+    phase: 'Automation Deployments',
+    stack: 'GitLab CI/CD + Ansible + SSH + VPS',
+    description: 'First implementation. GitLab pipeline triggers Ansible playbooks over SSH through a jump host. Provisions Docker, PostgreSQL, and SonarQube on remote servers.',
+    github: 'https://github.com/carlosgarcia-tech/automation-deployments',
+    commits: '137',
+  },
+  {
+    phase: 'Commons Deploy',
+    stack: 'GitHub Actions + Tailscale + Ansible',
+    description: 'Evolved implementation. Tailscale replaces jump hosts for connectivity. GitHub Actions replaces GitLab CI. Adds Blue/Green deployment with health gates and auto-rollback for both API and client.',
+    github: 'https://github.com/carlosgarcia-tech/commons-deploy',
+    commits: '34',
+  },
+];
+
+const blueGreenSteps = [
+  'Determine active color from current nginx config',
+  'Deploy new image to target color (opposite of active)',
+  'Internal health gate: docker exec + polling loop',
+  'Rewrite proxy config, reload nginx',
+  'Public verification against host port',
+  'On failure: auto-revert, fail deployment',
+  'On success: park previous color for instant rollback',
+];
+
+const components = [
+  { name: 'Docker', description: 'Docker CE installation, service management, GHCR login' },
+  { name: 'PostgreSQL', description: 'PostgreSQL 18 container with persistent volumes' },
+  { name: 'SonarQube', description: 'SonarQube Community with health checks' },
+  { name: 'API Blue/Green', description: 'commons-marketplace blue/green with nginx proxy' },
+  { name: 'Client Blue/Green', description: 'commons-marketplace-client blue/green with nginx proxy' },
+  { name: 'Tailscale Gate', description: 'Join tailnet, verify host reachability before Ansible' },
+];
+
+const workflows = [
+  { name: 'ping.yml', description: 'Continuous connectivity verification' },
+  { name: 'provision.yml', description: 'Docker Engine + compose plugin + GHCR login' },
+  { name: 'sonarqube.yml', description: 'PostgreSQL 18 + SonarQube Community' },
+  { name: 'marketplace.yml', description: 'Deploy API (blue-green + health gate + auto-rollback)' },
+  { name: 'client.yml', description: 'Deploy Client (blue-green + health gate + auto-rollback)' },
+  { name: 'marketplace-rollback.yml', description: 'Instant traffic flip for API' },
+  { name: 'client-rollback.yml', description: 'Instant traffic flip for Client' },
+];
+---
+
+<Layout title={`${project.title} — Carlos García`}>
+  <article class="section-spacing">
+    <div class="container-narrow">
+      <div class="mb-12 reveal">
+        <a href="/" class="font-mono text-sm text-accent hover:text-accent-muted transition-colors duration-150 mb-4 inline-block">
+          ← Back to projects
+        </a>
+        <h1 class="text-display font-heading text-text-primary mb-2">{project.title}</h1>
+        <p class="text-text-muted font-mono text-sm mb-6">{project.subtitle}</p>
+        <p class="text-text-secondary text-lg leading-relaxed max-w-2xl">
+          {project.description}
+        </p>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mb-12 reveal reveal-delay-1">
+        {project.tags.map((tag) => (
+          <span class="tech-badge">{tag}</span>
+        ))}
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+        {metrics.map((metric) => (
+          <div class="metric-card reveal">
+            <span class="metric-value count-up-value">{metric.value}</span>
+            <p class="metric-label">{metric.label}</p>
+            <p class="text-xs text-text-muted mt-0.5">{metric.detail}</p>
+          </div>
+        ))}
+      </div>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Deployment Terminal</h2>
+        <div class="reveal reveal-delay-1">
+          <DeployTerminalPreview />
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Evolution</h2>
+        <div class="grid gap-4 stagger-children">
+          {evolution.map((item) => (
+            <div class="card-surface card-hover p-6">
+              <div class="flex items-start justify-between mb-3">
+                <h3 class="font-heading font-semibold text-text-primary">{item.phase}</h3>
+                <span class="font-mono text-xs text-text-muted">{item.commits} commits</span>
+              </div>
+              <p class="font-mono text-xs text-accent mb-2">{item.stack}</p>
+              <p class="text-text-secondary text-sm leading-relaxed mb-4">{item.description}</p>
+              <a
+                href={item.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-mono text-xs text-accent hover:text-accent-muted transition-colors duration-150"
+              >
+                View Repository ↗
+              </a>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Blue/Green deployment flow</h2>
+        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
+          <BlueGreenDiagram />
+          <div class="grid gap-3 mt-8">
+            {blueGreenSteps.map((step, i) => (
+              <div class="flex items-start gap-4 py-2 border-b border-surface-border last:border-0">
+                <span class="font-mono text-xs text-accent mt-0.5">{String(i + 1).padStart(2, '0')}</span>
+                <span class="text-text-secondary text-sm">{step}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Components</h2>
+        <div class="grid gap-3">
+          {components.map((item, i) => (
+            <div class={`card-surface p-4 flex items-start gap-4 reveal reveal-delay-${Math.min(i + 1, 4)}`}>
+              <span class="font-mono text-sm text-accent">{item.name}</span>
+              <span class="text-text-secondary text-sm">{item.description}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">GitHub Actions workflows</h2>
+        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
+          <div class="grid gap-3">
+            {workflows.map((item) => (
+              <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 py-2 border-b border-surface-border last:border-0">
+                <span class="font-mono text-sm text-accent">{item.name}</span>
+                <span class="text-text-muted text-sm">{item.description}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div class="flex flex-wrap gap-4 reveal">
+        <a
+          href={project.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center px-6 py-3 bg-accent text-white font-medium rounded-md hover:bg-accent-muted transition-colors duration-150"
+        >
+          View Source Code
+        </a>
+        <a
+          href="https://github.com/carlosgarcia-tech/automation-deployments"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center px-6 py-3 border border-surface-border text-text-secondary font-medium rounded-md hover:border-text-muted hover:text-text-primary transition-colors duration-150"
+        >
+          Legacy Implementation
+        </a>
+        <a
+          href="/"
+          class="inline-flex items-center px-6 py-3 border border-surface-border text-text-secondary font-medium rounded-md hover:border-text-muted hover:text-text-primary transition-colors duration-150"
+        >
+          Back to Projects
+        </a>
+      </div>
+    </div>
+  </article>
+</Layout>

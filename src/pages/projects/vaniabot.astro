@@ -1,0 +1,200 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import VaniaBotDiagram from '../../components/diagrams/VaniaBotDiagram.astro';
+import VaniaBotPreview from '../../components/previews/VaniaBotPreview.astro';
+
+const project = {
+  title: 'VaniaBot',
+  subtitle: 'WhatsApp Automation System',
+  description: 'A production-grade WhatsApp automation system built with TypeScript — featuring 200+ commands, 80+ integrated services, and a resilient multi-instance architecture designed to stay online under real-world failure conditions.',
+  github: 'https://github.com/carlosgarcia-tech/VaniaBot',
+  tags: ['TypeScript 5', 'Node.js 20+', 'Baileys v7', 'SQLite', 'Redis', 'Bull', 'Groq SDK', 'Docker'],
+};
+
+const metrics = [
+  { value: '200+', label: 'commands', detail: 'across 9 domains' },
+  { value: '80+', label: 'services', detail: 'integrated services' },
+  { value: '50', label: 'concurrent sessions', detail: 'SubBot instances' },
+  { value: '502', label: 'commits', detail: 'on main branch' },
+];
+
+const features = [
+  {
+    title: 'Middleware Pipeline',
+    description: 'Every incoming message passes through a sequential middleware chain (session validation, rate limiter, anti-spam, permission check, context builder) before reaching a command. Cross-cutting concerns stay decoupled from business logic.',
+  },
+  {
+    title: 'AI Fallback Chain',
+    description: 'Groq (LLaMA 3) as primary AI provider with circuit breaker per provider. When an API fails, requests route to the next provider automatically. Exponential backoff with jitter prevents thundering herd on recovery.',
+  },
+  {
+    title: 'Multi-Instance Orchestrator',
+    description: 'Up to 50 parallel WhatsApp sessions from a single process, each with isolated state, session, and lifecycle. HeartbeatService monitors health; RecoveryService auto-reconnects with backoff before escalating to session reset.',
+  },
+  {
+    title: 'Document Pipeline',
+    description: 'Bidirectional conversion bridge (PDF ↔ Office/Image) that picks a different engine per format for optimal output. Node ↔ Python contract with structured results and semantic exit codes.',
+  },
+];
+
+const commandDomains = [
+  { domain: 'AI & Chat', examples: '.ai, .transcribe, .aiclear' },
+  { domain: 'Moderation', examples: '.ban, .kick, .mute, .warn, .antispam' },
+  { domain: 'Economy', examples: '.daily, .work, .shop, .casino, .balance' },
+  { domain: 'Games', examples: '.coinflip, .slots, .quiz' },
+  { domain: 'Media', examples: '.sticker, .ytmp3, .ytmp4, .tiktok' },
+  { domain: 'Document Converter', examples: '.img2pdf, .pdf2img, .docx2pdf, .pdf2docx' },
+  { domain: 'Utilities', examples: '.translate, .currency, .qr, .poll' },
+  { domain: 'SubBots', examples: '.subbot create, .subbot list, .subbot start' },
+];
+
+const stack = [
+  { layer: 'Language', technology: 'TypeScript 5' },
+  { layer: 'Runtime', technology: 'Node.js 20+' },
+  { layer: 'WhatsApp', technology: 'Baileys v7' },
+  { layer: 'AI', technology: 'Groq SDK (LLaMA 3, Whisper)' },
+  { layer: 'Primary DB', technology: 'SQLite' },
+  { layer: 'DB Backup', technology: 'MongoDB (optional)' },
+  { layer: 'Cache', technology: 'Redis / in-memory fallback' },
+  { layer: 'Queue', technology: 'Bull' },
+  { layer: 'Document rendering', technology: 'PyMuPDF, LibreOffice' },
+  { layer: 'Logging', technology: 'Pino' },
+  { layer: 'Validation', technology: 'Zod' },
+  { layer: 'Testing', technology: 'Vitest' },
+  { layer: 'Containers', technology: 'Docker + Compose' },
+];
+---
+
+<Layout title={`${project.title} — Carlos García`}>
+  <article class="section-spacing">
+    <div class="container-narrow">
+      <div class="mb-12 reveal">
+        <a href="/" class="font-mono text-sm text-accent hover:text-accent-muted transition-colors duration-150 mb-4 inline-block">
+          ← Back to projects
+        </a>
+        <h1 class="text-display font-heading text-text-primary mb-2">{project.title}</h1>
+        <p class="text-text-muted font-mono text-sm mb-6">{project.subtitle}</p>
+        <p class="text-text-secondary text-lg leading-relaxed max-w-2xl">
+          {project.description}
+        </p>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mb-12 reveal reveal-delay-1">
+        {project.tags.map((tag) => (
+          <span class="tech-badge">{tag}</span>
+        ))}
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+        {metrics.map((metric) => (
+          <div class="metric-card reveal">
+            <span class="metric-value count-up-value">{metric.value}</span>
+            <p class="metric-label">{metric.label}</p>
+            <p class="text-xs text-text-muted mt-0.5">{metric.detail}</p>
+          </div>
+        ))}
+      </div>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Chat Simulator</h2>
+        <div class="reveal reveal-delay-1">
+          <VaniaBotPreview />
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Architecture</h2>
+        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
+          <VaniaBotDiagram />
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Engineering highlights</h2>
+        <div class="grid gap-4 stagger-children">
+          {features.map((feature) => (
+            <div class="card-surface card-hover p-6">
+              <h3 class="font-heading font-semibold text-text-primary mb-2">{feature.title}</h3>
+              <p class="text-text-secondary text-sm leading-relaxed">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Commands</h2>
+        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
+          <div class="grid gap-3">
+            {commandDomains.map((item) => (
+              <div class="flex flex-col md:flex-row md:items-center justify-between py-2 border-b border-surface-border last:border-0 gap-1">
+                <span class="font-mono text-sm text-text-primary">{item.domain}</span>
+                <span class="text-text-muted text-sm font-mono">{item.examples}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Stack</h2>
+        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
+          <div class="grid gap-3">
+            {stack.map((item) => (
+              <div class="flex items-center justify-between py-2 border-b border-surface-border last:border-0">
+                <span class="font-mono text-sm text-text-muted">{item.layer}</span>
+                <span class="text-text-primary text-sm font-medium">{item.technology}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">Project structure</h2>
+        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
+          <pre class="font-mono text-sm text-text-secondary leading-relaxed overflow-x-auto"><code>VaniaBot/
+├── src/
+│   ├── commands/           # One file per command, auto-registered
+│   │   ├── admin/
+│   │   ├── economy/
+│   │   ├── fun/
+│   │   ├── game/
+│   │   ├── media/
+│   │   └── utility/
+│   ├── core/               # Client bootstrap + CommandRegistry
+│   ├── middlewares/        # Auth, rate limit, anti-spam, context
+│   ├── services/
+│   │   ├── ai/             # Fallback chain + Circuit Breaker
+│   │   ├── convert/        # Document conversion bridge
+│   │   ├── database/       # SQLite + MongoDB adapters
+│   │   ├── cache/          # Redis + in-memory fallback
+│   │   └── external/       # Third-party API wrappers
+│   ├── orchestrator/       # SubBot lifecycle management
+│   ├── workers/            # Bull queue workers
+│   ├── repositories/       # Data access layer
+│   └── types/              # Shared TypeScript types
+├── vania.ts                # Bootstrapper
+├── index.ts                # Entry point
+└── docker-compose.yml</code></pre>
+        </div>
+      </section>
+
+      <div class="flex flex-wrap gap-4 reveal">
+        <a
+          href={project.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center px-6 py-3 bg-accent text-white font-medium rounded-md hover:bg-accent-muted transition-colors duration-150"
+        >
+          View Source Code
+        </a>
+        <a
+          href="/"
+          class="inline-flex items-center px-6 py-3 border border-surface-border text-text-secondary font-medium rounded-md hover:border-text-muted hover:text-text-primary transition-colors duration-150"
+        >
+          Back to Projects
+        </a>
+      </div>
+    </div>
+  </article>
+</Layout>
