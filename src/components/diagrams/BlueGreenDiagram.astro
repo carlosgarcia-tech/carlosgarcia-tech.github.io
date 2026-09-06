@@ -1,0 +1,238 @@
+---
+const steps = [
+  { label: 'Detect active', sublabel: 'nginx config' },
+  { label: 'Deploy target', sublabel: 'opposite color' },
+  { label: 'Health gate', sublabel: 'docker exec' },
+  { label: 'Switch proxy', sublabel: 'reload nginx' },
+  { label: 'Verify public', sublabel: 'host port' },
+  { label: 'Park old', sublabel: 'instant rollback' },
+];
+---
+
+<div class="bluegreen-diagram w-full overflow-x-auto" data-component="bluegreen">
+  <div class="min-w-[640px] px-4">
+    <svg viewBox="0 0 700 280" class="w-full h-auto" role="img" aria-label="Blue/Green deployment flow diagram">
+      <defs>
+        <marker id="arrow-bg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#3B82F6" />
+        </marker>
+        <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#34D399" />
+        </marker>
+        <filter id="bg-glow">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- Blue environment -->
+      <rect x="20" y="20" width="140" height="100" rx="8" fill="none" stroke="#3B82F6" stroke-width="2" opacity="0.5" class="env-box" data-env="blue" />
+      <text x="90" y="55" text-anchor="middle" fill="#3B82F6" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Blue</text>
+      <text x="90" y="75" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="9">commons-blue:3000</text>
+      <rect x="50" y="90" width="80" height="4" rx="2" fill="#3B82F6" opacity="0.4" class="health-bar" data-env="blue" />
+
+      <!-- Green environment -->
+      <rect x="20" y="160" width="140" height="100" rx="8" fill="none" stroke="#34D399" stroke-width="2" opacity="0.3" class="env-box" data-env="green" />
+      <text x="90" y="195" text-anchor="middle" fill="#34D399" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Green</text>
+      <text x="90" y="215" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="9">commons-green:3000</text>
+      <rect x="50" y="225" width="80" height="4" rx="2" fill="#34D399" opacity="0.3" class="health-bar" data-env="green" />
+
+      <!-- Nginx proxy -->
+      <rect x="220" y="80" width="120" height="120" rx="8" fill="#1A2035" stroke="#64748B" stroke-width="1.5" />
+      <text x="280" y="125" text-anchor="middle" fill="#F1F5F9" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Nginx</text>
+      <text x="280" y="145" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="9">commons-proxy</text>
+      <text x="280" y="165" text-anchor="middle" fill="#3B82F6" font-family="JetBrains Mono, monospace" font-size="9" id="proxy-target">upstream: blue</text>
+
+      <!-- Traffic arrow from proxy to blue -->
+      <line x1="220" y1="110" x2="160" y2="70" stroke="#3B82F6" stroke-width="2" marker-end="url(#arrow-bg)" class="traffic-line" id="traffic-blue" opacity="1" />
+      <!-- Traffic arrow from proxy to green (hidden) -->
+      <line x1="220" y1="170" x2="160" y2="210" stroke="#34D399" stroke-width="2" marker-end="url(#arrow-green)" class="traffic-line" id="traffic-green" opacity="0.2" />
+
+      <!-- Traffic flow animation -->
+      <circle r="3" fill="#3B82F6" id="traffic-dot" opacity="0">
+        <animateMotion dur="1.5s" repeatCount="indefinite" path="M380,140 L340,110 L280,110" />
+      </circle>
+
+      <!-- Steps flow -->
+      <g transform="translate(380, 30)">
+        {steps.map((step, i) => (
+          <g transform={`translate(0, ${i * 40})`}>
+            <rect x="0" y="0" width="280" height="32" rx="6" fill="#111827" stroke="#1E293B" stroke-width="1" class="step-box" data-step={i} />
+            <circle cx="16" cy="16" r="10" fill="none" stroke="#3B82F6" stroke-width="1.5" class="step-circle" data-step={i} />
+            <text x="16" y="20" text-anchor="middle" fill="#3B82F6" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">{String(i + 1).padStart(2, '0')}</text>
+            <text x="34" y="14" fill="#F1F5F9" font-family="Inter, sans-serif" font-size="10" font-weight="500">{step.label}</text>
+            <text x="34" y="26" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="8">{step.sublabel}</text>
+          </g>
+        ))}
+        {steps.slice(0, -1).map((_, i) => (
+          <line x1="140" y1={i * 40 + 32} x2="140" y2={(i + 1) * 40 + 4} stroke="#1E293B" stroke-width="1" stroke-dasharray="4 4" class="step-connector" data-step={i} />
+        ))}
+      </g>
+
+      <!-- Rollback badge -->
+      <g transform="translate(520, 250)">
+        <rect x="0" y="0" width="140" height="24" rx="4" fill="#388e3c" opacity="0.15" stroke="#388e3c" stroke-width="1" />
+        <text x="70" y="16" text-anchor="middle" fill="#34D399" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">Rollback {"<"} 1min</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Mobile fallback -->
+  <div class="md:hidden mt-4 space-y-2 px-4">
+    <p class="font-mono text-xs text-text-muted mb-3">Deployment flow:</p>
+    {steps.map((step, i) => (
+      <div class="flex items-center gap-3">
+        <span class="font-mono text-xs text-accent">{String(i + 1).padStart(2, '0')}</span>
+        <span class="text-text-secondary text-sm">{step.label}</span>
+        <span class="text-text-muted text-xs">{step.sublabel}</span>
+      </div>
+    ))}
+  </div>
+</div>
+
+<script>
+  function initBlueGreenDiagram() {
+    const diagram = document.querySelector('[data-component="bluegreen"]');
+    if (!diagram) return;
+
+    const proxyTarget = diagram.querySelector('#proxy-target');
+    const trafficBlue = diagram.querySelector('#traffic-blue');
+    const trafficGreen = diagram.querySelector('#traffic-green');
+    const trafficDot = diagram.querySelector('#traffic-dot');
+    const envBoxes = diagram.querySelectorAll('.env-box');
+    const healthBars = diagram.querySelectorAll('.health-bar');
+    const stepBoxes = diagram.querySelectorAll('.step-box');
+    const stepCircles = diagram.querySelectorAll('.step-circle');
+    const stepConnectors = diagram.querySelectorAll('.step-connector');
+
+    let activeEnv: 'blue' | 'green' = 'blue';
+    let activeStep = -1;
+    let animationInterval: ReturnType<typeof setInterval> | null = null;
+
+    function setEnvironment(env: 'blue' | 'green') {
+      activeEnv = env;
+      if (proxyTarget) {
+        proxyTarget.textContent = `upstream: ${env}`;
+        proxyTarget.setAttribute('fill', env === 'blue' ? '#3B82F6' : '#34D399');
+      }
+
+      envBoxes.forEach((box) => {
+        const el = box as SVGRectElement;
+        const boxEnv = el.dataset.env;
+        el.setAttribute('opacity', boxEnv === env ? '1' : '0.3');
+        el.setAttribute('stroke-width', boxEnv === env ? '3' : '1.5');
+      });
+
+      healthBars.forEach((bar) => {
+        const el = bar as SVGRectElement;
+        const barEnv = el.dataset.env;
+        el.setAttribute('opacity', barEnv === env ? '0.8' : '0.2');
+        el.setAttribute('width', barEnv === env ? '80' : '40');
+      });
+
+      if (trafficBlue && trafficGreen) {
+        trafficBlue.setAttribute('opacity', env === 'blue' ? '1' : '0.2');
+        trafficGreen.setAttribute('opacity', env === 'green' ? '1' : '0.2');
+      }
+
+      if (trafficDot) {
+        trafficDot.setAttribute('fill', env === 'blue' ? '#3B82F6' : '#34D399');
+      }
+    }
+
+    function highlightStep(index: number) {
+      activeStep = index;
+      stepBoxes.forEach((box, i) => {
+        const el = box as SVGRectElement;
+        el.setAttribute('stroke', i === index ? '#3B82F6' : '#1E293B');
+        el.setAttribute('stroke-width', i === index ? '2' : '1');
+        el.setAttribute('fill', i === index ? '#1A2035' : '#111827');
+      });
+      stepCircles.forEach((circle, i) => {
+        const el = circle as SVGCircleElement;
+        el.setAttribute('stroke', i === index ? '#3B82F6' : '#3B82F6');
+        el.setAttribute('stroke-width', i === index ? '2.5' : '1.5');
+        el.setAttribute('fill', i === index ? 'rgba(59, 130, 246, 0.15)' : 'none');
+      });
+      stepConnectors.forEach((conn, i) => {
+        const el = conn as SVGLineElement;
+        el.setAttribute('stroke', i === index ? '#3B82F6' : '#1E293B');
+        el.setAttribute('stroke-width', i === index ? '2' : '1');
+      });
+    }
+
+    function resetSteps() {
+      stepBoxes.forEach((box) => {
+        const el = box as SVGRectElement;
+        el.setAttribute('stroke', '#1E293B');
+        el.setAttribute('stroke-width', '1');
+        el.setAttribute('fill', '#111827');
+      });
+      stepCircles.forEach((circle) => {
+        const el = circle as SVGCircleElement;
+        el.setAttribute('stroke', '#3B82F6');
+        el.setAttribute('stroke-width', '1.5');
+        el.setAttribute('fill', 'none');
+      });
+      stepConnectors.forEach((conn) => {
+        const el = conn as SVGLineElement;
+        el.setAttribute('stroke', '#1E293B');
+        el.setAttribute('stroke-width', '1');
+      });
+    }
+
+    // Step hover
+    stepBoxes.forEach((box, i) => {
+      box.addEventListener('mouseenter', () => highlightStep(i));
+      box.addEventListener('mouseleave', resetSteps);
+    });
+
+    // Environment click to toggle
+    envBoxes.forEach((box) => {
+      box.style.cursor = 'pointer';
+      box.addEventListener('click', () => {
+        const env = (box as SVGRectElement).dataset.env as 'blue' | 'green';
+        if (env) setEnvironment(env);
+      });
+    });
+
+    // Auto-animate through steps on hover of diagram
+    diagram.addEventListener('mouseenter', () => {
+      let step = 0;
+      highlightStep(step);
+      animationInterval = setInterval(() => {
+        step = (step + 1) % steps.length;
+        highlightStep(step);
+        // Toggle environment at step 3 (switch proxy)
+        if (step === 3) {
+          setEnvironment(activeEnv === 'blue' ? 'green' : 'blue');
+        }
+      }, 800);
+    });
+
+    diagram.addEventListener('mouseleave', () => {
+      if (animationInterval) {
+        clearInterval(animationInterval);
+        animationInterval = null;
+      }
+      resetSteps();
+    });
+  }
+
+  document.addEventListener('astro:page-load', initBlueGreenDiagram);
+  initBlueGreenDiagram();
+</script>
+
+<style>
+  .env-box {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .step-box {
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+</style>

@@ -1,0 +1,317 @@
+---
+const steps = [
+  { label: 'Build', detail: 'Write code with clear architecture', icon: '{ }' },
+  { label: 'Test', detail: 'Verify with automated tests', icon: '✓' },
+  { label: 'Containerize', detail: 'Package with Docker', icon: '◻' },
+  { label: 'Automate', detail: 'Infrastructure as code', icon: '⚙' },
+  { label: 'Deploy', detail: 'CI/CD with Blue/Green', icon: '↑' },
+  { label: 'Monitor', detail: 'Health checks and recovery', icon: '◉' },
+];
+---
+
+<section class="section-spacing border-t border-surface-border">
+  <div class="container-narrow">
+    <div class="mb-12 reveal">
+      <p class="font-mono text-sm text-accent mb-2">How I work</p>
+      <h2 class="text-headline font-heading text-text-primary">Engineering focus</h2>
+      <p class="text-text-secondary mt-3 max-w-xl">
+        The path from code to production — every project follows this progression.
+      </p>
+    </div>
+
+    <!-- Desktop: horizontal flow diagram -->
+    <div class="hidden md:block reveal reveal-delay-1">
+      <div class="relative">
+        <svg viewBox="0 0 800 120" class="w-full h-auto" role="img" aria-label="Engineering process flow from Build to Monitor">
+          <defs>
+            <marker id="arrow-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#1E293B" />
+            </marker>
+            <marker id="arrow-flow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#3B82F6" />
+            </marker>
+          </defs>
+
+          <!-- Connection lines -->
+          {steps.slice(0, -1).map((_, i) => {
+            const x1 = 10 + i * 130 + 100;
+            const x2 = 10 + (i + 1) * 130;
+            const len = x2 - x1;
+            return (
+              <line
+                x1={x1}
+                y1="55"
+                x2={x2}
+                y2="55"
+                stroke="#1E293B"
+                stroke-width="1.5"
+                stroke-dasharray={`${len}`}
+                stroke-dashoffset={`${len}`}
+                class="flow-line"
+                data-index={i}
+                data-length={len}
+              />
+            );
+          })}
+
+          <!-- Animated flow particles -->
+          {steps.slice(0, -1).map((_, i) => {
+            const x1 = 10 + i * 130 + 100;
+            const x2 = 10 + (i + 1) * 130;
+            return (
+              <circle r="2" fill="#3B82F6" opacity="0" class="flow-particle" data-index={i}>
+                <animate
+                  attributeName="cx"
+                  from={x1}
+                  to={x2}
+                  dur="1.5s"
+                  begin={`${i * 0.3}s`}
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="cy"
+                  values="55;55"
+                  dur="1.5s"
+                  begin={`${i * 0.3}s`}
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="opacity"
+                  values="0;0.8;0.8;0"
+                  dur="1.5s"
+                  begin={`${i * 0.3}s`}
+                  repeatCount="indefinite"
+                />
+              </circle>
+            );
+          })}
+
+          <!-- Step nodes -->
+          {steps.map((step, i) => {
+            const x = 10 + i * 130;
+            return (
+              <g class="flow-node" data-index={i} style="cursor: pointer;">
+                <circle cx={x + 50} cy="55" r="38" fill="#0A0E1A" stroke="#1E293B" stroke-width="2" class="node-circle" />
+                <circle cx={x + 50} cy="55" r="38" fill="none" stroke="#3B82F6" stroke-width="0" class="node-glow" />
+                <text x={x + 50} y="52" text-anchor="middle" fill="#3B82F6" font-family="JetBrains Mono, monospace" font-size="14" class="node-icon">{step.icon}</text>
+                <text x={x + 50} y="72" text-anchor="middle" fill="#F1F5F9" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">{step.label}</text>
+              </g>
+            );
+          })}
+        </svg>
+
+        <!-- Detail tooltip -->
+        <div class="mt-4 text-center min-h-[2rem]" id="flow-detail" aria-live="polite">
+          <span class="text-text-muted text-sm">Hover each step to explore the process</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile: vertical list with connecting line -->
+    <div class="md:hidden">
+      <div class="relative pl-8">
+        <div class="absolute left-3 top-0 bottom-0 w-px bg-surface-border"></div>
+        {steps.map((step, i) => (
+          <div class={`relative mb-6 last:mb-0 reveal reveal-delay-${Math.min(i + 1, 4)}`}>
+            <div class="absolute -left-5 w-4 h-4 rounded-full border-2 border-accent bg-surface" style="top: 2px;"></div>
+            <div class="card-surface p-4">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-mono text-xs text-accent">{String(i + 1).padStart(2, '0')}</span>
+                <h3 class="font-heading font-semibold text-text-primary text-sm">{step.label}</h3>
+              </div>
+              <p class="text-text-muted text-xs">{step.detail}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function initProcessFlow() {
+    const root = document.querySelector('.hidden.md\\:block.reveal');
+    if (!root) return;
+
+    const nodes = root.querySelectorAll('.flow-node');
+    const circles = root.querySelectorAll('.node-circle');
+    const glows = root.querySelectorAll('.node-glow');
+    const lines = root.querySelectorAll('.flow-line');
+    const particles = root.querySelectorAll('.flow-particle');
+    const detailEl = document.getElementById('flow-detail');
+
+    const stepDetails = [
+      'Write code with clear architecture — separation of concerns, clean interfaces',
+      'Verify behavior with automated tests — use cases, entities, validators',
+      'Package with Docker for consistency — reproducible builds, isolated environments',
+      'Infrastructure as code with Ansible — server provisioning, configuration management',
+      'CI/CD with Blue/Green deployment — zero-downtime releases, instant rollback',
+      'Health checks and recovery — monitoring, auto-restart, circuit breakers',
+    ];
+
+    let activeStep = -1;
+
+    function activateStep(i: number) {
+      if (i === activeStep) return;
+      activeStep = i;
+
+      // Nodes: highlight up to current, dim after
+      circles.forEach((circle, j) => {
+        const el = circle as SVGCircleElement;
+        if (j <= i) {
+          el.setAttribute('stroke', '#3B82F6');
+          el.setAttribute('stroke-width', j === i ? '3' : '2');
+        } else {
+          el.setAttribute('stroke', '#1E293B');
+          el.setAttribute('stroke-width', '2');
+        }
+      });
+
+      glows.forEach((glow, j) => {
+        const el = glow as SVGCircleElement;
+        el.setAttribute('stroke-width', j <= i ? '2' : '0');
+      });
+
+      // Lines: draw up to current
+      lines.forEach((line, j) => {
+        const el = line as SVGLineElement;
+        const len = el.getAttribute('data-length') || '20';
+        if (j < i) {
+          el.setAttribute('stroke', '#3B82F6');
+          el.setAttribute('stroke-width', '2');
+          el.setAttribute('stroke-dasharray', 'none');
+          el.setAttribute('stroke-dashoffset', '0');
+        } else if (j === i) {
+          el.setAttribute('stroke', '#3B82F6');
+          el.setAttribute('stroke-width', '2');
+          el.setAttribute('stroke-dasharray', len);
+          el.setAttribute('stroke-dashoffset', '0');
+          el.style.transition = 'stroke-dashoffset 0.6s ease-out';
+        } else {
+          el.setAttribute('stroke', '#1E293B');
+          el.setAttribute('stroke-width', '1.5');
+          el.setAttribute('stroke-dasharray', len);
+          el.setAttribute('stroke-dashoffset', len);
+          el.style.transition = 'none';
+        }
+      });
+
+      // Particles: show up to current
+      particles.forEach((particle, j) => {
+        const el = particle as SVGCircleElement;
+        el.setAttribute('opacity', j < i ? '0.8' : '0');
+      });
+
+      if (detailEl && i >= 0) {
+        const detail = stepDetails[i];
+        detailEl.innerHTML = `<span class="text-accent font-semibold">${detail.split('—')[0]}</span>${detail.includes('—') ? `<span class="text-text-muted"> — </span><span class="text-text-secondary">${detail.split('—')[1]}</span>` : ''}`;
+      }
+    }
+
+    // Scroll-based sequential activation
+    let scrollTimeout: ReturnType<typeof setTimeout>;
+    const scrollObserver = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        // Sequentially activate steps
+        let step = 0;
+        function nextStep() {
+          if (step < steps.length) {
+            activateStep(step);
+            step++;
+            scrollTimeout = setTimeout(nextStep, 400);
+          }
+        }
+        nextStep();
+      },
+      { threshold: 0.3 }
+    );
+
+    // Create a trigger element at the start of the diagram
+    const trigger = document.createElement('div');
+    trigger.style.height = '1px';
+    trigger.setAttribute('aria-hidden', 'true');
+    root.parentElement?.insertBefore(trigger, root);
+    scrollObserver.observe(trigger);
+
+    // Hover still overrides scroll
+    nodes.forEach((node, i) => {
+      node.addEventListener('mouseenter', () => activateStep(i));
+      node.addEventListener('mouseleave', () => {
+        clearTimeout(scrollTimeout);
+        // Re-trigger scroll animation from current step
+        let step = i + 1;
+        function nextStep() {
+          if (step < steps.length) {
+            activateStep(step);
+            step++;
+            scrollTimeout = setTimeout(nextStep, 400);
+          }
+        }
+        nextStep();
+      });
+    });
+
+    // Reset when diagram leaves viewport
+    const resetObserver = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) {
+          activeStep = -1;
+          circles.forEach((circle) => {
+            const el = circle as SVGCircleElement;
+            el.setAttribute('stroke', '#1E293B');
+            el.setAttribute('stroke-width', '2');
+          });
+          glows.forEach((glow) => {
+            (glow as SVGCircleElement).setAttribute('stroke-width', '0');
+          });
+          lines.forEach((line) => {
+            const el = line as SVGLineElement;
+            const len = el.getAttribute('data-length') || '20';
+            el.setAttribute('stroke', '#1E293B');
+            el.setAttribute('stroke-width', '1.5');
+            el.setAttribute('stroke-dasharray', len);
+            el.setAttribute('stroke-dashoffset', len);
+            el.style.transition = 'none';
+          });
+          particles.forEach((p) => (p as SVGCircleElement).setAttribute('opacity', '0'));
+          if (detailEl) {
+            detailEl.innerHTML = '<span class="text-text-muted text-sm">Hover each step to explore the process</span>';
+          }
+        }
+      },
+      { threshold: 0 }
+    );
+    resetObserver.observe(root);
+  }
+
+  const steps = [
+    { label: 'Build' },
+    { label: 'Test' },
+    { label: 'Containerize' },
+    { label: 'Automate' },
+    { label: 'Deploy' },
+    { label: 'Monitor' },
+  ];
+
+  document.addEventListener('astro:page-load', initProcessFlow);
+  initProcessFlow();
+</script>
+
+<style>
+  .flow-node {
+    transition: opacity 0.2s ease;
+  }
+  .node-circle {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .node-glow {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .flow-line {
+    transition: all 0.3s ease;
+  }
+  .flow-particle {
+    transition: opacity 0.3s ease;
+  }
+</style>

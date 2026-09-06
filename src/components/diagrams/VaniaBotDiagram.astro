@@ -1,0 +1,198 @@
+---
+const subbots = [
+  { name: 'SubBot 1', status: 'active' },
+  { name: 'SubBot 2', status: 'active' },
+  { name: 'SubBot N', status: 'active' },
+];
+
+const providers = [
+  { name: 'Groq', sublabel: 'LLaMA 3', status: 'primary' },
+  { name: 'Provider 2', sublabel: 'Fallback', status: 'fallback' },
+  { name: 'Provider 3', sublabel: 'Fallback', status: 'fallback' },
+];
+---
+
+<div class="vaniabot-diagram w-full overflow-x-auto" data-component="vaniabot">
+  <div class="min-w-[600px] px-4">
+    <svg viewBox="0 0 660 320" class="w-full h-auto" role="img" aria-label="VaniaBot multi-instance architecture diagram">
+      <defs>
+        <marker id="arrow-vb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#3B82F6" />
+        </marker>
+        <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#EF4444" />
+        </marker>
+        <filter id="vb-glow">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- Orchestrator -->
+      <rect x="240" y="10" width="180" height="50" rx="8" fill="#1A2035" stroke="#3B82F6" stroke-width="2" />
+      <text x="330" y="32" text-anchor="middle" fill="#3B82F6" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Orchestrator</text>
+      <text x="330" y="48" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="8">Lifecycle management</text>
+
+      <!-- Connection lines from orchestrator to subbots -->
+      <line x1="270" y1="60" x2="100" y2="100" stroke="#1E293B" stroke-width="1.5" stroke-dasharray="4 4" />
+      <line x1="330" y1="60" x2="330" y2="100" stroke="#1E293B" stroke-width="1.5" stroke-dasharray="4 4" />
+      <line x1="390" y1="60" x2="560" y2="100" stroke="#1E293B" stroke-width="1.5" stroke-dasharray="4 4" />
+
+      <!-- SubBot instances -->
+      {subbots.map((bot, i) => {
+        const x = i === 0 ? 30 : i === 1 ? 260 : 490;
+        return (
+          <g class="subbot-group" data-index={i}>
+            <rect x={x} y="100" width="140" height="70" rx="8" fill="#111827" stroke="#22D3EE" stroke-width="1.5" class="subbot-box" />
+            <text x={x + 70} y="125" text-anchor="middle" fill="#22D3EE" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">{bot.name}</text>
+            <text x={x + 70} y="142" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="8">session + SQLite</text>
+            <circle cx={x + 20} cy="155" r="4" fill="#34D399" class="status-dot" />
+            <text x={x + 30} y="158" fill="#34D399" font-family="JetBrains Mono, monospace" font-size="7">{bot.status}</text>
+          </g>
+        );
+      })}
+
+      <!-- Heartbeat line -->
+      <line x1="330" y1="60" x2="330" y2="85" stroke="#F59E0B" stroke-width="1" stroke-dasharray="2 2" opacity="0.5" />
+      <text x="345" y="80" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="7">heartbeat</text>
+
+      <!-- Recovery service -->
+      <rect x="220" y="190" width="220" height="36" rx="6" fill="#111827" stroke="#F59E0B" stroke-width="1" opacity="0.7" />
+      <text x="330" y="212" text-anchor="middle" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="9">RecoveryService — auto-reconnect</text>
+
+      <!-- Connection to subbots from recovery -->
+      <line x1="100" y1="170" x2="250" y2="195" stroke="#F59E0B" stroke-width="1" opacity="0.3" stroke-dasharray="3 3" />
+      <line x1="330" y1="170" x2="330" y2="190" stroke="#F59E0B" stroke-width="1" opacity="0.3" stroke-dasharray="3 3" />
+      <line x1="560" y1="170" x2="410" y2="195" stroke="#F59E0B" stroke-width="1" opacity="0.3" stroke-dasharray="3 3" />
+
+      <!-- AI Fallback Chain -->
+      <g transform="translate(20, 245)">
+        <text x="0" y="0" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">AI Fallback Chain</text>
+
+        {providers.map((provider, i) => {
+          const x = i * 160;
+          return (
+            <g transform={`translate(${x}, 12)`} class="provider-group" data-index={i}>
+              <rect x="0" y="0" width="140" height="50" rx="6" fill="#111827" stroke={i === 0 ? '#3B82F6' : '#64748B'} stroke-width="1.5" class="provider-box" />
+              <text x="70" y="22" text-anchor="middle" fill={i === 0 ? '#3B82F6' : '#94A3B8'} font-family="JetBrains Mono, monospace" font-size="10" font-weight="500">{provider.name}</text>
+              <text x="70" y="38" text-anchor="middle" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="8">{provider.sublabel}</text>
+              <circle cx="12" cy="12" r="5" fill="none" stroke={i === 0 ? '#3B82F6' : '#64748B'} stroke-width="1.5" class="circuit-breaker" data-index={i} />
+              <circle cx="12" cy="12" r="2" fill={i === 0 ? '#34D399' : '#64748B'} class="cb-indicator" />
+            </g>
+          );
+        })}
+
+        <!-- Arrows between providers -->
+        <line x1="140" y1="25" x2="158" y2="25" stroke="#64748B" stroke-width="1" marker-end="url(#arrow-vb)" opacity="0.5" />
+        <line x1="300" y1="25" x2="318" y2="25" stroke="#64748B" stroke-width="1" marker-end="url(#arrow-vb)" opacity="0.5" />
+      </g>
+
+      <!-- Redis/Bull queue -->
+      <g transform="translate(520, 190)">
+        <rect x="0" y="0" width="120" height="50" rx="6" fill="#111827" stroke="#EF4444" stroke-width="1" opacity="0.7" />
+        <text x="60" y="22" text-anchor="middle" fill="#EF4444" font-family="JetBrains Mono, monospace" font-size="10" font-weight="500">Redis / Bull</text>
+        <text x="60" y="38" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="8">Job queue</text>
+      </g>
+      <line x1="520" y1="215" x2="440" y2="215" stroke="#EF4444" stroke-width="1" opacity="0.3" stroke-dasharray="3 3" />
+    </svg>
+  </div>
+
+  <!-- Mobile fallback -->
+  <div class="md:hidden mt-4 space-y-3 px-4">
+    <div>
+      <p class="font-mono text-xs text-accent mb-2">Orchestrator</p>
+      <p class="text-text-secondary text-sm">Manages lifecycle of all SubBot instances</p>
+    </div>
+    <div>
+      <p class="font-mono text-xs text-cyan mb-2">SubBots</p>
+      <p class="text-text-secondary text-sm">Up to 50 parallel sessions, each with isolated state</p>
+    </div>
+    <div>
+      <p class="font-mono text-xs text-accent mb-2">AI Fallback Chain</p>
+      <p class="text-text-secondary text-sm">Groq → Provider 2 → Provider 3 with circuit breakers</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  function initVaniaBotDiagram() {
+    const diagram = document.querySelector('[data-component="vaniabot"]');
+    if (!diagram) return;
+
+    const subbotBoxes = diagram.querySelectorAll('.subbot-box');
+    const providerBoxes = diagram.querySelectorAll('.provider-box');
+    const circuitBreakers = diagram.querySelectorAll('.circuit-breaker');
+    const cbIndicators = diagram.querySelectorAll('.cb-indicator');
+    const statusDots = diagram.querySelectorAll('.status-dot');
+
+    // SubBot hover
+    subbotBoxes.forEach((box, i) => {
+      box.addEventListener('mouseenter', () => {
+        const el = box as SVGRectElement;
+        el.setAttribute('stroke-width', '3');
+        el.setAttribute('filter', 'url(#vb-glow)');
+      });
+      box.addEventListener('mouseleave', () => {
+        const el = box as SVGRectElement;
+        el.setAttribute('stroke-width', '1.5');
+        el.removeAttribute('filter');
+      });
+    });
+
+    // Provider hover — simulate circuit breaker
+    providerBoxes.forEach((box, i) => {
+      box.style.cursor = 'pointer';
+      box.addEventListener('mouseenter', () => {
+        // Toggle circuit breaker visual
+        cbIndicators.forEach((ind, j) => {
+          const el = ind as SVGCircleElement;
+          if (j === i) {
+            el.setAttribute('fill', '#EF4444');
+          } else if (j === i + 1 && i < 2) {
+            el.setAttribute('fill', '#34D399');
+          }
+        });
+        circuitBreakers.forEach((cb, j) => {
+          const el = cb as SVGCircleElement;
+          if (j === i) {
+            el.setAttribute('stroke', '#EF4444');
+            el.setAttribute('stroke-width', '2.5');
+          }
+        });
+      });
+      box.addEventListener('mouseleave', () => {
+        cbIndicators.forEach((ind, j) => {
+          const el = ind as SVGCircleElement;
+          el.setAttribute('fill', j === 0 ? '#34D399' : '#64748B');
+        });
+        circuitBreakers.forEach((cb, j) => {
+          const el = cb as SVGCircleElement;
+          el.setAttribute('stroke', j === 0 ? '#3B82F6' : '#64748B');
+          el.setAttribute('stroke-width', '1.5');
+        });
+      });
+    });
+
+    // Pulse status dots
+    statusDots.forEach((dot) => {
+      const el = dot as SVGCircleElement;
+      el.style.animation = 'pulse-dot 2s ease-in-out infinite';
+    });
+  }
+
+  document.addEventListener('astro:page-load', initVaniaBotDiagram);
+  initVaniaBotDiagram();
+</script>
+
+<style>
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .subbot-box, .provider-box {
+    transition: all 0.2s ease;
+  }
+</style>

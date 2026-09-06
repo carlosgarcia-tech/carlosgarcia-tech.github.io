@@ -1,0 +1,118 @@
+---
+const pipeline = [
+  { label: 'Request', icon: '→', color: '#94A3B8' },
+  { label: 'JWT Auth', sublabel: 'access + refresh', color: '#3B82F6' },
+  { label: 'RBAC', sublabel: 'Admin / Editor / Viewer', color: '#7b1fa2' },
+  { label: 'Rate Limit', sublabel: 'Redis + fallback', color: '#F59E0B' },
+  { label: 'Cache Check', sublabel: 'Redis lookup', color: '#22D3EE' },
+  { label: 'Controller', sublabel: 'Express route', color: '#34D399' },
+  { label: 'MongoDB', sublabel: 'Mongoose query', color: '#388e3c' },
+  { label: 'Response', sublabel: 'JSON', color: '#94A3B8' },
+];
+---
+
+<div class="pathfinder-diagram w-full overflow-x-auto" data-component="pathfinder">
+  <div class="min-w-[700px] px-4">
+    <svg viewBox="0 0 720 160" class="w-full h-auto" role="img" aria-label="PathFinder API request pipeline diagram">
+      <defs>
+        <marker id="arrow-pf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#3B82F6" />
+        </marker>
+      </defs>
+
+      {pipeline.map((step, i) => {
+        const x = 10 + i * 88;
+        return (
+          <g class="pipeline-step" data-step={i} style="cursor: pointer;">
+            <rect x={x} y="40" width="78" height="80" rx="8" fill="#111827" stroke={step.color} stroke-width="1.5" opacity="0.7" class="step-rect" />
+            <text x={x + 39} y="70" text-anchor="middle" fill={step.color} font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">{step.label}</text>
+            {step.sublabel && (
+              <text x={x + 39} y="88" text-anchor="middle" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="7">{step.sublabel}</text>
+            )}
+            {i < pipeline.length - 1 && (
+              <line x1={x + 78} y1="80" x2={x + 88} y2="80" stroke="#1E293B" stroke-width="1.5" marker-end="url(#arrow-pf)" class="pipeline-arrow" />
+            )}
+          </g>
+        );
+      })}
+
+      <!-- Animated flow dot -->
+      <circle r="3" fill="#3B82F6" opacity="0.8" class="flow-dot">
+        <animateMotion dur="3s" repeatCount="indefinite" path="M10,80 L710,80" />
+      </circle>
+    </svg>
+  </div>
+
+  <!-- Mobile fallback -->
+  <div class="md:hidden mt-4 space-y-2 px-4">
+    <p class="font-mono text-xs text-text-muted mb-2">Request pipeline:</p>
+    <div class="flex flex-wrap gap-2">
+      {pipeline.map((step) => (
+        <span class="tech-badge text-xs" style={`border-color: ${step.color}40; color: ${step.color};`}>
+          {step.label}
+        </span>
+      ))}
+    </div>
+  </div>
+</div>
+
+<script>
+  function initPathFinderDiagram() {
+    const diagram = document.querySelector('[data-component="pathfinder"]');
+    if (!diagram) return;
+
+    const steps = diagram.querySelectorAll('.pipeline-step');
+    const rects = diagram.querySelectorAll('.step-rect');
+    const arrows = diagram.querySelectorAll('.pipeline-arrow');
+
+    steps.forEach((step, i) => {
+      step.addEventListener('mouseenter', () => {
+        // Highlight current and all previous steps
+        rects.forEach((rect, j) => {
+          const el = rect as SVGRectElement;
+          if (j <= i) {
+            el.setAttribute('opacity', '1');
+            el.setAttribute('stroke-width', '2.5');
+          } else {
+            el.setAttribute('opacity', '0.3');
+          }
+        });
+        arrows.forEach((arrow, j) => {
+          const el = arrow as SVGLineElement;
+          if (j < i) {
+            el.setAttribute('stroke', '#3B82F6');
+            el.setAttribute('stroke-width', '2');
+          } else {
+            el.setAttribute('stroke', '#1E293B');
+            el.setAttribute('stroke-width', '1.5');
+          }
+        });
+      });
+
+      step.addEventListener('mouseleave', () => {
+        rects.forEach((rect) => {
+          const el = rect as SVGRectElement;
+          el.setAttribute('opacity', '0.7');
+          el.setAttribute('stroke-width', '1.5');
+        });
+        arrows.forEach((arrow) => {
+          const el = arrow as SVGLineElement;
+          el.setAttribute('stroke', '#1E293B');
+          el.setAttribute('stroke-width', '1.5');
+        });
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', initPathFinderDiagram);
+  initPathFinderDiagram();
+</script>
+
+<style>
+  .pipeline-step {
+    transition: opacity 0.2s ease;
+  }
+  .step-rect {
+    transition: all 0.2s ease;
+  }
+</style>

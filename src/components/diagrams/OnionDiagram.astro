@@ -1,0 +1,168 @@
+---
+const layers = [
+  {
+    name: 'Presentation',
+    detail: 'Controllers, Routes, Middlewares',
+    color: '#1976d2',
+    radius: 140,
+  },
+  {
+    name: 'Infrastructure',
+    detail: 'MongoDB, Supabase, Ably, Socket.io, DI',
+    color: '#f57c00',
+    radius: 110,
+  },
+  {
+    name: 'Application',
+    detail: 'Use Cases, DTOs',
+    color: '#7b1fa2',
+    radius: 80,
+  },
+  {
+    name: 'Core',
+    detail: 'Entities, Repository Interfaces, Domain Services',
+    color: '#388e3c',
+    radius: 50,
+  },
+];
+---
+
+<div class="onion-diagram relative w-full max-w-lg mx-auto" data-component="onion">
+  <svg viewBox="0 0 340 340" class="w-full h-auto" role="img" aria-label="Onion Architecture diagram showing concentric layers from Presentation to Core">
+    <defs>
+      <filter id="onion-glow">
+        <feGaussianBlur stdDeviation="4" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+
+    {layers.map((layer, i) => (
+      <circle
+        cx="170"
+        cy="170"
+        r={layer.radius}
+        fill="none"
+        stroke={layer.color}
+        stroke-width="2"
+        opacity="0.6"
+        class="onion-ring"
+        data-layer={i}
+        style={`transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);`}
+      />
+    ))}
+
+    {layers.map((layer, i) => (
+      <g class="onion-label" data-layer={i} style="cursor: pointer;">
+        <text
+          x="170"
+          y={170 - layer.radius + 18}
+          text-anchor="middle"
+          fill={layer.color}
+          font-family="JetBrains Mono, monospace"
+          font-size="10"
+          font-weight="600"
+          class="onion-ring-text"
+          style="pointer-events: none;"
+        >
+          {layer.name}
+        </text>
+      </g>
+    ))}
+
+    <text x="170" y="170" text-anchor="middle" fill="#388e3c" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600" dominant-baseline="middle" style="pointer-events: none;">
+      Core
+    </text>
+  </svg>
+
+  <div class="onion-detail absolute bottom-0 left-1/2 -translate-x-1/2 w-full text-center" aria-live="polite">
+    <p class="font-mono text-sm text-text-secondary min-h-[2.5rem] flex items-center justify-center" id="onion-detail-text">
+      <span class="text-text-muted">Hover a layer to see what it contains</span>
+    </p>
+  </div>
+</div>
+
+<script>
+  function initOnionDiagram() {
+    const diagram = document.querySelector('[data-component="onion"]');
+    if (!diagram) return;
+
+    const rings = diagram.querySelectorAll('.onion-ring');
+    const labels = diagram.querySelectorAll('.onion-ring-text');
+    const detailText = document.getElementById('onion-detail-text');
+
+    const layerData = [
+      { name: 'Presentation', detail: 'Controllers, Routes, Middlewares — HTTP layer that handles requests' },
+      { name: 'Infrastructure', detail: 'MongoDB, Supabase, Ably, Socket.io — external integrations' },
+      { name: 'Application', detail: 'Use Cases, DTOs — orchestration and data transfer' },
+      { name: 'Core', detail: 'Entities, Repository Interfaces — domain logic with zero dependencies' },
+    ];
+
+    let activeLayer: number | null = null;
+
+    function highlightLayer(index: number) {
+      activeLayer = index;
+      rings.forEach((ring, i) => {
+        const el = ring as SVGCircleElement;
+        if (i === index) {
+          el.setAttribute('stroke-width', '4');
+          el.setAttribute('opacity', '1');
+          el.setAttribute('filter', 'url(#onion-glow)');
+        } else if (i > index) {
+          el.setAttribute('stroke-width', '2');
+          el.setAttribute('opacity', '0.9');
+          el.removeAttribute('filter');
+        } else {
+          el.setAttribute('stroke-width', '1.5');
+          el.setAttribute('opacity', '0.3');
+          el.removeAttribute('filter');
+        }
+      });
+
+      if (detailText) {
+        detailText.innerHTML = `<span class="text-accent font-semibold">${layerData[index].name}</span> <span class="mx-2 text-text-muted">—</span> <span class="text-text-secondary">${layerData[index].detail}</span>`;
+      }
+    }
+
+    function resetDiagram() {
+      activeLayer = null;
+      rings.forEach((ring) => {
+        const el = ring as SVGCircleElement;
+        el.setAttribute('stroke-width', '2');
+        el.setAttribute('opacity', '0.6');
+        el.removeAttribute('filter');
+      });
+      if (detailText) {
+        detailText.innerHTML = '<span class="text-text-muted">Hover a layer to see what it contains</span>';
+      }
+    }
+
+    rings.forEach((ring, i) => {
+      ring.addEventListener('mouseenter', () => highlightLayer(i));
+      ring.addEventListener('mouseleave', resetDiagram);
+      ring.addEventListener('focus', () => highlightLayer(i));
+      ring.addEventListener('blur', resetDiagram);
+    });
+
+    // Make rings focusable for keyboard
+    rings.forEach((ring) => {
+      (ring as SVGCircleElement).setAttribute('tabindex', '0');
+      (ring as SVGCircleElement).setAttribute('role', 'button');
+    });
+  }
+
+  document.addEventListener('astro:page-load', initOnionDiagram);
+  initOnionDiagram();
+</script>
+
+<style>
+  .onion-ring {
+    cursor: pointer;
+    transform-origin: center;
+  }
+  .onion-ring:hover {
+    stroke-width: 4;
+  }
+</style>
