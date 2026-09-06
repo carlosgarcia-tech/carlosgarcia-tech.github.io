@@ -128,7 +128,7 @@ const providers = [
     const cbIndicators = diagram.querySelectorAll('.cb-indicator');
     const statusDots = diagram.querySelectorAll('.status-dot');
 
-    // SubBot hover
+    // SubBot hover + touch
     subbotBoxes.forEach((box, i) => {
       box.addEventListener('mouseenter', () => {
         const el = box as SVGRectElement;
@@ -140,9 +140,24 @@ const providers = [
         el.setAttribute('stroke-width', '1.5');
         el.removeAttribute('filter');
       });
+      box.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const el = box as SVGRectElement;
+        const isActive = el.getAttribute('stroke-width') === '3';
+        // Reset all
+        subbotBoxes.forEach((b) => {
+          const bel = b as SVGRectElement;
+          bel.setAttribute('stroke-width', '1.5');
+          bel.removeAttribute('filter');
+        });
+        if (!isActive) {
+          el.setAttribute('stroke-width', '3');
+          el.setAttribute('filter', 'url(#vb-glow)');
+        }
+      }, { passive: false });
     });
 
-    // Provider hover — simulate circuit breaker
+    // Provider hover — simulate circuit breaker + touch
     providerBoxes.forEach((box, i) => {
       box.style.cursor = 'pointer';
       box.addEventListener('mouseenter', () => {
@@ -174,6 +189,37 @@ const providers = [
           el.setAttribute('stroke-width', '1.5');
         });
       });
+      box.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        // Toggle circuit breaker visual on touch
+        cbIndicators.forEach((ind, j) => {
+          const el = ind as SVGCircleElement;
+          if (j === i) {
+            el.setAttribute('fill', '#EF4444');
+          } else if (j === i + 1 && i < 2) {
+            el.setAttribute('fill', '#34D399');
+          }
+        });
+        circuitBreakers.forEach((cb, j) => {
+          const el = cb as SVGCircleElement;
+          if (j === i) {
+            el.setAttribute('stroke', '#EF4444');
+            el.setAttribute('stroke-width', '2.5');
+          }
+        });
+        // Reset after 2s on touch
+        setTimeout(() => {
+          cbIndicators.forEach((ind, j) => {
+            const el = ind as SVGCircleElement;
+            el.setAttribute('fill', j === 0 ? '#34D399' : '#64748B');
+          });
+          circuitBreakers.forEach((cb, j) => {
+            const el = cb as SVGCircleElement;
+            el.setAttribute('stroke', j === 0 ? '#3B82F6' : '#64748B');
+            el.setAttribute('stroke-width', '1.5');
+          });
+        }, 2000);
+      }, { passive: false });
     });
 
     // Pulse status dots

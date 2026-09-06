@@ -184,10 +184,15 @@ const steps = [
       });
     }
 
-    // Step hover
+    // Step hover + touch
     stepBoxes.forEach((box, i) => {
       box.addEventListener('mouseenter', () => highlightStep(i));
       box.addEventListener('mouseleave', resetSteps);
+      box.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        highlightStep(i);
+        setTimeout(resetSteps, 2000);
+      }, { passive: false });
     });
 
     // Environment click to toggle

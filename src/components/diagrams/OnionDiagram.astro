@@ -144,6 +144,21 @@ const layers = [
       ring.addEventListener('mouseleave', resetDiagram);
       ring.addEventListener('focus', () => highlightLayer(i));
       ring.addEventListener('blur', resetDiagram);
+      ring.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (activeLayer === i) {
+          resetDiagram();
+        } else {
+          highlightLayer(i);
+        }
+      }, { passive: false });
+    });
+
+    // Touch outside rings to reset
+    diagram.addEventListener('touchstart', (e) => {
+      if (!(e.target as Element).closest('.onion-ring')) {
+        resetDiagram();
+      }
     });
 
     // Make rings focusable for keyboard

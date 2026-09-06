@@ -101,6 +101,42 @@ const pipeline = [
           el.setAttribute('stroke-width', '1.5');
         });
       });
+
+      step.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        rects.forEach((rect, j) => {
+          const el = rect as SVGRectElement;
+          if (j <= i) {
+            el.setAttribute('opacity', '1');
+            el.setAttribute('stroke-width', '2.5');
+          } else {
+            el.setAttribute('opacity', '0.3');
+          }
+        });
+        arrows.forEach((arrow, j) => {
+          const el = arrow as SVGLineElement;
+          if (j < i) {
+            el.setAttribute('stroke', '#3B82F6');
+            el.setAttribute('stroke-width', '2');
+          } else {
+            el.setAttribute('stroke', '#1E293B');
+            el.setAttribute('stroke-width', '1.5');
+          }
+        });
+        // Reset after 2s on touch
+        setTimeout(() => {
+          rects.forEach((rect) => {
+            const el = rect as SVGRectElement;
+            el.setAttribute('opacity', '0.7');
+            el.setAttribute('stroke-width', '1.5');
+          });
+          arrows.forEach((arrow) => {
+            const el = arrow as SVGLineElement;
+            el.setAttribute('stroke', '#1E293B');
+            el.setAttribute('stroke-width', '1.5');
+          });
+        }, 2000);
+      }, { passive: false });
     });
   }
 
