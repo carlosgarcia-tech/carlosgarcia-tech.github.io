@@ -46,7 +46,6 @@ const OBSTACLES: [number, number][] = [
     const visitedLayer = root.querySelector('.pfm-visited');
     const pathLayer = root.querySelector('.pfm-path');
 
-    // Single source of truth: same coordinates the SVG rendered above.
     const OBSTACLE_SET = new Set(OBSTACLES.map(([x, y]) => `${x},${y}`));
 
     const DIRS = [[0,-1],[0,1],[-1,0],[1,0],[-1,-1],[-1,1],[1,-1],[1,1]];
@@ -92,8 +91,6 @@ const OBSTACLES: [number, number][] = [
           const nx = cur.x + dx;
           const ny = cur.y + dy;
           if (isBlocked(nx, ny)) continue;
-          // Prevent cutting diagonally through a corner formed by two
-          // blocked cardinal cells (matches repo's diagonal rule).
           if (dx !== 0 && dy !== 0) {
             if (isBlocked(cur.x + dx, cur.y) && isBlocked(cur.x, cur.y + dy)) continue;
           }
@@ -123,12 +120,7 @@ const OBSTACLES: [number, number][] = [
 
     let timeouts = [];
     let paused = true;
-
-    const observer = new IntersectionObserver(
-      ([e]) => { paused = !e.isIntersecting; },
-      { threshold: 0.1 }
-    );
-    observer.observe(root);
+    let cycleTimer = null;
 
     function renderRect(g, x, y, fill, delay) {
       const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -169,11 +161,31 @@ const OBSTACLES: [number, number][] = [
       });
     }
 
-    setInterval(() => {
-      if (!paused) runCycle();
-    }, 5000);
+    function startAnimation() {
+      if (!paused) return;
+      paused = false;
+      timeouts.forEach(t => clearTimeout(t));
+      timeouts = [];
+      visitedLayer.innerHTML = '';
+      pathLayer.innerHTML = '';
+      runCycle();
+      cycleTimer = setInterval(() => { if (!paused) runCycle(); }, 5000);
+    }
 
-    setTimeout(runCycle, 500);
+    function stopAnimation() {
+      paused = true;
+      if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null; }
+      timeouts.forEach(t => clearTimeout(t));
+      timeouts = [];
+      visitedLayer.innerHTML = '';
+      pathLayer.innerHTML = '';
+    }
+
+    const card = root.closest('a');
+    if (card) {
+      card.addEventListener('mouseenter', startAnimation);
+      card.addEventListener('mouseleave', stopAnimation);
+    }
   }
 
   document.addEventListener('astro:page-load', initPathFinderMini);

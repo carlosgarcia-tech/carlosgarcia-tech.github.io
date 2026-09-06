@@ -24,21 +24,17 @@
     const roots = document.querySelectorAll('[data-preview="deploy"]');
     roots.forEach(root => {
       let paused = true;
-      const observer = new IntersectionObserver(
-        ([e]) => { paused = !e.isIntersecting; },
-        { threshold: 0.1 }
-      );
-      observer.observe(root);
       const lines = root.querySelectorAll('.dm-line') as NodeListOf<HTMLElement>;
       let lineIdx = 0;
       let typing = false;
+      let animTimer = null;
 
       function reset() {
         lines.forEach(l => { l.textContent = ''; l.style.opacity = '0'; });
         lineIdx = 0;
       }
 
-      function typeLine(el: HTMLElement, text: string, cb: () => void) {
+      function typeLine(el, text, cb) {
         let i = 0;
         typing = true;
         function tick() {
@@ -46,7 +42,7 @@
           if (i < text.length) {
             el.textContent += text[i];
             i++;
-            setTimeout(tick, 35 + Math.random() * 25);
+            animTimer = setTimeout(tick, 35 + Math.random() * 25);
           } else {
             typing = false;
             cb();
@@ -62,14 +58,31 @@
           const text = el.getAttribute('data-type') || '';
           el.style.opacity = '1';
           lineIdx++;
-          typeLine(el, text, () => setTimeout(showNext, 250));
+          typeLine(el, text, () => { animTimer = setTimeout(showNext, 250); });
         } else {
-          setTimeout(() => { reset(); setTimeout(showNext, 500); }, 3000);
+          animTimer = setTimeout(() => { reset(); animTimer = setTimeout(showNext, 500); }, 3000);
         }
       }
 
-      reset();
-      setTimeout(showNext, 600);
+      function startAnimation() {
+        if (!paused) return;
+        paused = false;
+        reset();
+        animTimer = setTimeout(showNext, 600);
+      }
+
+      function stopAnimation() {
+        paused = true;
+        if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+        typing = false;
+        reset();
+      }
+
+      const card = root.closest('a');
+      if (card) {
+        card.addEventListener('mouseenter', startAnimation);
+        card.addEventListener('mouseleave', stopAnimation);
+      }
     });
   }
   document.addEventListener('astro:page-load', initDeployMini);

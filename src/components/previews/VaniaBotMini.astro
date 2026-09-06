@@ -36,31 +36,45 @@
     const roots = document.querySelectorAll('[data-preview="vaniabot"]');
     roots.forEach(root => {
       let paused = true;
-      const observer = new IntersectionObserver(
-        ([e]) => { paused = !e.isIntersecting; },
-        { threshold: 0.1 }
-      );
-      observer.observe(root);
       const msgs = root.querySelectorAll('.vb-mini-msg') as NodeListOf<HTMLElement>;
       let idx = 0;
+      let animTimer = null;
+
       function reset() {
         msgs.forEach(m => { m.style.opacity = '0'; m.style.transform = 'translateY(6px)'; });
         idx = 0;
       }
+
       function showNext() {
         if (paused) return;
         if (idx < msgs.length) {
           msgs[idx].style.opacity = '1';
           msgs[idx].style.transform = 'translateY(0)';
           idx++;
+          animTimer = setTimeout(showNext, 800);
         } else {
-          setTimeout(() => { reset(); setTimeout(showNext, 400); }, 3000);
-          return;
+          animTimer = setTimeout(() => { reset(); animTimer = setTimeout(showNext, 400); }, 3000);
         }
-        setTimeout(showNext, 800);
       }
-      reset();
-      setTimeout(showNext, 600);
+
+      function startAnimation() {
+        if (!paused) return;
+        paused = false;
+        reset();
+        animTimer = setTimeout(showNext, 600);
+      }
+
+      function stopAnimation() {
+        paused = true;
+        if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+        reset();
+      }
+
+      const card = root.closest('a');
+      if (card) {
+        card.addEventListener('mouseenter', startAnimation);
+        card.addEventListener('mouseleave', stopAnimation);
+      }
     });
   }
   document.addEventListener('astro:page-load', initVaniaBotMini);

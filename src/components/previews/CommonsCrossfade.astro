@@ -30,7 +30,7 @@
     </div>
   </div>
   <div class="cc-overlay">
-    <span class="cc-cta">Ver proyecto →</span>
+    <span class="cc-cta">View project →</span>
   </div>
 </div>
 
@@ -39,21 +39,34 @@
     const roots = document.querySelectorAll('[data-preview="commons"]');
     roots.forEach(root => {
       let paused = true;
-      const observer = new IntersectionObserver(
-        ([e]) => { paused = !e.isIntersecting; },
-        { threshold: 0.1 }
-      );
-      observer.observe(root);
       const slides = root.querySelector('.cc-slides') as HTMLDivElement;
       let idx = 0;
       const total = 3;
+      let intervalId = null;
+
       function tick() {
         if (!paused) {
           idx = (idx + 1) % total;
           slides.style.transform = `translateX(-${idx * 100}%)`;
         }
       }
-      setInterval(tick, 3000);
+
+      function startAnimation() {
+        if (!paused) return;
+        paused = false;
+        intervalId = setInterval(tick, 3000);
+      }
+
+      function stopAnimation() {
+        paused = true;
+        if (intervalId) { clearInterval(intervalId); intervalId = null; }
+      }
+
+      const card = root.closest('a');
+      if (card) {
+        card.addEventListener('mouseenter', startAnimation);
+        card.addEventListener('mouseleave', stopAnimation);
+      }
     });
   }
   document.addEventListener('astro:page-load', initCommonsCrossfade);
