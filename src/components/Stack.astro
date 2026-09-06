@@ -1,0 +1,48 @@
+---
+const categories = [
+  {
+    title: 'Backend',
+    items: ['Node.js', 'Express', 'TypeScript', 'JavaScript', 'REST APIs', 'Socket.io', 'JWT'],
+  },
+  {
+    title: 'Databases',
+    items: ['MongoDB', 'Mongoose', 'SQLite', 'Redis', 'Supabase'],
+  },
+  {
+    title: 'DevOps',
+    items: ['Docker', 'Ansible', 'GitHub Actions', 'GitLab CI', 'Nginx', 'Tailscale'],
+  },
+  {
+    title: 'Tools',
+    items: ['Jest', 'Vitest', 'Git', 'Swagger/OpenAPI', 'Winston', 'Pino', 'Zod'],
+  },
+  {
+    title: 'Architecture',
+    items: ['Onion Architecture', 'DDD', 'Blue/Green Deploy', 'Circuit Breaker', 'Middleware Pipeline'],
+  },
+];
+---
+
+<section id="stack" class="section-spacing border-t border-surface-border">
+  <div class="container-narrow">
+    <div class="mb-12 reveal">
+      <p class="font-mono text-sm text-accent mb-2">Technologies</p>
+      <h2 class="text-headline font-heading text-text-primary">Stack</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
+      {categories.map((category) => (
+        <div>
+          <h3 class="font-heading font-semibold text-text-primary text-sm mb-3">
+            {category.title}
+          </h3>
+          <div class="flex flex-wrap gap-2">
+            {category.items.map((item) => (
+              <span class="tech-badge">{item}</span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

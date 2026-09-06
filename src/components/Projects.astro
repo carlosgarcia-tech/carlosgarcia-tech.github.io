@@ -1,0 +1,112 @@
+---
+import CommonsCrossfade from './previews/CommonsCrossfade.astro';
+import PathFinderMini from './previews/PathFinderMini.astro';
+import VaniaBotMini from './previews/VaniaBotMini.astro';
+import DeployMini from './previews/DeployMini.astro';
+
+const projects = [
+  {
+    title: 'Commons Marketplace',
+    description: 'Production-grade e-commerce backend with Onion Architecture. Manages users, stores, products, categories, reviews and real-time messaging.',
+    tags: ['Node.js', 'Express', 'Onion Architecture', 'MongoDB', 'Socket.io', 'Ably'],
+    metrics: [
+      { value: '1010', label: 'tests' },
+      { value: '80%', label: 'coverage' },
+      { value: '50+', label: 'endpoints' },
+    ],
+    href: '/projects/commons-marketplace',
+    github: 'https://github.com/carlosgarcia-tech/commons-marketplace',
+    highlight: true,
+    preview: 'commons',
+  },
+  {
+    title: 'VaniaBot',
+    description: 'WhatsApp automation system with AI chat, moderation, economy and games. Resilient multi-instance architecture with circuit breakers.',
+    tags: ['TypeScript', 'Node.js', 'Baileys', 'SQLite', 'Redis', 'Bull'],
+    metrics: [
+      { value: '200+', label: 'commands' },
+      { value: '80+', label: 'services' },
+      { value: '50', label: 'concurrent sessions' },
+    ],
+    href: '/projects/vaniabot',
+    github: 'https://github.com/carlosgarcia-tech/VaniaBot',
+    highlight: true,
+    preview: 'vaniabot',
+  },
+  {
+    title: 'PathFinder API',
+    description: 'RESTful API for pathfinding with maps, waypoints, obstacles, and route optimization. JWT auth, RBAC, Redis caching.',
+    tags: ['Node.js', 'Express', 'MongoDB', 'Redis', 'JWT'],
+    metrics: [
+      { value: 'JWT', label: 'auth' },
+      { value: 'RBAC', label: 'access control' },
+    ],
+    href: '/projects/pathfinder',
+    github: 'https://github.com/carlosgarcia-tech/pathfinder',
+    highlight: false,
+    preview: 'pathfinder',
+  },
+  {
+    title: 'Deployment Automation',
+    description: 'Infrastructure-as-code for automated provisioning and Blue/Green deployment. Evolved from GitLab CI/CD + Ansible to GitHub Actions + Tailscale.',
+    tags: ['Ansible', 'GitHub Actions', 'Docker', 'Nginx', 'Tailscale'],
+    metrics: [
+      { value: 'B/G', label: 'deployment' },
+      { value: '< 1m', label: 'rollback' },
+    ],
+    href: '/projects/deployment-automation',
+    github: 'https://github.com/carlosgarcia-tech/commons-deploy',
+    highlight: false,
+    preview: 'deploy',
+  },
+];
+---
+
+<section id="projects" class="section-spacing">
+  <div class="container-narrow">
+    <div class="mb-12 reveal">
+      <p class="font-mono text-sm text-accent mb-2">Featured work</p>
+      <h2 class="text-headline font-heading text-text-primary">Projects</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 stagger-children">
+      {projects.map((project) => (
+        <a
+          href={project.href}
+          class={`card-surface card-hover group overflow-hidden ${project.highlight ? 'md:col-span-2' : ''}`}
+        >
+          {/* Mini preview area */}
+          <div class="relative overflow-hidden">
+            {project.preview === 'commons' && <CommonsCrossfade />}
+            {project.preview === 'pathfinder' && <PathFinderMini />}
+            {project.preview === 'vaniabot' && <VaniaBotMini />}
+            {project.preview === 'deploy' && <DeployMini />}
+          </div>
+
+          {/* Card content */}
+          <div class="p-6 md:p-8">
+            <h3 class="text-xl font-heading font-semibold text-text-primary group-hover:text-accent transition-colors duration-150 mb-2">
+              {project.title}
+            </h3>
+            <p class="text-text-secondary text-sm leading-relaxed mb-4 max-w-2xl">
+              {project.description}
+            </p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              {project.tags.map((tag) => (
+                <span class="tech-badge text-xs">{tag}</span>
+              ))}
+            </div>
+            <div class="flex items-center gap-6">
+              {project.metrics.map((metric) => (
+                <div class="text-right">
+                  <span class="font-mono text-lg font-bold text-text-primary">{metric.value}</span>
+                  <p class="text-xs text-text-muted">{metric.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
