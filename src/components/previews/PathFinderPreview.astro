@@ -35,7 +35,7 @@ const OBSTACLES: [number, number][] = [
           class="pf-run-btn font-mono text-xs px-3 py-1.5 rounded bg-accent text-white hover:bg-accent-muted transition-colors duration-150"
           aria-label="Calculate route"
         >
-          Calcular ruta
+          Calculate route
         </button>
       </div>
       <div class="pf-grid-wrap">
@@ -73,7 +73,7 @@ const OBSTACLES: [number, number][] = [
         <span class="font-mono text-xs text-text-muted ml-2">request.json</span>
       </div>
       <div class="pf-console font-mono text-xs leading-relaxed flex-1 overflow-y-auto" aria-live="polite">
-        <div class="text-text-muted">// Click "Calcular ruta" to simulate</div>
+        <div class="text-text-muted">// Click "Calculate route" to simulate</div>
         <div class="text-text-muted">// a pathfinding API request</div>
       </div>
     </div>
@@ -251,7 +251,7 @@ const OBSTACLES: [number, number][] = [
     btn.addEventListener('click', () => {
       if (isRunning) return;
       isRunning = true;
-      btn.textContent = 'Calculando...';
+      btn.textContent = 'Calculating...';
       btn.disabled = true;
 
       clearAnimation();
@@ -275,7 +275,7 @@ const OBSTACLES: [number, number][] = [
         ], 100);
         setTimeout(() => {
           isRunning = false;
-          btn.textContent = 'Calcular ruta';
+          btn.textContent = 'Calculate route';
           btn.disabled = false;
         }, 2000);
         return;
@@ -332,10 +332,26 @@ const OBSTACLES: [number, number][] = [
 
       setTimeout(() => {
         isRunning = false;
-        btn.textContent = 'Calcular ruta';
+        btn.textContent = 'Calculate route';
         btn.disabled = false;
       }, totalDelay + 1000);
     });
+
+    // Auto-play demo when widget enters viewport
+    let autoPlayed = false;
+    const autoPlayObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !autoPlayed) {
+            autoPlayed = true;
+            autoPlayObserver.disconnect();
+            setTimeout(() => btn.click(), 500);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+    autoPlayObserver.observe(root);
   }
 
   document.addEventListener('astro:page-load', initPathFinderPreview);

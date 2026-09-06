@@ -33,7 +33,7 @@
       <div id="vb-messages" class="flex-1 overflow-y-auto p-4 space-y-3 min-h-[320px] max-h-[420px]">
         <div class="vb-msg-in text-sm">
           <div class="vb-bubble-in rounded-2xl rounded-tl-sm px-3 py-2 max-w-[80%]">
-            Hola! Soy VaniaBot. Escribe un comando o elige uno abajo.
+            Hey! I'm VaniaBot. Type a command or pick one below.
           </div>
         </div>
       </div>
@@ -215,6 +215,22 @@
         handleCommand(cmd.startsWith('/') ? cmd : '/' + cmd);
       }
     });
+
+    // Auto-play demo when widget enters viewport
+    let autoPlayed = false;
+    const autoPlayObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !autoPlayed) {
+            autoPlayed = true;
+            autoPlayObserver.disconnect();
+            setTimeout(() => handleCommand('/status'), 500);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+    autoPlayObserver.observe(root);
   }
 
   document.addEventListener('astro:page-load', initVaniaBotPreview);

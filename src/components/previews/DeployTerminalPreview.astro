@@ -176,7 +176,7 @@
       trafficLabelGreen.setAttribute('opacity', '1');
     }
 
-    btn.addEventListener('click', async () => {
+    function runDeploy() {
       if (isRunning) return;
       isRunning = true;
       btn.textContent = '⟳ Running...';
@@ -185,8 +185,8 @@
       clearAll();
       term.innerHTML = '';
 
-      await typeLine('$ ./deploy.sh --env production', 0, 'text-text-muted');
-      await typeLine('Deploying to production cluster...', 400, 'text-text-primary');
+      typeLine('$ ./deploy.sh --env production', 0, 'text-text-muted');
+      typeLine('Deploying to production cluster...', 400, 'text-text-primary');
 
       addLine('Step 1/5: Running Ansible playbook...', 800, 'text-text-secondary');
       addLine('  PLAY [webservers] ******', 1100, 'text-cyan');
@@ -224,7 +224,7 @@
       addLine('  GET /health → 200 OK (8ms)', 7700, 'text-emerald');
 
       addLine('', 8000);
-      await typeLine('$ echo "Deploy complete!"', 8100, 'text-text-muted');
+      typeLine('$ echo "Deploy complete!"', 8100, 'text-text-muted');
       addLine('Deploy complete!', 8400, 'text-accent font-semibold');
 
       setTimeout(() => {
@@ -232,7 +232,25 @@
         btn.textContent = '▶ Run Deploy';
         btn.disabled = false;
       }, 9000);
-    });
+    }
+
+    btn.addEventListener('click', runDeploy);
+
+    // Auto-play demo when widget enters viewport
+    let autoPlayed = false;
+    const autoPlayObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !autoPlayed) {
+            autoPlayed = true;
+            autoPlayObserver.disconnect();
+            setTimeout(() => runDeploy(), 500);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+    autoPlayObserver.observe(root);
   }
 
   document.addEventListener('astro:page-load', initDeployPreview);
