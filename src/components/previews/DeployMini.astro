@@ -1,0 +1,121 @@
+---
+/**
+ * DeployMini — small auto-typing terminal for home card.
+ * 4 lines type out in sequence, loop, pause when not in viewport.
+ */
+---
+
+<div class="dm-terminal" data-preview="deploy" aria-hidden="true">
+  <div class="dm-dots">
+    <span class="dm-dot-red"></span>
+    <span class="dm-dot-yellow"></span>
+    <span class="dm-dot-green"></span>
+  </div>
+  <div class="dm-body">
+    <div class="dm-line" data-type="$ ansible-playbook deploy.yml" data-color="cmd"></div>
+    <div class="dm-line" data-type="✓ Health check passed" data-color="ok"></div>
+    <div class="dm-line" data-type="$ docker compose up -d" data-color="cmd"></div>
+    <div class="dm-line" data-type="✓ Green → Blue traffic switched" data-color="ok"></div>
+  </div>
+</div>
+
+<script>
+  function initDeployMini() {
+    const roots = document.querySelectorAll('[data-preview="deploy"]');
+    roots.forEach(root => {
+      let paused = true;
+      const observer = new IntersectionObserver(
+        ([e]) => { paused = !e.isIntersecting; },
+        { threshold: 0.1 }
+      );
+      observer.observe(root);
+      const lines = root.querySelectorAll('.dm-line') as NodeListOf<HTMLElement>;
+      let lineIdx = 0;
+      let typing = false;
+
+      function reset() {
+        lines.forEach(l => { l.textContent = ''; l.style.opacity = '0'; });
+        lineIdx = 0;
+      }
+
+      function typeLine(el: HTMLElement, text: string, cb: () => void) {
+        let i = 0;
+        typing = true;
+        function tick() {
+          if (paused) { typing = false; return; }
+          if (i < text.length) {
+            el.textContent += text[i];
+            i++;
+            setTimeout(tick, 35 + Math.random() * 25);
+          } else {
+            typing = false;
+            cb();
+          }
+        }
+        tick();
+      }
+
+      function showNext() {
+        if (paused || typing) return;
+        if (lineIdx < lines.length) {
+          const el = lines[lineIdx];
+          const text = el.getAttribute('data-type') || '';
+          el.style.opacity = '1';
+          lineIdx++;
+          typeLine(el, text, () => setTimeout(showNext, 250));
+        } else {
+          setTimeout(() => { reset(); setTimeout(showNext, 500); }, 3000);
+        }
+      }
+
+      reset();
+      setTimeout(showNext, 600);
+    });
+  }
+  document.addEventListener('astro:page-load', initDeployMini);
+  initDeployMini();
+</script>
+
+<style>
+  .dm-terminal {
+    width: 100%;
+    height: 160px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #1E293B;
+    background: #0D1117;
+    display: flex;
+    flex-direction: column;
+  }
+  .dm-dots {
+    display: flex;
+    gap: 5px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #1E293B;
+  }
+  .dm-dot-red, .dm-dot-yellow, .dm-dot-green {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .dm-dot-red { background: rgba(239, 68, 68, 0.7); }
+  .dm-dot-yellow { background: rgba(234, 179, 8, 0.7); }
+  .dm-dot-green { background: rgba(34, 197, 94, 0.7); }
+
+  .dm-body {
+    flex: 1;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+  }
+  .dm-line {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+</style>

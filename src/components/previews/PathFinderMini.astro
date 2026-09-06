@@ -1,0 +1,192 @@
+---
+/**
+ * PathFinderMini — small auto-animating pathfinding grid for home card.
+ * Non-interactive, loops path resolution every few seconds.
+ *
+ * FIX: obstacles are now defined ONCE (OBSTACLES array) and used for BOTH
+ * the visual render (JSX below) AND the collision check (isBlocked in the
+ * script). Previously there was a separate hand-written GRID matrix used
+ * only for collision, which had different blocked cells than what was
+ * drawn on screen — causing the path to visually cross gray obstacle
+ * cells. Single source of truth removes that possibility entirely.
+ */
+const OBSTACLES: [number, number][] = [
+  [3,1],[3,2],[3,3],[3,4],
+  [6,5],[6,6],[6,7],[6,8],
+  [1,6],[2,6],
+  [8,2],[8,3],
+  [5,0],[5,1],
+  [0,8],[1,8],
+];
+---
+
+<div class="pfm-grid" data-component="pathfinder-mini" aria-hidden="true">
+  <svg viewBox="0 0 10 10" class="pfm-svg">
+    <rect x="0" y="0" width="10" height="10" fill="#0A0E1A" />
+    {Array.from({ length: 11 }, (_, i) => (
+      <line x1={i} y1="0" x2={i} y2="10" stroke="#1E293B" stroke-width="0.06" />
+      <line x1="0" y1={i} x2="10" y2={i} stroke="#1E293B" stroke-width="0.06" />
+    ))}
+    {OBSTACLES.map(([x, y]) => (
+      <rect x={x} y={y} width="1" height="1" fill="#334155" rx="0.08" />
+    ))}
+    <rect x="0.15" y="4.15" width="0.7" height="0.7" rx="0.12" fill="#3B82F6" />
+    <rect x="9.15" y="4.15" width="0.7" height="0.7" rx="0.12" fill="#34D399" />
+    <g class="pfm-visited"></g>
+    <g class="pfm-path"></g>
+  </svg>
+</div>
+
+<script define:vars={{ OBSTACLES }}>
+  function initPathFinderMini() {
+    const root = document.querySelector('[data-component="pathfinder-mini"]');
+    if (!root) return;
+
+    const W = 10, H = 10;
+    const visitedLayer = root.querySelector('.pfm-visited');
+    const pathLayer = root.querySelector('.pfm-path');
+
+    // Single source of truth: same coordinates the SVG rendered above.
+    const OBSTACLE_SET = new Set(OBSTACLES.map(([x, y]) => `${x},${y}`));
+
+    const DIRS = [[0,-1],[0,1],[-1,0],[1,0],[-1,-1],[-1,1],[1,-1],[1,1]];
+    const START = { x: 0, y: 4 };
+    const END = { x: 9, y: 4 };
+
+    function isBlocked(x, y) {
+      if (x < 0 || x >= W || y < 0 || y >= H) return true;
+      return OBSTACLE_SET.has(`${x},${y}`);
+    }
+
+    function heuristic(a, b) {
+      return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+    }
+
+    function aStar() {
+      const key = (x, y) => `${x},${y}`;
+      const open = [{ ...START, g: 0, f: heuristic(START, END), parent: null }];
+      const closed = new Set();
+      const gScores = new Map();
+      gScores.set(key(START.x, START.y), 0);
+
+      while (open.length > 0) {
+        open.sort((a, b) => a.f - b.f);
+        const cur = open.shift();
+
+        if (cur.x === END.x && cur.y === END.y) {
+          const path = [];
+          let n = cur;
+          while (n) { path.unshift({ x: n.x, y: n.y }); n = n.parent; }
+          return {
+            path,
+            visited: Array.from(closed).map(k => {
+              const [x, y] = k.split(',').map(Number);
+              return { x, y };
+            }),
+          };
+        }
+
+        closed.add(key(cur.x, cur.y));
+
+        for (const [dx, dy] of DIRS) {
+          const nx = cur.x + dx;
+          const ny = cur.y + dy;
+          if (isBlocked(nx, ny)) continue;
+          // Prevent cutting diagonally through a corner formed by two
+          // blocked cardinal cells (matches repo's diagonal rule).
+          if (dx !== 0 && dy !== 0) {
+            if (isBlocked(cur.x + dx, cur.y) && isBlocked(cur.x, cur.y + dy)) continue;
+          }
+          const nk = key(nx, ny);
+          if (closed.has(nk)) continue;
+
+          const cost = (dx !== 0 && dy !== 0) ? 1.414 : 1;
+          const tg = cur.g + cost;
+          const eg = gScores.get(nk);
+
+          if (eg === undefined || tg < eg) {
+            gScores.set(nk, tg);
+            const h = heuristic({ x: nx, y: ny }, END);
+            const existing = open.find(n => n.x === nx && n.y === ny);
+            if (existing) {
+              existing.g = tg;
+              existing.f = tg + h;
+              existing.parent = cur;
+            } else {
+              open.push({ x: nx, y: ny, g: tg, f: tg + h, parent: cur });
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    let timeouts = [];
+    let paused = true;
+
+    const observer = new IntersectionObserver(
+      ([e]) => { paused = !e.isIntersecting; },
+      { threshold: 0.1 }
+    );
+    observer.observe(root);
+
+    function renderRect(g, x, y, fill, delay) {
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', String(x + 0.08));
+      rect.setAttribute('y', String(y + 0.08));
+      rect.setAttribute('width', '0.84');
+      rect.setAttribute('height', '0.84');
+      rect.setAttribute('rx', '0.1');
+      rect.setAttribute('fill', fill);
+      rect.setAttribute('opacity', '0');
+      rect.style.transition = 'opacity 0.15s ease';
+      g.appendChild(rect);
+      const t = setTimeout(() => rect.setAttribute('opacity', '1'), delay);
+      timeouts.push(t);
+    }
+
+    function runCycle() {
+      if (paused) return;
+      timeouts.forEach(t => clearTimeout(t));
+      timeouts = [];
+      visitedLayer.innerHTML = '';
+      pathLayer.innerHTML = '';
+
+      const result = aStar();
+      if (!result || result.path.length === 0) return;
+
+      const visitedFiltered = result.visited.filter((_, i) => i % 3 === 0);
+      let delay = 0;
+      visitedFiltered.forEach(v => {
+        renderRect(visitedLayer, v.x, v.y, 'rgba(34, 211, 238, 0.12)', delay);
+        delay += 20;
+      });
+
+      result.path.forEach((p, i) => {
+        const isStart = p.x === START.x && p.y === START.y;
+        const isEnd = p.x === END.x && p.y === END.y;
+        renderRect(pathLayer, p.x, p.y, isStart ? '#3B82F6' : isEnd ? '#34D399' : 'rgba(34, 211, 238, 0.5)', delay + i * 60);
+      });
+    }
+
+    setInterval(() => {
+      if (!paused) runCycle();
+    }, 5000);
+
+    setTimeout(runCycle, 500);
+  }
+
+  document.addEventListener('astro:page-load', initPathFinderMini);
+  initPathFinderMini();
+</script>
+
+<style>
+  .pfm-grid {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #1E293B;
+  }
+  .pfm-svg { display: block; width: 100%; height: 100%; }
+</style>

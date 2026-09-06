@@ -1,0 +1,149 @@
+---
+/**
+ * VaniaBotMini — small auto-animating chat simulator for home card.
+ * 4 messages appear in sequence, loop, pause when not in viewport.
+ */
+---
+
+<div class="vb-mini" data-preview="vaniabot" aria-hidden="true">
+  <div class="vb-mini-header">
+    <div class="vb-mini-avatar">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.74.45 3.38 1.24 4.81L2 22l5.19-1.24C8.62 21.55 10.26 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+    </div>
+    <div>
+      <div class="vb-mini-name">VaniaBot</div>
+      <div class="vb-mini-status"><span class="vb-mini-dot"></span> Online</div>
+    </div>
+  </div>
+  <div class="vb-mini-body">
+    <div class="vb-mini-msg vb-msg-1">
+      <div class="vb-mini-bubble user">.ai ¿Qué es la arquitectura Onion?</div>
+    </div>
+    <div class="vb-mini-msg vb-msg-2">
+      <div class="vb-mini-bubble bot">La arquitectura Onion separa la lógica en capas concéntricas: dominio → aplicación → infraestructura.</div>
+    </div>
+    <div class="vb-mini-msg vb-msg-3">
+      <div class="vb-mini-bubble user">.daily</div>
+    </div>
+    <div class="vb-mini-msg vb-msg-4">
+      <div class="vb-mini-bubble bot">💰 +500 monedas. Saldo: $2,340</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function initVaniaBotMini() {
+    const roots = document.querySelectorAll('[data-preview="vaniabot"]');
+    roots.forEach(root => {
+      let paused = true;
+      const observer = new IntersectionObserver(
+        ([e]) => { paused = !e.isIntersecting; },
+        { threshold: 0.1 }
+      );
+      observer.observe(root);
+      const msgs = root.querySelectorAll('.vb-mini-msg') as NodeListOf<HTMLElement>;
+      let idx = 0;
+      function reset() {
+        msgs.forEach(m => { m.style.opacity = '0'; m.style.transform = 'translateY(6px)'; });
+        idx = 0;
+      }
+      function showNext() {
+        if (paused) return;
+        if (idx < msgs.length) {
+          msgs[idx].style.opacity = '1';
+          msgs[idx].style.transform = 'translateY(0)';
+          idx++;
+        } else {
+          setTimeout(() => { reset(); setTimeout(showNext, 400); }, 3000);
+          return;
+        }
+        setTimeout(showNext, 800);
+      }
+      reset();
+      setTimeout(showNext, 600);
+    });
+  }
+  document.addEventListener('astro:page-load', initVaniaBotMini);
+  initVaniaBotMini();
+</script>
+
+<style>
+  .vb-mini {
+    width: 100%;
+    height: 160px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #1E293B;
+    background: #0D1117;
+    display: flex;
+    flex-direction: column;
+  }
+  .vb-mini-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #1E293B;
+    background: #111827;
+  }
+  .vb-mini-avatar {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.15);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .vb-mini-name {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    color: #F1F5F9;
+  }
+  .vb-mini-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: #34D399;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .vb-mini-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #34D399;
+    display: inline-block;
+  }
+  .vb-mini-body {
+    flex: 1;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 5px;
+    overflow: hidden;
+  }
+  .vb-mini-msg {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .vb-mini-bubble {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 10px;
+    line-height: 1.4;
+    padding: 4px 8px;
+    border-radius: 10px;
+    max-width: 85%;
+    word-break: break-word;
+  }
+  .vb-mini-bubble.user {
+    background: #2563EB;
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+  }
+  .vb-mini-bubble.bot {
+    background: #1E293B;
+    color: #F1F5F9;
+    border-bottom-left-radius: 4px;
+  }
+</style>
