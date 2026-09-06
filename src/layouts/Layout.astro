@@ -1,0 +1,197 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = 'Software Developer — Backend & DevOps. I build software systems and automate the infrastructure that runs them.',
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title}</title>
+    <link rel="canonical" href={canonicalURL} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:site_name" content="Carlos García — Software Developer" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0A0E1A" />
+  </head>
+  <body class="min-h-screen">
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-md border-b border-surface-border">
+      <div class="container-narrow flex items-center justify-between h-16">
+        <a href="/" class="font-heading font-bold text-lg text-text-primary hover:text-accent transition-colors duration-150">
+          CG
+        </a>
+        <div class="flex items-center gap-8">
+          <a href="/#projects" class="link-subtle text-sm font-medium">Projects</a>
+          <a href="/#stack" class="link-subtle text-sm font-medium">Stack</a>
+          <a href="/about" class="link-subtle text-sm font-medium">About</a>
+          <a
+            href="https://github.com/carlosgarcia-tech"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="link-subtle text-sm font-medium"
+          >
+            GitHub
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="pt-16">
+      <slot />
+    </main>
+
+    <footer class="border-t border-surface-border section-spacing">
+      <div class="container-narrow">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+          <p class="text-text-muted text-sm">
+            Built with Astro. Deployed on GitHub Pages.
+          </p>
+          <div class="flex items-center gap-6">
+            <a
+              href="https://github.com/carlosgarcia-tech"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="link-subtle text-sm"
+            >
+              GitHub
+            </a>
+            <a href="mailto:contact@carlosgarcia.dev" class="link-subtle text-sm">
+              Email
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // ─── Intersection Observer for reveals ───
+      function initRevealObserver() {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+              }
+            });
+          },
+          { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+        );
+
+        document.querySelectorAll('.reveal, .stagger-children').forEach((el) => observer.observe(el));
+      }
+
+      // ─── Count-up animation ───
+      function animateCountUp(el: HTMLElement) {
+        const rawText = el.getAttribute('data-count') || el.textContent || '0';
+        const hasPlus = rawText.includes('+');
+        const hasPercent = rawText.includes('%');
+        const cleanNumber = parseInt(rawText.replace(/[^0-9]/g, ''), 10);
+
+        if (isNaN(cleanNumber) || cleanNumber === 0) return;
+
+        const duration = 1200;
+        const startTime = performance.now();
+        const startValue = 0;
+
+        function easeOutCubic(t: number) {
+          return 1 - Math.pow(1 - t, 3);
+        }
+
+        function update(currentTime: number) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easedProgress = easeOutCubic(progress);
+          const current = Math.round(startValue + (cleanNumber - startValue) * easedProgress);
+
+          let display = String(current);
+          if (hasPlus) display += '+';
+          if (hasPercent) display += '%';
+
+          el.textContent = display;
+
+          if (progress < 1) {
+            requestAnimationFrame(update);
+          }
+        }
+
+        el.classList.add('visible');
+        requestAnimationFrame(update);
+      }
+
+      function initCountUpObserver() {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting && !entry.target.classList.contains('counted')) {
+                entry.target.classList.add('counted');
+                animateCountUp(entry.target as HTMLElement);
+              }
+            });
+          },
+          { threshold: 0.5 }
+        );
+
+        document.querySelectorAll('.count-up-value').forEach((el) => {
+          // Store original text as data attribute
+          const el2 = el as HTMLElement;
+          if (!el2.getAttribute('data-count')) {
+            el2.setAttribute('data-count', el2.textContent || '0');
+          }
+          observer.observe(el);
+        });
+      }
+
+      // ─── Metric card shimmer ───
+      function initMetricCards() {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+              }
+            });
+          },
+          { threshold: 0.3 }
+        );
+
+        document.querySelectorAll('.metric-card').forEach((el) => observer.observe(el));
+      }
+
+      // ─── Init all ───
+      function initAll() {
+        initRevealObserver();
+        initCountUpObserver();
+        initMetricCards();
+      }
+
+      document.addEventListener('astro:page-load', initAll);
+      initAll();
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+</style>
