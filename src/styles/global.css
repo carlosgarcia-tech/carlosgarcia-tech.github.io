@@ -45,17 +45,13 @@
   }
 
   .card-surface {
-    @apply bg-surface-raised border border-surface-border rounded-lg;
-  }
-
-  /* Translucent Apple-style material: content can sit over anything softly */
-  .glass-card {
     @apply border border-white/5 rounded-lg;
     background: rgba(17, 24, 39, 0.72);
     backdrop-filter: blur(14px) saturate(160%);
     -webkit-backdrop-filter: blur(14px) saturate(160%);
   }
 
+  /* Translucent Apple-style material: bigger surfaces read as thicker */
   .aurora-text {
     background: linear-gradient(120deg, #3B82F6 0%, #22D3EE 55%, #34D399 100%);
     -webkit-background-clip: text;
