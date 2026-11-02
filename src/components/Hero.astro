@@ -1,11 +1,13 @@
 ---
+import AsciiFigure from './AsciiFigure.astro';
 ---
 
 <section class="relative min-h-[85vh] flex items-center section-spacing overflow-hidden">
   <div class="absolute inset-0 grid-lines opacity-40"></div>
 
   <div class="container-narrow relative z-10">
-    <div class="max-w-3xl">
+    <div class="grid md:grid-cols-[1fr_auto] gap-12 items-center max-w-4xl">
+    <div>
       <div class="reveal">
         <p class="font-mono text-sm text-accent mb-4 tracking-wide">
           backend / devops / systems
@@ -71,6 +73,13 @@
           <span class="metric-value count-up-value">50</span>
           <p class="metric-label">concurrent sessions</p>
         </div>
+      </div>
+    </div>
+      </div>
+    </div>
+
+      <div class="hidden md:block">
+        <AsciiFigure />
       </div>
     </div>
   </div>
