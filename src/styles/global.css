@@ -48,6 +48,21 @@
     @apply bg-surface-raised border border-surface-border rounded-lg;
   }
 
+  /* Translucent Apple-style material: content can sit over anything softly */
+  .glass-card {
+    @apply border border-white/5 rounded-lg;
+    background: rgba(17, 24, 39, 0.72);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+  }
+
+  .aurora-text {
+    background: linear-gradient(120deg, #3B82F6 0%, #22D3EE 55%, #34D399 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
   .tech-badge {
     @apply inline-flex items-center px-3 py-1.5 rounded-md bg-surface-overlay border border-surface-border text-sm font-mono text-text-secondary;
   }
@@ -94,6 +109,26 @@
   .flow-line {
     stroke-dashoffset: 0 !important;
     stroke-dasharray: none !important;
+  }
+}
+
+/* ─── ASCII figure ─── */
+.ascii-pre {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  line-height: 1.15;
+  white-space: pre;
+  user-select: none;
+}
+
+.ascii-figure {
+  color: #94A3B8;
+  text-shadow: 0 0 14px rgba(59, 130, 246, 0.25);
+  clip-path: inset(100% 0 0 0); /* scrub: engine reveals me from the top down */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ascii-figure {
+    clip-path: none !important;
   }
 }
 
