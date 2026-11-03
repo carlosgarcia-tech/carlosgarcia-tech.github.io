@@ -22,3 +22,9 @@ logs/
 # os
 .DS_Store
 Thumbs.db
+
+# agent tooling (skills instaladas localmente, no parte del repo)
+.agents/
+.claude/
+skills-lock.json
+*.skill
