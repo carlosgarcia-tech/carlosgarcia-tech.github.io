@@ -27,13 +27,15 @@ check('CSS tiene reglas de Tailwind', totalCssRules > 50, `reglas: ${totalCssRul
 const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 check('fondo del body = tema oscuro', bodyBg === 'rgb(10, 14, 26)', bodyBg);
 
-// 3. Nav con material liquid glass
+// 3. Nav líquida flotante: píldora de vidrio con blur y borde cápsula
 const navGlass = await page.evaluate(() => {
-  const nav = document.querySelector('nav');
-  const s = getComputedStyle(nav);
-  return { backdrop: s.backdropFilter || s.webkitBackdropFilter, bg: s.backgroundColor };
+  const pill = document.querySelector('.glass-nav-pill');
+  const s = getComputedStyle(pill);
+  return { backdrop: s.backdropFilter || s.webkitBackdropFilter, radius: s.borderRadius, blurPx: s.boxShadow };
 });
-check('nav tiene backdrop-filter', (navGlass.backdrop || '').includes('blur'), navGlass.backdrop);
+check('nav pill con backdrop-filter', (navGlass.backdrop || '').includes('blur'), navGlass.backdrop);
+check('nav pill forma cápsula', navGlass.radius === '9999px', navGlass.radius);
+check('nav pill con rim light', (navGlass.blurPx || '').includes('inset'), 'sombra interna presente');
 
 // 4. Tipografía aplicada (Space Grotesk en el h1)
 const h1Font = await page.evaluate(() => getComputedStyle(document.querySelector('h1')).fontFamily);
@@ -47,9 +49,12 @@ check('3 chips de vidrio en hero', chipCount === 3, `encontrados: ${chipCount}`)
 const scrubCount = await page.locator('[data-scrub="parallax"]').count();
 check('capas parallax (>= 3 del hero)', scrubCount >= 3, `encontradas: ${scrubCount}`);
 
-// 7. Orbes aurora líquidos del hero
+// 7. Orbes aurora líquidos del hero + CTA glass prominente
 const orbCount = await page.locator('.aurora-orb').count();
 check('orbes aurora en hero', orbCount === 2, `encontrados: ${orbCount}`);
+
+const ctaGlassCount = await page.locator('a.cta-glass').count();
+check('CTA glassProminent en home', ctaGlassCount >= 1, `encontrados: ${ctaGlassCount}`);
 
 // 8. Capturas para inspección visual
 await page.screenshot({ path: '/tmp/opencode/hero-top.png' });
