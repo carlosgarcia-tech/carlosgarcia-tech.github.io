@@ -14,10 +14,10 @@ const steps = [
     <svg viewBox="0 0 700 280" class="w-full h-auto" role="img" aria-label="Blue/Green deployment flow diagram">
       <defs>
         <marker id="arrow-bg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#3B82F6" />
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#61A0FF" />
         </marker>
         <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#34D399" />
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#3BE8A8" />
         </marker>
         <filter id="bg-glow">
           <feGaussianBlur stdDeviation="3" result="blur" />
@@ -29,30 +29,30 @@ const steps = [
       </defs>
 
       <!-- Blue environment -->
-      <rect x="20" y="20" width="140" height="100" rx="8" fill="none" stroke="#3B82F6" stroke-width="2" opacity="0.5" class="env-box" data-env="blue" />
-      <text x="90" y="55" text-anchor="middle" fill="#3B82F6" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Blue</text>
+      <rect x="20" y="20" width="140" height="100" rx="8" fill="none" stroke="#61A0FF" stroke-width="2" opacity="0.5" class="env-box" data-env="blue" />
+      <text x="90" y="55" text-anchor="middle" fill="#61A0FF" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Blue</text>
       <text x="90" y="75" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="9">commons-blue:3000</text>
-      <rect x="50" y="90" width="80" height="4" rx="2" fill="#3B82F6" opacity="0.4" class="health-bar" data-env="blue" />
+      <rect x="50" y="90" width="80" height="4" rx="2" fill="#61A0FF" opacity="0.4" class="health-bar" data-env="blue" />
 
       <!-- Green environment -->
-      <rect x="20" y="160" width="140" height="100" rx="8" fill="none" stroke="#34D399" stroke-width="2" opacity="0.3" class="env-box" data-env="green" />
-      <text x="90" y="195" text-anchor="middle" fill="#34D399" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Green</text>
+      <rect x="20" y="160" width="140" height="100" rx="8" fill="none" stroke="#3BE8A8" stroke-width="2" opacity="0.3" class="env-box" data-env="green" />
+      <text x="90" y="195" text-anchor="middle" fill="#3BE8A8" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Green</text>
       <text x="90" y="215" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="9">commons-green:3000</text>
-      <rect x="50" y="225" width="80" height="4" rx="2" fill="#34D399" opacity="0.3" class="health-bar" data-env="green" />
+      <rect x="50" y="225" width="80" height="4" rx="2" fill="#3BE8A8" opacity="0.3" class="health-bar" data-env="green" />
 
       <!-- Nginx proxy -->
-      <rect x="220" y="80" width="120" height="120" rx="8" fill="#1A2035" stroke="#64748B" stroke-width="1.5" />
+      <rect x="220" y="80" width="120" height="120" rx="8" fill="#131C30" stroke="#64748B" stroke-width="1.5" />
       <text x="280" y="125" text-anchor="middle" fill="#F1F5F9" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Nginx</text>
       <text x="280" y="145" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="9">commons-proxy</text>
-      <text x="280" y="165" text-anchor="middle" fill="#3B82F6" font-family="JetBrains Mono, monospace" font-size="9" id="proxy-target">upstream: blue</text>
+      <text x="280" y="165" text-anchor="middle" fill="#61A0FF" font-family="JetBrains Mono, monospace" font-size="9" id="proxy-target">upstream: blue</text>
 
       <!-- Traffic arrow from proxy to blue -->
-      <line x1="220" y1="110" x2="160" y2="70" stroke="#3B82F6" stroke-width="2" marker-end="url(#arrow-bg)" class="traffic-line" id="traffic-blue" opacity="1" />
+      <line x1="220" y1="110" x2="160" y2="70" stroke="#61A0FF" stroke-width="2" marker-end="url(#arrow-bg)" class="traffic-line" id="traffic-blue" opacity="1" />
       <!-- Traffic arrow from proxy to green (hidden) -->
-      <line x1="220" y1="170" x2="160" y2="210" stroke="#34D399" stroke-width="2" marker-end="url(#arrow-green)" class="traffic-line" id="traffic-green" opacity="0.2" />
+      <line x1="220" y1="170" x2="160" y2="210" stroke="#3BE8A8" stroke-width="2" marker-end="url(#arrow-green)" class="traffic-line" id="traffic-green" opacity="0.2" />
 
       <!-- Traffic flow animation -->
-      <circle r="3" fill="#3B82F6" id="traffic-dot" opacity="0">
+      <circle r="3" fill="#61A0FF" id="traffic-dot" opacity="0">
         <animateMotion dur="1.5s" repeatCount="indefinite" path="M380,140 L340,110 L280,110" />
       </circle>
 
@@ -60,22 +60,22 @@ const steps = [
       <g transform="translate(380, 30)">
         {steps.map((step, i) => (
           <g transform={`translate(0, ${i * 40})`}>
-            <rect x="0" y="0" width="280" height="32" rx="6" fill="#111827" stroke="#1E293B" stroke-width="1" class="step-box" data-step={i} />
-            <circle cx="16" cy="16" r="10" fill="none" stroke="#3B82F6" stroke-width="1.5" class="step-circle" data-step={i} />
-            <text x="16" y="20" text-anchor="middle" fill="#3B82F6" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">{String(i + 1).padStart(2, '0')}</text>
+            <rect x="0" y="0" width="280" height="32" rx="6" fill="#131C30" stroke="#1F2C47" stroke-width="1" class="step-box" data-step={i} />
+            <circle cx="16" cy="16" r="10" fill="none" stroke="#61A0FF" stroke-width="1.5" class="step-circle" data-step={i} />
+            <text x="16" y="20" text-anchor="middle" fill="#61A0FF" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">{String(i + 1).padStart(2, '0')}</text>
             <text x="34" y="14" fill="#F1F5F9" font-family="Inter, sans-serif" font-size="10" font-weight="500">{step.label}</text>
             <text x="34" y="26" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="8">{step.sublabel}</text>
           </g>
         ))}
         {steps.slice(0, -1).map((_, i) => (
-          <line x1="140" y1={i * 40 + 32} x2="140" y2={(i + 1) * 40 + 4} stroke="#1E293B" stroke-width="1" stroke-dasharray="4 4" class="step-connector" data-step={i} />
+          <line x1="140" y1={i * 40 + 32} x2="140" y2={(i + 1) * 40 + 4} stroke="#1F2C47" stroke-width="1" stroke-dasharray="4 4" class="step-connector" data-step={i} />
         ))}
       </g>
 
       <!-- Rollback badge -->
       <g transform="translate(520, 250)">
         <rect x="0" y="0" width="140" height="24" rx="4" fill="#388e3c" opacity="0.15" stroke="#388e3c" stroke-width="1" />
-        <text x="70" y="16" text-anchor="middle" fill="#34D399" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">Rollback {"<"} 1min</text>
+        <text x="70" y="16" text-anchor="middle" fill="#3BE8A8" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">Rollback {"<"} 1min</text>
       </g>
     </svg>
   </div>
@@ -116,7 +116,7 @@ const steps = [
       activeEnv = env;
       if (proxyTarget) {
         proxyTarget.textContent = `upstream: ${env}`;
-        proxyTarget.setAttribute('fill', env === 'blue' ? '#3B82F6' : '#34D399');
+        proxyTarget.setAttribute('fill', env === 'blue' ? '#61A0FF' : '#3BE8A8');
       }
 
       envBoxes.forEach((box) => {
@@ -139,7 +139,7 @@ const steps = [
       }
 
       if (trafficDot) {
-        trafficDot.setAttribute('fill', env === 'blue' ? '#3B82F6' : '#34D399');
+        trafficDot.setAttribute('fill', env === 'blue' ? '#61A0FF' : '#3BE8A8');
       }
     }
 
@@ -147,19 +147,19 @@ const steps = [
       activeStep = index;
       stepBoxes.forEach((box, i) => {
         const el = box as SVGRectElement;
-        el.setAttribute('stroke', i === index ? '#3B82F6' : '#1E293B');
+        el.setAttribute('stroke', i === index ? '#61A0FF' : '#1F2C47');
         el.setAttribute('stroke-width', i === index ? '2' : '1');
-        el.setAttribute('fill', i === index ? '#1A2035' : '#111827');
+        el.setAttribute('fill', i === index ? '#131C30' : '#131C30');
       });
       stepCircles.forEach((circle, i) => {
         const el = circle as SVGCircleElement;
-        el.setAttribute('stroke', i === index ? '#3B82F6' : '#3B82F6');
+        el.setAttribute('stroke', i === index ? '#61A0FF' : '#61A0FF');
         el.setAttribute('stroke-width', i === index ? '2.5' : '1.5');
-        el.setAttribute('fill', i === index ? 'rgba(59, 130, 246, 0.15)' : 'none');
+        el.setAttribute('fill', i === index ? 'rgba(97, 160, 255, 0.15)' : 'none');
       });
       stepConnectors.forEach((conn, i) => {
         const el = conn as SVGLineElement;
-        el.setAttribute('stroke', i === index ? '#3B82F6' : '#1E293B');
+        el.setAttribute('stroke', i === index ? '#61A0FF' : '#1F2C47');
         el.setAttribute('stroke-width', i === index ? '2' : '1');
       });
     }
@@ -167,19 +167,19 @@ const steps = [
     function resetSteps() {
       stepBoxes.forEach((box) => {
         const el = box as SVGRectElement;
-        el.setAttribute('stroke', '#1E293B');
+        el.setAttribute('stroke', '#1F2C47');
         el.setAttribute('stroke-width', '1');
-        el.setAttribute('fill', '#111827');
+        el.setAttribute('fill', '#131C30');
       });
       stepCircles.forEach((circle) => {
         const el = circle as SVGCircleElement;
-        el.setAttribute('stroke', '#3B82F6');
+        el.setAttribute('stroke', '#61A0FF');
         el.setAttribute('stroke-width', '1.5');
         el.setAttribute('fill', 'none');
       });
       stepConnectors.forEach((conn) => {
         const el = conn as SVGLineElement;
-        el.setAttribute('stroke', '#1E293B');
+        el.setAttribute('stroke', '#1F2C47');
         el.setAttribute('stroke-width', '1');
       });
     }

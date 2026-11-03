@@ -1,4 +1,14 @@
 ---
+import '@fontsource/space-grotesk/400.css';
+import '@fontsource/space-grotesk/500.css';
+import '@fontsource/space-grotesk/600.css';
+import '@fontsource/space-grotesk/700.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '../styles/global.css';
+
 interface Props {
   title: string;
   description?: string;
@@ -40,43 +50,40 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
     <meta name="twitter:description" content={description} />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="theme-color" content="#0A0E1A" />
+    <meta name="theme-color" content="#04060C" />
   </head>
   <body class="min-h-screen">
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-md border-b border-surface-border">
-      <div class="container-narrow flex items-center justify-between h-16">
-        <a href="/" class="font-heading font-bold text-lg text-text-primary hover:text-accent transition-colors duration-150">
-          CG
-        </a>
-        <div class="flex items-center gap-8">
-          <a href="/#projects" class="link-subtle text-sm font-medium">Projects</a>
-          <a href="/#stack" class="link-subtle text-sm font-medium">Stack</a>
-          <a href="/about" class="link-subtle text-sm font-medium">About</a>
-          <a
-            href="https://github.com/carlosgarcia-tech"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="link-subtle text-sm font-medium"
-          >
-            GitHub
-          </a>
-          <a
-            href="https://www.linkedin.com/in/carlos-garcia-gg/"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="link-subtle text-sm font-medium"
-          >
-            LinkedIn
-          </a>
+    <nav class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+      <div class="glass-bar glass-nav-pill glass-interactive glass-sheen pointer-events-auto">
+        <div class="flex items-center h-14 px-5 md:px-6 gap-4 md:gap-5">
+          <a href="/" class="font-heading font-bold text-lg text-text-primary hover:text-accent transition-colors duration-150 rounded-full px-3 py-2.5 hover:bg-white/10"> CG </a>
+          <div class="w-px h-5 bg-white/10" aria-hidden="true"></div>
+          <div class="flex items-center gap-4 md:gap-6">
+            <a href="/#projects" class="link-subtle text-sm font-medium rounded-full px-3 py-2.5 hover:text-text-primary hover:bg-white/10">Projects</a>
+            <a href="/#stack" class="link-subtle text-sm font-medium rounded-full px-3 py-2.5 hover:text-text-primary hover:bg-white/10">Stack</a>
+            <a href="/about" class="link-subtle text-sm font-medium rounded-full px-3 py-2.5 hover:text-text-primary hover:bg-white/10">About</a>
+            <a
+              href="https://github.com/carlosgarcia-tech"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="link-subtle text-sm font-medium rounded-full px-3 py-2.5 hover:text-text-primary hover:bg-white/10"
+            > GitHub </a>
+            <a
+              href="https://www.linkedin.com/in/carlos-garcia-gg/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="link-subtle text-sm font-medium rounded-full px-3 py-2.5 hover:text-text-primary hover:bg-white/10"
+            > LinkedIn </a>
+          </div>
         </div>
       </div>
     </nav>
 
-    <main class="pt-16">
+    <main class="pt-24">
       <slot />
     </main>
 
-    <footer class="border-t border-surface-border section-spacing">
+    <footer class="border-t border-surface-border section-spacing glass-footer">
       <div class="container-narrow">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
           <p class="text-text-muted text-sm">
@@ -201,19 +208,50 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
         document.querySelectorAll('.metric-card').forEach((el) => observer.observe(el));
       }
 
+      // ─── Interactive Liquid Glass: the specular highlight follows the cursor ───
+      function initInteractiveGlass() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        /**
+         * Track the cursor inside a glass pane and park its position in
+         * --spec-x/--spec-y custom properties (one rAF per pane, coalesced
+         * while moving, so repeated pointermoves cost one frame at most).
+         */
+        function trackPane(pane: HTMLDivElement) {
+          let raf: number | null = null;
+
+          pane.addEventListener('pointermove', (ev: PointerEvent) => {
+            const fromEvent = ev;
+            if (raf !== null) return;
+            raf = requestAnimationFrame(() => {
+              raf = null;
+              const rect = pane.getBoundingClientRect();
+              pane.style.setProperty('--spec-x', `${(((fromEvent.clientX - rect.left) / rect.width) * 100).toFixed(1)}%`);
+              pane.style.setProperty('--spec-y', `${(((fromEvent.clientY - rect.top) / rect.height) * 100).toFixed(1)}%`);
+            });
+          });
+          pane.addEventListener('pointerleave', () => {
+            if (raf !== null) cancelAnimationFrame(raf);
+            raf = null;
+          });
+        }
+
+        document.querySelectorAll<HTMLDivElement>('.glass-interactive').forEach(trackPane);
+      }
+
       // ─── Init all ───
       function initAll() {
         initRevealObserver();
         initCountUpObserver();
         initMetricCards();
+        initInteractiveGlass();
       }
 
       document.addEventListener('astro:page-load', initAll);
       initAll();
     </script>
+    <script>
+      import '../scripts/scroll.js';
+    </script>
   </body>
 </html>
-
-<style is:global>
-  @import '../styles/global.css';
-</style>
