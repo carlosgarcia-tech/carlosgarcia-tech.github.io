@@ -54,7 +54,7 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
   </head>
   <body class="min-h-screen">
     <nav class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
-      <div class="glass-bar glass-nav-pill pointer-events-auto">
+      <div class="glass-bar glass-nav-pill glass-interactive glass-sheen pointer-events-auto">
         <div class="flex items-center h-12 px-6 gap-6 md:px-8">
           <a href="/" class="font-heading font-bold text-lg text-text-primary hover:text-accent transition-colors duration-150"> CG </a>
           <div class="w-px h-5 bg-white/10" aria-hidden="true"></div>
@@ -208,11 +208,43 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
         document.querySelectorAll('.metric-card').forEach((el) => observer.observe(el));
       }
 
+      // ─── Interactive Liquid Glass: the specular highlight follows the cursor ───
+      function initInteractiveGlass() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        /**
+         * Track the cursor inside a glass pane and park its position in
+         * --spec-x/--spec-y custom properties (one rAF per pane, coalesced
+         * while moving, so repeated pointermoves cost one frame at most).
+         */
+        function trackPane(pane: HTMLDivElement) {
+          let raf: number | null = null;
+
+          pane.addEventListener('pointermove', (ev: PointerEvent) => {
+            const fromEvent = ev;
+            if (raf !== null) return;
+            raf = requestAnimationFrame(() => {
+              raf = null;
+              const rect = pane.getBoundingClientRect();
+              pane.style.setProperty('--spec-x', `${(((fromEvent.clientX - rect.left) / rect.width) * 100).toFixed(1)}%`);
+              pane.style.setProperty('--spec-y', `${(((fromEvent.clientY - rect.top) / rect.height) * 100).toFixed(1)}%`);
+            });
+          });
+          pane.addEventListener('pointerleave', () => {
+            if (raf !== null) cancelAnimationFrame(raf);
+            raf = null;
+          });
+        }
+
+        document.querySelectorAll<HTMLDivElement>('.glass-interactive').forEach(trackPane);
+      }
+
       // ─── Init all ───
       function initAll() {
         initRevealObserver();
         initCountUpObserver();
         initMetricCards();
+        initInteractiveGlass();
       }
 
       document.addEventListener('astro:page-load', initAll);

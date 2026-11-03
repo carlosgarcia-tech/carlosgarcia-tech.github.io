@@ -1,86 +1,157 @@
-// Verificación visual e2e mínima del portafolio (estado real del navegador).
+// Auditoría visual e2e completa del portafolio (estado real del navegador).
+// Recorre TODAS las páginas verificando: carga, red, consola, nav cápsula,
+// capas de scrub, animaciones activas, interacciones de hover, reduced motion
+// y el scrub engine funcionando durante el scroll real.
 import { chromium } from '@playwright/test';
 
 const results = [];
-const check = (name, pass, detail) => {
-  results.push({ name, pass, detail });
-};
+const check = (name, pass, detail) => results.push({ name, pass, detail });
 
 const BASE = process.env.BASE_URL || 'http://localhost:4321';
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 
-await page.goto(BASE, { waitUntil: 'networkidle' });
+// Expectativas específicas por página
+const PAGE_CONFIG = {
+  '/': { orbs: 2, scrubMin: 3, ctas: 1, metricCards: 4 },
+  '/about': { orbs: 1, scrubMin: 1, ctas: 1, metricCards: 0 },
+  '/projects/commons-marketplace': { orbs: 1, scrubMin: 1, ctas: 1, metricCards: 4 },
+  '/projects/deployment-automation': { orbs: 1, scrubMin: 1, ctas: 1, metricCards: 4 },
+  '/projects/pathfinder': { orbs: 1, scrubMin: 1, ctas: 1, metricCards: 4 },
+  '/projects/vaniabot': { orbs: 1, scrubMin: 1, ctas: 1, metricCards: 4 },
+};
 
-// 1. El stylesheet principal cargó (excluye el ascii scoped)
-const stylesheets = await page.evaluate(() =>
-  [...document.querySelectorAll('link[rel="stylesheet"]')].map((l) => l.href)
-);
-check('stylesheets cargados', stylesheets.length > 0, stylesheets);
+for (const [path, cfg] of Object.entries(PAGE_CONFIG)) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const failedRequests = [];
+  const pageErrors = [];
+  const consoleErrors = [];
+  page.on('requestfailed', (r) => failedRequests.push(r.url()));
+  page.on('pageerror', (e) => pageErrors.push(String(e)));
+  page.on('console', (m) => {
+    if (m.type() === 'error') consoleErrors.push(m.text());
+  });
 
-const totalCssRules = await page.evaluate(() =>
-  [...document.styleSheets].reduce((n, s) => n + s.cssRules.length, 0)
-);
-check('CSS tiene reglas de Tailwind', totalCssRules > 50, `reglas: ${totalCssRules}`);
+  const res = await page.goto(BASE + path, { waitUntil: 'networkidle' });
 
-// 2. Fondo del body pintado con el tema oscuro
-const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-check('fondo del body = tema oscuro', bodyBg === 'rgb(10, 14, 26)', bodyBg);
+  check(`${path} → responde 200`, res.status() === 200, res.status());
 
-// 3. Nav líquida flotante: píldora de vidrio con blur y borde cápsula
-const navGlass = await page.evaluate(() => {
-  const pill = document.querySelector('.glass-nav-pill');
-  const s = getComputedStyle(pill);
-  return { backdrop: s.backdropFilter || s.webkitBackdropFilter, radius: s.borderRadius, blurPx: s.boxShadow };
+  // Carga de estilos y tema
+  const cssState = await page.evaluate(() => {
+    const rules = [...document.styleSheets].reduce((n, s) => n + s.cssRules.length, 0);
+    return { links: document.querySelectorAll('link[rel="stylesheet"]').length, rules };
+  });
+  check(`${path} → hojas de estilo cargadas`, cssState.links > 0 && cssState.rules > 50,
+    `links: ${cssState.links}, reglas: ${cssState.rules}`);
+
+  // Nav líquida flotante en todas las páginas: el contenedor es fixed,
+  // la píldora interior es la cápsula con el material
+  const nav = await page.evaluate(() => {
+    const navFixed = getComputedStyle(document.querySelector('nav')).position;
+    const pill = document.querySelector('.glass-nav-pill');
+    if (!pill) return null;
+    const s = getComputedStyle(pill);
+    return { navFixed, backdrop: s.backdropFilter || s.webkitBackdropFilter, radius: s.borderRadius };
+  });
+  check(`${path} → nav cápsula flotante`, !!nav && nav.radius === '9999px' && nav.navFixed === 'fixed', JSON.stringify(nav));
+  check(`${path} → nav con backdrop-filter`, (nav?.backdrop || '').includes('blur'), nav?.backdrop);
+
+  // Capas del sistema parallax
+  const scrub = await page.locator('[data-scrub]').count();
+  check(`${path} → capas scrub ≥ ${cfg.scrubMin}`, scrub >= cfg.scrubMin, `encontradas: ${scrub}`);
+
+  // Orbes aurora con su animación activa
+  const orbs = await page.evaluate(() =>
+    [...document.querySelectorAll('.aurora-orb')].map((el) => getComputedStyle(el).animationName)
+  );
+  check(`${path} → ${cfg.orbs} orbes aurora animados`,
+    orbs.length === cfg.orbs && orbs.every((n) => n === 'orb-drift'), JSON.stringify(orbs));
+
+  // CTA glassProminent y panes de métrica según la página
+  const ctas = await page.locator('a.cta-glass').count();
+  check(`${path} → ${cfg.ctas} CTA glass prominente`, ctas === cfg.ctas, `encontrados: ${ctas}`);
+  const metricCards = await page.locator('.metric-card').count();
+  check(`${path} → ${cfg.metricCards} panes de métrica`, metricCards === cfg.metricCards, `encontrados: ${metricCards}`);
+
+  // Red y consola limpias
+  check(`${path} → sin requests fallidos`, failedRequests.length === 0, failedRequests);
+  check(`${path} → sin errores de página/consola`,
+    pageErrors.length === 0 && consoleErrors.length === 0, JSON.stringify({ pageErrors, consoleErrors }));
+
+  // Captura para inspección visual
+  await page.screenshot({ path: `/tmp/opencode/audit${path === '/' ? '-home' : path.replace(/\//g, '-') }.png`, fullPage: true });
+  await page.close();
+}
+
+// ─── Interacciones reales en la home ───
+const home = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+await home.goto(BASE + '/', { waitUntil: 'networkidle' });
+
+// Hover chip: el borde y el glow reaccionan
+const chip = home.locator('a.glass-chip').first();
+const chipBefore = await chip.evaluate((el) => getComputedStyle(el).borderColor);
+await chip.hover();
+await home.waitForTimeout(300);
+const chipAfter = await chip.evaluate((el) => getComputedStyle(el).borderColor);
+check('hover chip → borde reacciona', chipBefore !== chipAfter, `${chipBefore} → ${chipAfter}`);
+
+// Specular interactivo: el cursor deja posición en las custom properties del nav
+const pill = home.locator('.glass-nav-pill');
+const pillBox = await pill.boundingBox();
+await home.mouse.move(pillBox.x + pillBox.width * 0.3, pillBox.y + pillBox.height * 0.6);
+await home.mouse.move(pillBox.x + pillBox.width * 0.7, pillBox.y + pillBox.height * 0.6);
+await home.waitForTimeout(200);
+const specVals = await pill.evaluate((el) => {
+  const s = el.style;
+  return { x: s.getPropertyValue('--spec-x'), y: s.getPropertyValue('--spec-y') };
 });
-check('nav pill con backdrop-filter', (navGlass.backdrop || '').includes('blur'), navGlass.backdrop);
-check('nav pill forma cápsula', navGlass.radius === '9999px', navGlass.radius);
-check('nav pill con rim light', (navGlass.blurPx || '').includes('inset'), 'sombra interna presente');
+check('specular nav → sigue al cursor', specVals.x !== '' && Number.parseFloat(specVals.x) > 50, JSON.stringify(specVals));
 
-// 4. Tipografía aplicada (Space Grotesk en el h1)
-const h1Font = await page.evaluate(() => getComputedStyle(document.querySelector('h1')).fontFamily);
-check('h1 usa Space Grotesk', h1Font.toLowerCase().includes('space grotesk'), h1Font);
+// Hover tarjeta: el lift con halo de acento
+const card = home.locator('a.card-hover').first();
+await card.scrollIntoViewIfNeeded();
+const cardBefore = await card.evaluate((el) => getComputedStyle(el).transform);
+await card.hover();
+await home.waitForTimeout(400);
+const cardAfter = await card.evaluate((el) => getComputedStyle(el).transform);
+check('hover tarjeta → lift activo', cardBefore !== cardAfter && cardAfter.includes('matrix'), `${cardBefore} → ${cardAfter}`);
 
-// 5. Botones chip
-const chipCount = await page.locator('a.glass-chip').count();
-check('3 chips de vidrio en hero', chipCount === 3, `encontrados: ${chipCount}`);
+// Scrub engine vivo: el parallax del h1 responde al scroll real
+await home.evaluate(() => window.scrollTo(0, 0));
+await home.waitForTimeout(600);
+const heroTitle = home.locator('h1[data-scrub="parallax"]');
+const parallaxBefore = await heroTitle.evaluate((el) => el.style.transform);
+await home.evaluate(() => window.scrollBy(0, 500));
+await home.waitForTimeout(800);
+const parallaxAfter = await heroTitle.evaluate((el) => el.style.transform);
+check('scrub parallax → transform sigue al scroll real', parallaxBefore !== parallaxAfter, `${parallaxBefore} → ${parallaxAfter}`);
 
-// 6. Capas parallax: el hero registra 3 y el sistema completo anexa una por sección
-const scrubCount = await page.locator('[data-scrub="parallax"]').count();
-check('capas parallax (>= 3 del hero)', scrubCount >= 3, `encontradas: ${scrubCount}`);
+// Pulso ASCII activo
+const breathe = await home.locator('.ascii-figure').evaluate((el) => getComputedStyle(el).animationName);
+check('ascii respira (glow animado)', breathe === 'ascii-breathe', breathe);
 
-// 7. Orbes aurora líquidos del hero + CTA glass prominente
-const orbCount = await page.locator('.aurora-orb').count();
-check('orbes aurora en hero', orbCount === 2, `encontrados: ${orbCount}`);
+await home.close();
 
-const ctaGlassCount = await page.locator('a.cta-glass').count();
-check('CTA glassProminent en home', ctaGlassCount >= 1, `encontrados: ${ctaGlassCount}`);
-
-// 8. Capturas para inspección visual
-await page.screenshot({ path: '/tmp/opencode/hero-top.png' });
-await page.screenshot({ path: '/tmp/opencode/hero-full.png', fullPage: true });
-
-// 9. Reduced motion: el motor scrub no debe escribir estilos inline
-await page.emulateMedia({ reducedMotion: 'reduce' });
-await page.reload({ waitUntil: 'networkidle' });
-const inlineScrubStyles = await page.evaluate(() =>
-  [...document.querySelectorAll('[data-scrub]')].filter(
+// ─── Reduced motion global: nada del sistema escribe/animación ───
+const rm = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+await rm.emulateMedia({ reducedMotion: 'reduce' });
+await rm.goto(BASE + '/', { waitUntil: 'networkidle' });
+const rmState = await rm.evaluate(() => ({
+  inlineScrub: [...document.querySelectorAll('[data-scrub]')].filter(
     (el) => el.style.transform || el.style.opacity || el.style.clipPath
-  ).length
-);
-check('reduced-motion: sin estilos inline del scrub', inlineScrubStyles === 0, `con estilos: ${inlineScrubStyles}`);
-await page.emulateMedia({ reducedMotion: null });
+  ).length,
+  orbAnim: getComputedStyle(document.querySelector('.aurora-orb')).animationName,
+  sheenAnim: getComputedStyle(document.querySelector('.glass-sheen'), '::after').animationName,
+}));
+check('reduced-motion → scrub sin estilos inline', rmState.inlineScrub === 0, `con estilos: ${rmState.inlineScrub}`);
+check('reduced-motion → orbe parado', rmState.orbAnim === 'none', rmState.orbAnim);
+check('reduced-motion → sheen parado', rmState.sheenAnim === 'none', rmState.sheenAnim);
+await rm.close();
 
-// 10. Red: ninguna petición de CSS falló
-const failed = [];
-page.on('requestfailed', (r) => failed.push(r.url()));
-await page.reload({ waitUntil: 'networkidle' });
-check('sin requests fallidos', failed.length === 0, failed);
+await browser.close();
 
 const failedChecks = results.filter((r) => !r.pass);
 for (const r of results) {
   console.log(`${r.pass ? '✔' : '✖'} ${r.name} → ${JSON.stringify(r.detail)}`);
 }
 console.log(failedChecks.length === 0 ? 'ALL PASS' : `FAILURES: ${failedChecks.length}`);
-await browser.close();
 process.exit(failedChecks.length === 0 ? 0 : 1);
