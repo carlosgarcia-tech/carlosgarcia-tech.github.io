@@ -1,12 +1,3 @@
-@import '@fontsource/space-grotesk/400.css';
-@import '@fontsource/space-grotesk/500.css';
-@import '@fontsource/space-grotesk/600.css';
-@import '@fontsource/space-grotesk/700.css';
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
-@import '@fontsource/inter/600.css';
-@import '@fontsource/jetbrains-mono/400.css';
-
 @import 'tailwindcss';
 
 /* ─── Design tokens (migrados 1:1 desde tailwind.config.mjs) ─── */
@@ -95,26 +86,27 @@
   .card-surface {
     @apply border border-white/5 rounded-lg;
     background: rgba(17, 24, 39, 0.72);
-    backdrop-filter: blur(14px) saturate(160%);
     -webkit-backdrop-filter: blur(14px) saturate(160%);
+    backdrop-filter: blur(14px) saturate(160%);
   }
 
   /* Heavy material: fixed bars read thicker (stronger blur, deeper separation) */
   .glass-bar {
     background: rgba(10, 14, 26, 0.55);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    /* bright top edge = light catching the material */
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
-    backdrop-filter: blur(20px) saturate(180%);
+    /* bright top edge catching the material + soft scroll-edge shadow that
+       separates it from the content sliding underneath (no hard divider) */
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 8px 32px rgba(0, 0, 0, 0.35);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
   }
 
   /* Light material for interactive chips; the primary CTA stays solid accent */
   .glass-chip {
     background: rgba(26, 32, 53, 0.55);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px) saturate(160%);
     -webkit-backdrop-filter: blur(10px) saturate(160%);
+    backdrop-filter: blur(10px) saturate(160%);
     transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
   }
 
@@ -153,6 +145,44 @@
       linear-gradient(to right, rgba(30, 41, 59, 0.3) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(30, 41, 59, 0.3) 1px, transparent 1px);
     background-size: 60px 60px;
+  }
+
+  /* Decorative scroll-driven backdrop: pure background, never interactive.
+     Combine in markup with .grid-lines to paint the pattern. */
+  .parallax-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+}
+
+/* ─── Scrub promotion: the engine writes these properties every frame, so
+       hint the compositor to layer-promote exactly what each mode animates.
+       Purely compositor-friendly values: transform / opacity / clip-path. ─── */
+[data-scrub='parallax'] {
+  will-change: transform;
+}
+[data-scrub='draw'] {
+  will-change: clip-path;
+}
+[data-scrub='fade'] {
+  will-change: opacity;
+}
+
+/* ─── Más contraste: materiales casi sólidos con borde definido ─── */
+@media (prefers-contrast: more) {
+  .glass-bar {
+    background: rgb(10 14 26 / 0.97) !important;
+    border-bottom: 1px solid rgb(148 163 184 / 0.4) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .card-surface,
+  .glass-chip {
+    background: var(--color-surface-raised) !important;
+    border: 1px solid rgb(148 163 184 / 0.45) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 }
 
