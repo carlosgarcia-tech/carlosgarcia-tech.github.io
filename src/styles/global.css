@@ -7,9 +7,57 @@
 @import '@fontsource/inter/600.css';
 @import '@fontsource/jetbrains-mono/400.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* ─── Design tokens (migrados 1:1 desde tailwind.config.mjs) ─── */
+@theme {
+  --color-surface: #0A0E1A;
+  --color-surface-raised: #111827;
+  --color-surface-overlay: #1A2035;
+  --color-surface-border: #1E293B;
+  --color-accent: #3B82F6;
+  --color-accent-muted: #2563EB;
+  --color-accent-glow: rgb(59 130 246 / 0.15);
+  --color-cyan: #22D3EE;
+  --color-emerald: #34D399;
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+
+  --font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --text-display: clamp(2.5rem, 6vw, 4.5rem);
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 700;
+  --text-headline: 2rem;
+  --text-headline--line-height: 1.2;
+  --text-headline--letter-spacing: -0.01em;
+  --text-headline--font-weight: 600;
+  --text-subhead: 1.25rem;
+  --text-subhead--line-height: 1.4;
+  --text-subhead--font-weight: 500;
+
+  --animate-fade-in: fadeIn 0.5s ease-out forwards;
+  --animate-slide-up: slideUp 0.5s ease-out forwards;
+  --animate-terminal-blink: blink 1s step-end infinite;
+
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes slideUp {
+    0% { opacity: 0; transform: translateY(12px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+}
+
 
 @layer base {
   html {
