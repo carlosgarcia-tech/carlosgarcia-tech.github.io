@@ -80,7 +80,10 @@
     height: 160px;
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid #1F2C47;
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      0 8px 20px -12px rgba(255, 107, 28, 0.28);
   }
   .cc-slides {
     display: flex;
@@ -93,9 +96,9 @@
     height: 100%;
     flex-shrink: 0;
   }
-  .cc-slide-1 { background: linear-gradient(135deg, #131C30 0%, #1F2C47 100%); }
-  .cc-slide-2 { background: linear-gradient(135deg, #0f1a2e 0%, #162033 100%); }
-  .cc-slide-3 { background: linear-gradient(135deg, #151b2d 0%, #1a2540 100%); }
+  .cc-slide-1 { background: linear-gradient(135deg, #FFF6EF 0%, #FFE3CF 100%); }
+  .cc-slide-2 { background: linear-gradient(135deg, #FFFCF7 0%, #FFEEDB 100%); }
+  .cc-slide-3 { background: linear-gradient(135deg, #FFF3ED 0%, #FFDCC5 100%); }
 
   .cc-inner {
     display: flex;
@@ -110,17 +113,19 @@
     font-family: 'Space Grotesk', system-ui, sans-serif;
     font-weight: 600;
     font-size: 14px;
-    color: #F1F5F9;
+    color: #27272A;
   }
   .cc-subtitle {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
-    color: #94A3B8;
+    color: #78716C;
   }
   .cc-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(10, 14, 26, 0.7);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(8px) saturate(160%);
+    -webkit-backdrop-filter: blur(8px) saturate(160%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -134,7 +139,7 @@
     font-family: 'Space Grotesk', system-ui, sans-serif;
     font-size: 13px;
     font-weight: 600;
-    color: #61A0FF;
+    color: #C2410C;
     letter-spacing: 0.02em;
   }
 </style>

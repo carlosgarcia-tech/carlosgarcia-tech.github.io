@@ -9,7 +9,7 @@
 <div class="vb-preview" data-component="vaniabot-preview">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 border border-surface-border rounded-lg overflow-hidden">
     <!-- Left: Chat window -->
-    <div class="bg-[#0A101D] flex flex-col">
+    <div class="bg-white/70 backdrop-blur-md flex flex-col">
       <!-- Chat header -->
       <div class="bg-surface-raised px-4 py-3 border-b border-surface-border flex items-center gap-3">
         <div class="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
@@ -140,17 +140,17 @@
         '<span class="text-emerald">POST</span> <span class="text-text-primary">/webhook/vania</span>',
         '',
         '{',
-        `  <span class="text-cyan">"command"</span>: <span class="text-amber-300">"${cmd}"</span>,`,
-        `  <span class="text-cyan">"chatId"</span>: <span class="text-amber-300">"waba_3EBG793sb1LmuaU"</span>,`,
-        `  <span class="text-cyan">"timestamp"</span>: <span class="text-amber-300">"${new Date().toISOString()}"</span>`,
+        `  <span class="text-cyan">"command"</span>: <span class="text-amber-700">"${cmd}"</span>,`,
+        `  <span class="text-cyan">"chatId"</span>: <span class="text-amber-700">"waba_3EBG793sb1LmuaU"</span>,`,
+        `  <span class="text-cyan">"timestamp"</span>: <span class="text-amber-700">"${new Date().toISOString()}"</span>`,
         '}',
         '',
-        `<span class="${status === 200 ? 'text-emerald' : 'text-red-400'}">← ${status} ${status === 200 ? 'OK' : 'OPEN'} (${COMMANDS[cmd]?.latency || 0}ms)</span>`,
+        `<span class="${status === 200 ? 'text-emerald' : 'text-red-600'}">← ${status} ${status === 200 ? 'OK' : 'OPEN'} (${COMMANDS[cmd]?.latency || 0}ms)</span>`,
         '',
         '{',
         `  <span class="text-cyan">"status"</span>: ${status},`,
-        `  <span class="text-cyan">"reply"</span>: <span class="text-amber-300">"${response.slice(0, 50)}..."</span>,`,
-        `  <span class="text-cyan">"circuit"</span>: <span class="${circuitOpen ? 'text-red-400' : 'text-emerald'}">"${circuitOpen ? 'OPEN' : 'CLOSED'}"</span>`,
+        `  <span class="text-cyan">"reply"</span>: <span class="text-amber-700">"${response.slice(0, 50)}..."</span>,`,
+        `  <span class="text-cyan">"circuit"</span>: <span class="${circuitOpen ? 'text-red-600' : 'text-emerald'}">"${circuitOpen ? 'OPEN' : 'CLOSED'}"</span>`,
         '}',
       ];
       lines.forEach((line, i) => {
@@ -170,7 +170,7 @@
     function updateCircuitBadge() {
       circuitBadge.textContent = circuitOpen ? 'Circuit: OPEN' : 'Circuit: CLOSED';
       circuitBadge.className = circuitOpen
-        ? 'font-mono text-[10px] px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30'
+        ? 'font-mono text-[10px] px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 border border-red-500/30'
         : 'font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald/15 text-emerald border border-emerald/30';
     }
 
@@ -239,11 +239,12 @@
 
 <style>
   .vb-bubble-in {
-    background: #1F2C47;
-    color: #F1F5F9;
+    background: rgba(255, 255, 255, 0.92);
+    color: #3F3F46;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 1), 0 2px 8px -4px rgba(15, 23, 42, 0.18);
   }
   .vb-bubble-out {
-    background: #3B7BF7;
+    background: #FF6B1C;
     color: white;
   }
   .vb-typing {

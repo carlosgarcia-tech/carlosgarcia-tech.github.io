@@ -95,16 +95,23 @@
     height: 160px;
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid #1F2C47;
-    background: #0A101D;
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      0 8px 20px -12px rgba(255, 107, 28, 0.28);
     display: flex;
     flex-direction: column;
+    color: #3F3F46;
   }
   .dm-dots {
     display: flex;
     gap: 5px;
     padding: 8px 12px;
-    border-bottom: 1px solid #1F2C47;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    background: rgba(255, 255, 255, 0.55);
   }
   .dm-dot-red, .dm-dot-yellow, .dm-dot-green {
     width: 8px; height: 8px;

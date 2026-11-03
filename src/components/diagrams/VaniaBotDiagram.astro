@@ -17,7 +17,7 @@ const providers = [
     <svg viewBox="0 0 660 320" class="w-full h-auto" role="img" aria-label="VaniaBot multi-instance architecture diagram">
       <defs>
         <marker id="arrow-vb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#61A0FF" />
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#FF6B1C" />
         </marker>
         <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
           <path d="M 0 0 L 10 5 L 0 10 z" fill="#EF4444" />
@@ -32,25 +32,25 @@ const providers = [
       </defs>
 
       <!-- Orchestrator -->
-      <rect x="240" y="10" width="180" height="50" rx="8" fill="#131C30" stroke="#61A0FF" stroke-width="2" />
-      <text x="330" y="32" text-anchor="middle" fill="#61A0FF" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Orchestrator</text>
-      <text x="330" y="48" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="8">Lifecycle management</text>
+      <rect x="240" y="10" width="180" height="50" rx="8" fill="#FFFFFF" stroke="#FF6B1C" stroke-width="2" />
+      <text x="330" y="32" text-anchor="middle" fill="#FF6B1C" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Orchestrator</text>
+      <text x="330" y="48" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono, monospace" font-size="8">Lifecycle management</text>
 
       <!-- Connection lines from orchestrator to subbots -->
-      <line x1="270" y1="60" x2="100" y2="100" stroke="#1F2C47" stroke-width="1.5" stroke-dasharray="4 4" />
-      <line x1="330" y1="60" x2="330" y2="100" stroke="#1F2C47" stroke-width="1.5" stroke-dasharray="4 4" />
-      <line x1="390" y1="60" x2="560" y2="100" stroke="#1F2C47" stroke-width="1.5" stroke-dasharray="4 4" />
+      <line x1="270" y1="60" x2="100" y2="100" stroke="#D6D3D1" stroke-width="1.5" stroke-dasharray="4 4" />
+      <line x1="330" y1="60" x2="330" y2="100" stroke="#D6D3D1" stroke-width="1.5" stroke-dasharray="4 4" />
+      <line x1="390" y1="60" x2="560" y2="100" stroke="#D6D3D1" stroke-width="1.5" stroke-dasharray="4 4" />
 
       <!-- SubBot instances -->
       {subbots.map((bot, i) => {
         const x = i === 0 ? 30 : i === 1 ? 260 : 490;
         return (
           <g class="subbot-group" data-index={i}>
-            <rect x={x} y="100" width="140" height="70" rx="8" fill="#131C30" stroke="#2FD9F5" stroke-width="1.5" class="subbot-box" />
-            <text x={x + 70} y="125" text-anchor="middle" fill="#2FD9F5" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">{bot.name}</text>
-            <text x={x + 70} y="142" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="8">session + SQLite</text>
-            <circle cx={x + 20} cy="155" r="4" fill="#3BE8A8" class="status-dot" />
-            <text x={x + 30} y="158" fill="#3BE8A8" font-family="JetBrains Mono, monospace" font-size="7">{bot.status}</text>
+            <rect x={x} y="100" width="140" height="70" rx="8" fill="#FFFFFF" stroke="#D97706" stroke-width="1.5" class="subbot-box" />
+            <text x={x + 70} y="125" text-anchor="middle" fill="#D97706" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">{bot.name}</text>
+            <text x={x + 70} y="142" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono, monospace" font-size="8">session + SQLite</text>
+            <circle cx={x + 20} cy="155" r="4" fill="#16A34A" class="status-dot" />
+            <text x={x + 30} y="158" fill="#16A34A" font-family="JetBrains Mono, monospace" font-size="7">{bot.status}</text>
           </g>
         );
       })}
@@ -60,7 +60,7 @@ const providers = [
       <text x="345" y="80" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="7">heartbeat</text>
 
       <!-- Recovery service -->
-      <rect x="220" y="190" width="220" height="36" rx="6" fill="#131C30" stroke="#F59E0B" stroke-width="1" opacity="0.7" />
+      <rect x="220" y="190" width="220" height="36" rx="6" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1" opacity="0.7" />
       <text x="330" y="212" text-anchor="middle" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="9">RecoveryService — auto-reconnect</text>
 
       <!-- Connection to subbots from recovery -->
@@ -70,31 +70,31 @@ const providers = [
 
       <!-- AI Fallback Chain -->
       <g transform="translate(20, 245)">
-        <text x="0" y="0" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">AI Fallback Chain</text>
+        <text x="0" y="0" fill="#78716C" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">AI Fallback Chain</text>
 
         {providers.map((provider, i) => {
           const x = i * 160;
           return (
             <g transform={`translate(${x}, 12)`} class="provider-group" data-index={i}>
-              <rect x="0" y="0" width="140" height="50" rx="6" fill="#131C30" stroke={i === 0 ? '#61A0FF' : '#64748B'} stroke-width="1.5" class="provider-box" />
-              <text x="70" y="22" text-anchor="middle" fill={i === 0 ? '#61A0FF' : '#94A3B8'} font-family="JetBrains Mono, monospace" font-size="10" font-weight="500">{provider.name}</text>
-              <text x="70" y="38" text-anchor="middle" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="8">{provider.sublabel}</text>
-              <circle cx="12" cy="12" r="5" fill="none" stroke={i === 0 ? '#61A0FF' : '#64748B'} stroke-width="1.5" class="circuit-breaker" data-index={i} />
-              <circle cx="12" cy="12" r="2" fill={i === 0 ? '#3BE8A8' : '#64748B'} class="cb-indicator" />
+              <rect x="0" y="0" width="140" height="50" rx="6" fill="#FFFFFF" stroke={i === 0 ? '#FF6B1C' : '#A8A29E'} stroke-width="1.5" class="provider-box" />
+              <text x="70" y="22" text-anchor="middle" fill={i === 0 ? '#FF6B1C' : '#78716C'} font-family="JetBrains Mono, monospace" font-size="10" font-weight="500">{provider.name}</text>
+              <text x="70" y="38" text-anchor="middle" fill="#A8A29E" font-family="JetBrains Mono, monospace" font-size="8">{provider.sublabel}</text>
+              <circle cx="12" cy="12" r="5" fill="none" stroke={i === 0 ? '#FF6B1C' : '#A8A29E'} stroke-width="1.5" class="circuit-breaker" data-index={i} />
+              <circle cx="12" cy="12" r="2" fill={i === 0 ? '#16A34A' : '#A8A29E'} class="cb-indicator" />
             </g>
           );
         })}
 
         <!-- Arrows between providers -->
-        <line x1="140" y1="25" x2="158" y2="25" stroke="#64748B" stroke-width="1" marker-end="url(#arrow-vb)" opacity="0.5" />
-        <line x1="300" y1="25" x2="318" y2="25" stroke="#64748B" stroke-width="1" marker-end="url(#arrow-vb)" opacity="0.5" />
+        <line x1="140" y1="25" x2="158" y2="25" stroke="#A8A29E" stroke-width="1" marker-end="url(#arrow-vb)" opacity="0.5" />
+        <line x1="300" y1="25" x2="318" y2="25" stroke="#A8A29E" stroke-width="1" marker-end="url(#arrow-vb)" opacity="0.5" />
       </g>
 
       <!-- Redis/Bull queue -->
       <g transform="translate(520, 190)">
-        <rect x="0" y="0" width="120" height="50" rx="6" fill="#131C30" stroke="#EF4444" stroke-width="1" opacity="0.7" />
+        <rect x="0" y="0" width="120" height="50" rx="6" fill="#FFFFFF" stroke="#EF4444" stroke-width="1" opacity="0.7" />
         <text x="60" y="22" text-anchor="middle" fill="#EF4444" font-family="JetBrains Mono, monospace" font-size="10" font-weight="500">Redis / Bull</text>
-        <text x="60" y="38" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="8">Job queue</text>
+        <text x="60" y="38" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono, monospace" font-size="8">Job queue</text>
       </g>
       <line x1="520" y1="215" x2="440" y2="215" stroke="#EF4444" stroke-width="1" opacity="0.3" stroke-dasharray="3 3" />
     </svg>
@@ -167,7 +167,7 @@ const providers = [
           if (j === i) {
             el.setAttribute('fill', '#EF4444');
           } else if (j === i + 1 && i < 2) {
-            el.setAttribute('fill', '#3BE8A8');
+            el.setAttribute('fill', '#16A34A');
           }
         });
         circuitBreakers.forEach((cb, j) => {
@@ -181,11 +181,11 @@ const providers = [
       box.addEventListener('mouseleave', () => {
         cbIndicators.forEach((ind, j) => {
           const el = ind as SVGCircleElement;
-          el.setAttribute('fill', j === 0 ? '#3BE8A8' : '#64748B');
+          el.setAttribute('fill', j === 0 ? '#16A34A' : '#A8A29E');
         });
         circuitBreakers.forEach((cb, j) => {
           const el = cb as SVGCircleElement;
-          el.setAttribute('stroke', j === 0 ? '#61A0FF' : '#64748B');
+          el.setAttribute('stroke', j === 0 ? '#FF6B1C' : '#A8A29E');
           el.setAttribute('stroke-width', '1.5');
         });
       });
@@ -197,7 +197,7 @@ const providers = [
           if (j === i) {
             el.setAttribute('fill', '#EF4444');
           } else if (j === i + 1 && i < 2) {
-            el.setAttribute('fill', '#3BE8A8');
+            el.setAttribute('fill', '#16A34A');
           }
         });
         circuitBreakers.forEach((cb, j) => {
@@ -211,11 +211,11 @@ const providers = [
         setTimeout(() => {
           cbIndicators.forEach((ind, j) => {
             const el = ind as SVGCircleElement;
-            el.setAttribute('fill', j === 0 ? '#3BE8A8' : '#64748B');
+            el.setAttribute('fill', j === 0 ? '#16A34A' : '#A8A29E');
           });
           circuitBreakers.forEach((cb, j) => {
             const el = cb as SVGCircleElement;
-            el.setAttribute('stroke', j === 0 ? '#61A0FF' : '#64748B');
+            el.setAttribute('stroke', j === 0 ? '#FF6B1C' : '#A8A29E');
             el.setAttribute('stroke-width', '1.5');
           });
         }, 2000);

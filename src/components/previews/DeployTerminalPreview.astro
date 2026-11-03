@@ -9,13 +9,13 @@
 <div class="dt-preview" data-component="deploy-preview">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 border border-surface-border rounded-lg overflow-hidden">
     <!-- Left: Terminal -->
-    <div class="bg-[#0A101D] p-4 md:p-6 flex flex-col">
+    <div class="bg-white/70 backdrop-blur-md p-4 md:p-6 flex flex-col">
       <div class="flex items-center gap-2 mb-4">
         <span class="w-2.5 h-2.5 rounded-full bg-red-500/70"></span>
         <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/70"></span>
         <span class="w-2.5 h-2.5 rounded-full bg-green-500/70"></span>
         <span class="font-mono text-xs text-text-muted ml-2">deploy.sh — bash</span>
-        <button class="dt-run-btn ml-auto font-mono text-xs px-3 py-1.5 rounded bg-emerald/90 text-white hover:bg-emerald transition-colors duration-150" aria-label="Run deployment">
+        <button class="dt-run-btn ml-auto font-mono text-xs px-3 py-1.5 rounded bg-accent/90 text-white hover:bg-accent transition-colors duration-150" aria-label="Run deployment">
           ▶ Run Deploy
         </button>
       </div>
@@ -35,44 +35,44 @@
         <svg viewBox="0 0 200 140" class="w-full max-w-[300px]" role="img" aria-label="Blue/Green deployment pipeline">
           <!-- Users icon -->
           <g transform="translate(10,60)">
-            <circle cx="10" cy="5" r="4" fill="#94A3B8"/>
-            <path d="M2,15 Q10,20 18,15" stroke="#94A3B8" fill="none" stroke-width="1.5"/>
-            <text x="10" y="25" text-anchor="middle" fill="#94A3B8" font-size="6" font-family="JetBrains Mono, monospace">Users</text>
+            <circle cx="10" cy="5" r="4" fill="#78716C"/>
+            <path d="M2,15 Q10,20 18,15" stroke="#78716C" fill="none" stroke-width="1.5"/>
+            <text x="10" y="25" text-anchor="middle" fill="#78716C" font-size="6" font-family="JetBrains Mono, monospace">Users</text>
           </g>
 
           <!-- Arrow from users to loadbalancer -->
-          <line x1="30" y1="67" x2="50" y2="67" stroke="#475569" stroke-width="1.5" stroke-dasharray="3,2"/>
-          <polygon points="48,64 54,67 48,70" fill="#475569"/>
+          <line x1="30" y1="67" x2="50" y2="67" stroke="#A8A29E" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <polygon points="48,64 54,67 48,70" fill="#A8A29E"/>
 
           <!-- Load Balancer -->
-          <rect x="55" y="55" width="30" height="24" rx="3" fill="#1F2C47" stroke="#61A0FF" stroke-width="1"/>
-          <text x="70" y="66" text-anchor="middle" fill="#61A0FF" font-size="5" font-family="JetBrains Mono, monospace">NGINX</text>
-          <text x="70" y="74" text-anchor="middle" fill="#94A3B8" font-size="4" font-family="JetBrains Mono, monospace">LB</text>
+          <rect x="55" y="55" width="30" height="24" rx="3" fill="#FFFFFF" stroke="#FF6B1C" stroke-width="1"/>
+          <text x="70" y="66" text-anchor="middle" fill="#FF6B1C" font-size="5" font-family="JetBrains Mono, monospace">NGINX</text>
+          <text x="70" y="74" text-anchor="middle" fill="#78716C" font-size="4" font-family="JetBrains Mono, monospace">LB</text>
 
           <!-- Arrows to Blue and Green -->
-          <line x1="85" y1="62" x2="105" y2="42" stroke="#61A0FF" stroke-width="1.5" stroke-dasharray="3,2"/>
-          <polygon points="103,40 108,40 105,45" fill="#61A0FF" class="dt-arrow-blue"/>
+          <line x1="85" y1="62" x2="105" y2="42" stroke="#FF6B1C" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <polygon points="103,40 108,40 105,45" fill="#FF6B1C" class="dt-arrow-blue"/>
 
-          <line x1="85" y1="72" x2="105" y2="92" stroke="#475569" stroke-width="1.5" stroke-dasharray="3,2"/>
-          <polygon points="103,90 108,90 105,95" fill="#475569" class="dt-arrow-green" opacity="0.4"/>
+          <line x1="85" y1="72" x2="105" y2="92" stroke="#A8A29E" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <polygon points="103,90 108,90 105,95" fill="#A8A29E" class="dt-arrow-green" opacity="0.4"/>
 
           <!-- Blue Server -->
-          <rect x="110" y="28" width="40" height="28" rx="3" fill="#1F2C47" stroke="#61A0FF" stroke-width="1.5" class="dt-server-blue"/>
-          <text x="130" y="40" text-anchor="middle" fill="#61A0FF" font-size="5.5" font-family="JetBrains Mono, monospace" font-weight="600">BLUE</text>
-          <text x="130" y="48" text-anchor="middle" fill="#94A3B8" font-size="4" font-family="JetBrains Mono, monospace">v1.8.2</text>
-          <circle cx="148" cy="32" r="2.5" fill="#61A0FF" class="dt-status-blue">
+          <rect x="110" y="28" width="40" height="28" rx="3" fill="#FFFFFF" stroke="#FF6B1C" stroke-width="1.5" class="dt-server-blue"/>
+          <text x="130" y="40" text-anchor="middle" fill="#FF6B1C" font-size="5.5" font-family="JetBrains Mono, monospace" font-weight="600">BLUE</text>
+          <text x="130" y="48" text-anchor="middle" fill="#78716C" font-size="4" font-family="JetBrains Mono, monospace">v1.8.2</text>
+          <circle cx="148" cy="32" r="2.5" fill="#FF6B1C" class="dt-status-blue">
             <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
           </circle>
 
           <!-- Green Server -->
-          <rect x="110" y="78" width="40" height="28" rx="3" fill="#1F2C47" stroke="#475569" stroke-width="1" class="dt-server-green" opacity="0.5"/>
-          <text x="130" y="90" text-anchor="middle" fill="#64748B" font-size="5.5" font-family="JetBrains Mono, monospace" font-weight="600">GREEN</text>
-          <text x="130" y="98" text-anchor="middle" fill="#475569" font-size="4" font-family="JetBrains Mono, monospace">v1.9.0</text>
-          <circle cx="148" cy="82" r="2.5" fill="#475569" class="dt-status-green"/>
+          <rect x="110" y="78" width="40" height="28" rx="3" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1" class="dt-server-green" opacity="0.9"/>
+          <text x="130" y="90" text-anchor="middle" fill="#78716C" font-size="5.5" font-family="JetBrains Mono, monospace" font-weight="600">GREEN</text>
+          <text x="130" y="98" text-anchor="middle" fill="#A8A29E" font-size="4" font-family="JetBrains Mono, monospace">v1.9.0</text>
+          <circle cx="148" cy="82" r="2.5" fill="#D6D3D1" class="dt-status-green"/>
 
           <!-- Traffic label -->
-          <text x="97" y="50" text-anchor="middle" fill="#61A0FF" font-size="4" font-family="JetBrains Mono, monospace" class="dt-traffic-label">100%</text>
-          <text x="97" y="84" text-anchor="middle" fill="#475569" font-size="4" font-family="JetBrains Mono, monospace" class="dt-traffic-label-green" opacity="0.4">0%</text>
+          <text x="97" y="50" text-anchor="middle" fill="#FF6B1C" font-size="4" font-family="JetBrains Mono, monospace" class="dt-traffic-label">100%</text>
+          <text x="97" y="84" text-anchor="middle" fill="#A8A29E" font-size="4" font-family="JetBrains Mono, monospace" class="dt-traffic-label-green" opacity="0.55">0%</text>
         </svg>
       </div>
 
@@ -144,17 +144,17 @@
 
     function switchToGreen() {
       // Blue becomes standby
-      serverBlue.setAttribute('stroke', '#475569');
+      serverBlue.setAttribute('stroke', '#D6D3D1');
       serverBlue.setAttribute('stroke-width', '1');
-      serverBlue.setAttribute('opacity', '0.5');
-      statusBlue.setAttribute('fill', '#475569');
+      serverBlue.setAttribute('opacity', '0.9');
+      statusBlue.setAttribute('fill', '#D6D3D1');
       statusBlue.querySelector('animate')?.remove();
 
       // Green becomes active
-      serverGreen.setAttribute('stroke', '#61A0FF');
+      serverGreen.setAttribute('stroke', '#FF6B1C');
       serverGreen.setAttribute('stroke-width', '1.5');
       serverGreen.setAttribute('opacity', '1');
-      statusGreen.setAttribute('fill', '#61A0FF');
+      statusGreen.setAttribute('fill', '#FF6B1C');
       const animGreen = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
       animGreen.setAttribute('attributeName', 'opacity');
       animGreen.setAttribute('values', '1;0.4;1');
@@ -163,16 +163,16 @@
       statusGreen.appendChild(animGreen);
 
       // Arrow swap
-      arrowGreen.setAttribute('fill', '#61A0FF');
+      arrowGreen.setAttribute('fill', '#FF6B1C');
       arrowGreen.setAttribute('opacity', '1');
-      arrowBlue.setAttribute('fill', '#475569');
+      arrowBlue.setAttribute('fill', '#A8A29E');
       arrowBlue.setAttribute('opacity', '0.4');
 
       // Traffic labels
       trafficLabel.textContent = '0%';
-      trafficLabel.setAttribute('fill', '#475569');
+      trafficLabel.setAttribute('fill', '#A8A29E');
       trafficLabelGreen.textContent = '100%';
-      trafficLabelGreen.setAttribute('fill', '#61A0FF');
+      trafficLabelGreen.setAttribute('fill', '#FF6B1C');
       trafficLabelGreen.setAttribute('opacity', '1');
     }
 
@@ -210,8 +210,8 @@
       addLine('  ✓ e2e tests (12 passed)', 5000, 'text-emerald');
 
       addLine('Step 4/5: Rolling update (Green → Blue)...', 5500, 'text-text-secondary');
-      addLine('  Draining Blue connections...', 5800, 'text-amber-300');
-      addLine('  Blue idle, routing 100% to Green...', 6200, 'text-amber-300');
+      addLine('  Draining Blue connections...', 5800, 'text-amber-700');
+      addLine('  Blue idle, routing 100% to Green...', 6200, 'text-amber-700');
 
       // Visual switch at 6.5s
       const t6 = setTimeout(() => switchToGreen(), 6500);
