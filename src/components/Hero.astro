@@ -3,6 +3,8 @@ import AsciiFigure from './AsciiFigure.astro';
 ---
 
 <section class="relative min-h-[85vh] flex items-center section-spacing overflow-hidden">
+  <div class="aurora-orb aurora-orb-blue" aria-hidden="true"></div>
+  <div class="aurora-orb aurora-orb-cyan" aria-hidden="true"></div>
   <div class="absolute inset-0 grid-lines opacity-40" data-scrub="parallax" data-speed="0.06" aria-hidden="true"></div>
 
   <div class="container-narrow relative z-10">
@@ -28,7 +30,7 @@ import AsciiFigure from './AsciiFigure.astro';
         <div class="flex flex-wrap items-center gap-4 reveal reveal-delay-3">
           <a
             href="#projects"
-            class="inline-flex items-center px-6 py-3 bg-accent text-white font-medium rounded-md hover:bg-accent-muted transition-colors duration-150"
+            class="inline-flex items-center px-6 py-3 bg-accent text-white font-medium rounded-md hover:bg-accent-muted transition-colors duration-150 pressable"
           >
             View Projects
           </a>

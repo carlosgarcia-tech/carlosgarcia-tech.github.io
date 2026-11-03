@@ -47,11 +47,15 @@ check('3 chips de vidrio en hero', chipCount === 3, `encontrados: ${chipCount}`)
 const scrubCount = await page.locator('[data-scrub="parallax"]').count();
 check('capas parallax (>= 3 del hero)', scrubCount >= 3, `encontradas: ${scrubCount}`);
 
-// 7. Capturas para inspección visual
+// 7. Orbes aurora líquidos del hero
+const orbCount = await page.locator('.aurora-orb').count();
+check('orbes aurora en hero', orbCount === 2, `encontrados: ${orbCount}`);
+
+// 8. Capturas para inspección visual
 await page.screenshot({ path: '/tmp/opencode/hero-top.png' });
 await page.screenshot({ path: '/tmp/opencode/hero-full.png', fullPage: true });
 
-// 8. Reduced motion: el motor scrub no debe escribir estilos inline
+// 9. Reduced motion: el motor scrub no debe escribir estilos inline
 await page.emulateMedia({ reducedMotion: 'reduce' });
 await page.reload({ waitUntil: 'networkidle' });
 const inlineScrubStyles = await page.evaluate(() =>
@@ -62,7 +66,7 @@ const inlineScrubStyles = await page.evaluate(() =>
 check('reduced-motion: sin estilos inline del scrub', inlineScrubStyles === 0, `con estilos: ${inlineScrubStyles}`);
 await page.emulateMedia({ reducedMotion: null });
 
-// 9. Red: ninguna petición de CSS falló
+// 10. Red: ninguna petición de CSS falló
 const failed = [];
 page.on('requestfailed', (r) => failed.push(r.url()));
 await page.reload({ waitUntil: 'networkidle' });
