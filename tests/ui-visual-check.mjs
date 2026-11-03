@@ -37,11 +37,16 @@ for (const [path, cfg] of Object.entries(PAGE_CONFIG)) {
 
   // Carga de estilos y tema
   const cssState = await page.evaluate(() => {
+    const sheets = document.styleSheets.length;
     const rules = [...document.styleSheets].reduce((n, s) => n + s.cssRules.length, 0);
-    return { links: document.querySelectorAll('link[rel="stylesheet"]').length, rules };
+    return { sheets, rules };
   });
-  check(`${path} → hojas de estilo cargadas`, cssState.links > 0 && cssState.rules > 50,
-    `links: ${cssState.links}, reglas: ${cssState.rules}`);
+  check(`${path} → hojas de estilo cargadas`, cssState.sheets > 0 && cssState.rules > 50,
+    `hojas: ${cssState.sheets}, reglas: ${cssState.rules}`);
+
+  // Fondo del body pintado con la base profunda de la nueva paleta
+  const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  check(`${path} → fondo base profunda`, bodyBg === 'rgb(4, 6, 12)', bodyBg);
 
   // Nav líquida flotante en todas las páginas: el contenedor es fixed,
   // la píldora interior es la cápsula con el material
@@ -71,6 +76,27 @@ for (const [path, cfg] of Object.entries(PAGE_CONFIG)) {
   check(`${path} → ${cfg.ctas} CTA glass prominente`, ctas === cfg.ctas, `encontrados: ${ctas}`);
   const metricCards = await page.locator('.metric-card').count();
   check(`${path} → ${cfg.metricCards} panes de métrica`, metricCards === cfg.metricCards, `encontrados: ${metricCards}`);
+
+  // ─── Dimensiones: iconos y targets táctiles ───
+  const dims = await page.evaluate(() => {
+    const boxes = [...document.querySelectorAll('svg[width]')].map((el) => {
+      const r = el.getBoundingClientRect();
+      return { w: r.width, h: r.height };
+    });
+    const minIcon = boxes.length ? Math.min(...boxes.map((b) => Math.min(b.w, b.h))) : null;
+    const squares = boxes.every((b) => Math.abs(b.w - b.h) < 1);
+    const targets = [
+      ...document.querySelectorAll('nav a, a.glass-chip, a.cta-glass'),
+    ].sort((a, b) => a.getBoundingClientRect().height - b.getBoundingClientRect().height);
+    const minTarget = targets[0]?.getBoundingClientRect().height ?? null;
+    return { icons: boxes.length, minIcon, squares, minTarget };
+  });
+  // Pages sin iconos inline (project pages) pasan; las que tienen, deben ser
+  // cuadrados y de al menos 14px (nada de iconos remotamente illégibles).
+  check(`${path} → iconos cuadrados ≥ 14px (${dims.icons})`,
+    dims.icons === 0 || (dims.squares && dims.minIcon >= 14),
+    `count: ${dims.icons}, min: ${dims.minIcon}px`);
+  check(`${path} → targets táctiles ≥ 40px`, dims.minTarget >= 40, `min: ${dims.minTarget}px`);
 
   // Red y consola limpias
   check(`${path} → sin requests fallidos`, failedRequests.length === 0, failedRequests);

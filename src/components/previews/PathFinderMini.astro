@@ -22,16 +22,16 @@ const OBSTACLES: [number, number][] = [
 
 <div class="pfm-grid" data-component="pathfinder-mini" aria-hidden="true">
   <svg viewBox="0 0 10 10" class="pfm-svg">
-    <rect x="0" y="0" width="10" height="10" fill="#0A0E1A" />
+    <rect x="0" y="0" width="10" height="10" fill="#04060C" />
     {Array.from({ length: 11 }, (_, i) => (
-      <line x1={i} y1="0" x2={i} y2="10" stroke="#1E293B" stroke-width="0.06" />
-      <line x1="0" y1={i} x2="10" y2={i} stroke="#1E293B" stroke-width="0.06" />
+      <line x1={i} y1="0" x2={i} y2="10" stroke="#1F2C47" stroke-width="0.06" />
+      <line x1="0" y1={i} x2="10" y2={i} stroke="#1F2C47" stroke-width="0.06" />
     ))}
     {OBSTACLES.map(([x, y]) => (
       <rect x={x} y={y} width="1" height="1" fill="#334155" rx="0.08" />
     ))}
-    <rect x="0.15" y="4.15" width="0.7" height="0.7" rx="0.12" fill="#3B82F6" />
-    <rect x="9.15" y="4.15" width="0.7" height="0.7" rx="0.12" fill="#34D399" />
+    <rect x="0.15" y="4.15" width="0.7" height="0.7" rx="0.12" fill="#61A0FF" />
+    <rect x="9.15" y="4.15" width="0.7" height="0.7" rx="0.12" fill="#3BE8A8" />
     <g class="pfm-visited"></g>
     <g class="pfm-path"></g>
   </svg>
@@ -150,14 +150,14 @@ const OBSTACLES: [number, number][] = [
       const visitedFiltered = result.visited.filter((_, i) => i % 3 === 0);
       let delay = 0;
       visitedFiltered.forEach(v => {
-        renderRect(visitedLayer, v.x, v.y, 'rgba(34, 211, 238, 0.12)', delay);
+        renderRect(visitedLayer, v.x, v.y, 'rgba(47, 217, 245, 0.12)', delay);
         delay += 20;
       });
 
       result.path.forEach((p, i) => {
         const isStart = p.x === START.x && p.y === START.y;
         const isEnd = p.x === END.x && p.y === END.y;
-        renderRect(pathLayer, p.x, p.y, isStart ? '#3B82F6' : isEnd ? '#34D399' : 'rgba(34, 211, 238, 0.5)', delay + i * 60);
+        renderRect(pathLayer, p.x, p.y, isStart ? '#61A0FF' : isEnd ? '#3BE8A8' : 'rgba(47, 217, 245, 0.5)', delay + i * 60);
       });
     }
 
@@ -198,7 +198,7 @@ const OBSTACLES: [number, number][] = [
     aspect-ratio: 1;
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid #1E293B;
+    border: 1px solid #1F2C47;
   }
   .pfm-svg { display: block; width: 100%; height: 100%; }
 </style>

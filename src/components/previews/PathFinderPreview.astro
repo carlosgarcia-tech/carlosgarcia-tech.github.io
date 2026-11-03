@@ -40,17 +40,17 @@ const OBSTACLES: [number, number][] = [
       </div>
       <div class="pf-grid-wrap">
         <svg viewBox="0 0 10 10" class="pf-grid-svg" role="img" aria-label="Pathfinding grid with waypoints and obstacles">
-          <rect x="0" y="0" width="10" height="10" fill="#0A0E1A" />
+          <rect x="0" y="0" width="10" height="10" fill="#04060C" />
           {Array.from({ length: 11 }, (_, i) => (
-            <line x1={i} y1="0" x2={i} y2="10" stroke="#1E293B" stroke-width="0.05" />
-            <line x1="0" y1={i} x2="10" y2={i} stroke="#1E293B" stroke-width="0.05" />
+            <line x1={i} y1="0" x2={i} y2="10" stroke="#1F2C47" stroke-width="0.05" />
+            <line x1="0" y1={i} x2="10" y2={i} stroke="#1F2C47" stroke-width="0.05" />
           ))}
           {OBSTACLES.map(([x, y]) => (
             <rect x={x} y={y} width="1" height="1" fill="#334155" rx="0.08" class="pf-obstacle" />
           ))}
-          <rect x="0.1" y="4.1" width="0.8" height="0.8" rx="0.12" fill="#3B82F6" class="pf-node-start" />
+          <rect x="0.1" y="4.1" width="0.8" height="0.8" rx="0.12" fill="#61A0FF" class="pf-node-start" />
           <text x="0.5" y="4.65" text-anchor="middle" fill="white" font-size="0.38" font-family="JetBrains Mono, monospace" font-weight="700">A</text>
-          <rect x="9.1" y="4.1" width="0.8" height="0.8" rx="0.12" fill="#34D399" class="pf-node-end" />
+          <rect x="9.1" y="4.1" width="0.8" height="0.8" rx="0.12" fill="#3BE8A8" class="pf-node-end" />
           <text x="9.5" y="4.65" text-anchor="middle" fill="white" font-size="0.38" font-family="JetBrains Mono, monospace" font-weight="700">B</text>
           <g class="pf-path-layer"></g>
           <g class="pf-visited-layer"></g>
@@ -65,7 +65,7 @@ const OBSTACLES: [number, number][] = [
     </div>
 
     <!-- Right: Console -->
-    <div class="bg-[#0D1117] p-4 md:p-6 flex flex-col">
+    <div class="bg-[#0A101D] p-4 md:p-6 flex flex-col">
       <div class="flex items-center gap-2 mb-4">
         <span class="w-2.5 h-2.5 rounded-full bg-red-500/70"></span>
         <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/70"></span>
@@ -285,7 +285,7 @@ const OBSTACLES: [number, number][] = [
       const visitedFiltered = result.visited.filter((_, i) => i % 2 === 0);
       let delay = 100;
       visitedFiltered.forEach((v) => {
-        renderRect(visitedLayer, v.x, v.y, 'rgba(34, 211, 238, 0.15)', delay);
+        renderRect(visitedLayer, v.x, v.y, 'rgba(47, 217, 245, 0.15)', delay);
         delay += 30;
       });
 
@@ -294,7 +294,7 @@ const OBSTACLES: [number, number][] = [
       result.path.forEach((p, i) => {
         const isStart = p.x === START.x && p.y === START.y;
         const isEnd = p.x === END.x && p.y === END.y;
-        renderRect(pathLayer, p.x, p.y, isStart ? '#3B82F6' : isEnd ? '#34D399' : 'rgba(34, 211, 238, 0.6)', pathDelay + i * 80, 'pf-path-cell');
+        renderRect(pathLayer, p.x, p.y, isStart ? '#61A0FF' : isEnd ? '#3BE8A8' : 'rgba(47, 217, 245, 0.6)', pathDelay + i * 80, 'pf-path-cell');
       });
 
       const totalDelay = pathDelay + result.path.length * 80 + 200;
@@ -364,7 +364,7 @@ const OBSTACLES: [number, number][] = [
     max-width: 100%;
     border-radius: 6px;
     overflow: hidden;
-    border: 1px solid var(--color-surface-border, #1E293B);
+    border: 1px solid var(--color-surface-border, #1F2C47);
   }
   .pf-grid-svg {
     display: block;
@@ -379,7 +379,7 @@ const OBSTACLES: [number, number][] = [
     filter: drop-shadow(0 0 3px currentColor);
   }
   .pf-path-cell {
-    filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.5));
+    filter: drop-shadow(0 0 2px rgba(47, 217, 245, 0.5));
   }
   .pf-run-btn:disabled {
     opacity: 0.5;
