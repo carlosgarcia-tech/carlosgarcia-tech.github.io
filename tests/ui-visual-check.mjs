@@ -81,10 +81,13 @@ for (const [path, cfg] of Object.entries(PAGE_CONFIG)) {
 
   // ─── Dimensiones: iconos y targets táctiles ───
   const dims = await page.evaluate(() => {
-    const boxes = [...document.querySelectorAll('svg[width]')].map((el) => {
-      const r = el.getBoundingClientRect();
-      return { w: r.width, h: r.height };
-    });
+    const boxes = [...document.querySelectorAll('svg[width]')]
+      .map((el) => {
+        const r = el.getBoundingClientRect();
+        return { w: r.width, h: r.height };
+      })
+      // Skip SVGs of 0x0: they are hidden containers of defs (e.g., liquid glass refraction filter), not icons
+      .filter((b) => b.w > 0 && b.h > 0);
     const minIcon = boxes.length ? Math.min(...boxes.map((b) => Math.min(b.w, b.h))) : null;
     const squares = boxes.every((b) => Math.abs(b.w - b.h) < 1);
     const targets = [
@@ -118,7 +121,8 @@ await home.goto(BASE + '/', { waitUntil: 'networkidle' });
 const chip = home.locator('a.glass-chip').first();
 const chipBefore = await chip.evaluate((el) => getComputedStyle(el).borderColor);
 await chip.hover();
-await home.waitForTimeout(300);
+// 600ms: en headless el computed del hover no refleja el cambio tras wait muy cortos (transition 150ms + recalcs)
+await home.waitForTimeout(600);
 const chipAfter = await chip.evaluate((el) => getComputedStyle(el).borderColor);
 check('hover chip → borde reacciona', chipBefore !== chipAfter, `${chipBefore} → ${chipAfter}`);
 
@@ -153,9 +157,9 @@ await home.waitForTimeout(800);
 const parallaxAfter = await heroTitle.evaluate((el) => el.style.transform);
 check('scrub parallax → transform sigue al scroll real', parallaxBefore !== parallaxAfter, `${parallaxBefore} → ${parallaxAfter}`);
 
-// Pulso ASCII activo
-const breathe = await home.locator('.ascii-figure').evaluate((el) => getComputedStyle(el).animationName);
-check('ascii respira (glow animado)', breathe === 'ascii-breathe', breathe);
+// Pulso ASCII: en el rediseño el glow vive en el halo (.ascii-halo / ascii-glow)
+const breathe = await home.locator('.ascii-halo').evaluate((el) => getComputedStyle(el).animationName);
+check('ascii respira (glow animado)', breathe === 'ascii-glow', breathe);
 
 await home.close();
 
