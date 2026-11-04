@@ -18,7 +18,6 @@ const cols = Math.max(...trimmed.map((l) => l.length));
 const rows = trimmed.length;
 const grid = trimmed.map((l) => l.padEnd(cols, " ").split(""));
 
-// Densidad local: la figura es compacta, las estrellas están aisladas
 const RY = 3;
 const RX = 6;
 const FIGURE_THRESHOLD = 0.18;
@@ -59,14 +58,19 @@ const toText = (layer: string[][]) => layer.map((r) => r.join("")).join("\n");
 ---
 
 <div class="ascii-wrap" data-ascii-3d style={`--cols:${cols}; --rows:${rows};`}>
+  <!-- Halo detrás de la figura: le da profundidad y la separa del fondo -->
+  <div class="ascii-halo" aria-hidden="true"></div>
+
   <div class="ascii-figure" data-scrub="draw" aria-hidden="true">
     <div class="ascii-scene">
       <div class="ascii-stage">
-        <pre class="ascii-layer layer-back" style="--z:-90">{toText(back)}</pre>
+        <pre
+          class="ascii-layer layer-back"
+          style="--z:-120">{toText(back)}</pre>
         <pre class="ascii-layer layer-mid" style="--z:0">{toText(mid)}</pre>
         <pre
           class="ascii-layer layer-front"
-          style="--z:12">{toText(front)}</pre>
+          style="--z:24">{toText(front)}</pre>
       </div>
     </div>
   </div>
@@ -74,43 +78,50 @@ const toText = (layer: string[][]) => layer.map((r) => r.join("")).join("\n");
 </div>
 
 <style>
+  /* Sin caja: el ASCII es el hero, no un widget dentro de una tarjeta */
   .ascii-wrap {
     width: 100%;
     container-type: inline-size;
     position: relative;
-    overflow: hidden;
-    padding: 0.75rem 0.5rem;
-    background: linear-gradient(
-      170deg,
-      rgba(255, 107, 28, 0.06) 0%,
-      rgba(255, 107, 28, 0.02) 42%,
-      rgba(255, 255, 255, 0.7) 100%
-    );
-    border: 1px solid rgba(20, 28, 38, 0.12);
-    border-radius: 0.75rem;
-    -webkit-backdrop-filter: blur(14px) saturate(170%);
-    backdrop-filter: blur(14px) saturate(170%);
-    box-shadow:
-      inset 0 1.5px 0 rgba(255, 255, 255, 1),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.04),
-      0 10px 26px -10px rgba(255, 107, 28, 0.25),
-      0 0 0 1px rgba(255, 107, 28, 0.12);
+    padding: 0;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    overflow: visible;
   }
 
-  /* El brillo sigue al puntero (--gx / --gy los escribe el script) */
+  /* Anula el ::before global (brillo dentro de la caja) */
   .ascii-wrap::before {
-    background: radial-gradient(
-      circle at var(--gx, 50%) var(--gy, 45%),
-      rgba(255, 107, 28, 0.22),
-      transparent 65%
-    );
+    display: none;
   }
 
-  /* Perspectiva en el padre, preserve-3d en el escenario.
-     El clip-path del scrub vive en .ascii-figure, un nivel más arriba,
-     porque clip-path aplana el 3D de sus hijos directos. */
+  .ascii-halo {
+    position: absolute;
+    inset: -12% -8%;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(
+        closest-side at var(--gx, 50%) var(--gy, 45%),
+        rgba(255, 107, 28, 0.55),
+        rgba(255, 107, 28, 0.2) 55%,
+        transparent 80%
+      ),
+      radial-gradient(
+        closest-side at 25% 80%,
+        rgba(229, 57, 53, 0.18),
+        transparent 70%
+      );
+    filter: blur(30px);
+    animation: ascii-glow 7s ease-in-out infinite alternate;
+  }
+
   .ascii-scene {
-    perspective: 700px;
+    position: relative;
+    z-index: 1;
+    perspective: 900px;
     perspective-origin: 50% 50%;
   }
 
@@ -126,24 +137,38 @@ const toText = (layer: string[][]) => layer.map((r) => r.join("")).join("\n");
     white-space: pre;
     user-select: none;
     font-family:
-      ui-monospace, "SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
+      "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas,
+      "Courier New", monospace;
+    /* La figura ocupa todo el ancho de su columna */
     font-size: calc(100cqw / (var(--cols) * 0.6));
     line-height: 1.05;
     /* scale compensa la perspectiva: en reposo todas las capas miden lo mismo */
     transform: translateZ(calc(var(--z) * 1px))
-      scale(calc((700 - var(--z)) / 700));
+      scale(calc((900 - var(--z)) / 900));
   }
 
   .layer-back {
-    color: rgba(154, 52, 18, 0.65);
+    color: rgba(224, 86, 24, 0.95);
+    text-shadow: 0 0 18px rgba(255, 107, 28, 0.8);
   }
 
   .layer-mid {
-    color: rgba(15, 20, 25, 0.78);
+    color: #0b1220;
+    text-shadow: 0 0 1px rgba(11, 18, 32, 0.5);
   }
 
   .layer-front {
-    color: rgba(15, 20, 25, 0.96);
+    color: #000;
+    font-weight: 800;
+    text-shadow:
+      0 0 1px rgba(0, 0, 0, 0.8),
+      0 0 14px rgba(255, 107, 28, 0.55),
+      0 8px 26px rgba(255, 107, 28, 0.45);
+  }
+
+  /* Resplandor general: separa la figura del fondo */
+  .ascii-stage {
+    filter: drop-shadow(0 10px 30px rgba(255, 107, 28, 0.35));
   }
 
   .sr-only {
@@ -156,6 +181,12 @@ const toText = (layer: string[][]) => layer.map((r) => r.join("")).join("\n");
     white-space: nowrap;
     border: 0;
     clip: rect(0, 0, 0, 0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ascii-halo {
+      animation: none;
+    }
   }
 </style>
 
@@ -198,8 +229,9 @@ const toText = (layer: string[][]) => layer.map((r) => r.join("")).join("\n");
       cx += (px + idleX - cx) * 0.07;
       cy += (py + idleY - cy) * 0.07;
 
-      const rotY = cx * 14 + scroll * 16;
-      const rotX = -cy * 8 - scroll * 10;
+      // Más rotación que antes: con más tamaño el efecto 3D se lee mejor
+      const rotY = cx * 18 + scroll * 16;
+      const rotX = -cy * 10 - scroll * 10;
 
       stage.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
       wrap.style.setProperty("--gx", `${(50 + cx * 18).toFixed(1)}%`);

@@ -9,38 +9,69 @@ const metrics = [
 ];
 ---
 
-<section
-  class="relative flex items-center overflow-hidden pt-32 pb-20 md:pt-40 md:pb-24"
->
+<!-- Filtro de refracción para el liquid glass (Chromium; en Safari/Firefox cae al blur normal) -->
+<svg width="0" height="0" class="absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="liquid-glass" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence
+        type="fractalNoise"
+        baseFrequency="0.010 0.014"
+        numOctaves="2"
+        seed="7"
+        result="noise"></feTurbulence>
+      <feGaussianBlur in="noise" stdDeviation="2" result="softNoise"
+      ></feGaussianBlur>
+      <feDisplacementMap
+        in="SourceGraphic"
+        in2="softNoise"
+        scale="26"
+        xChannelSelector="R"
+        yChannelSelector="G"></feDisplacementMap>
+    </filter>
+  </defs>
+</svg>
+
+<section class="relative overflow-hidden pt-0 pb-10 md:pt-0 md:pb-10">
   <div class="aurora-orb aurora-orb-blue" aria-hidden="true"></div>
   <div class="aurora-orb aurora-orb-cyan" aria-hidden="true"></div>
   <div
-    class="absolute inset-0 grid-lines opacity-40"
+    class="absolute inset-0 grid-lines opacity-30"
     data-scrub="parallax"
     data-speed="0.06"
     aria-hidden="true"
   >
   </div>
 
-  <div class="relative z-10 mx-auto w-full max-w-6xl px-6">
-    <div
-      class="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-16"
-    >
-      <div class="min-w-0">
+  <div class="relative z-10 mx-auto w-full max-w-7xl px-6">
+    <div class="grid items-start gap-6 lg:grid-cols-12 lg:gap-0">
+      <!-- ASCII: protagonista. Va primero en móvil y ocupa 7/12 en desktop,
+           desbordando un poco el contenedor hacia la derecha -->
+      <div
+        class="order-1 mt-12 lg:order-2 lg:col-span-7 lg:-mr-6 lg:-mt-44"
+        data-scrub="parallax"
+        data-speed="0.1"
+      >
+        <AsciiFigure />
+      </div>
+
+      <!-- Texto: más compacto, flota sobre el borde del ASCII -->
+      <div
+        class="relative z-20 order-2 min-w-0 lg:order-1 lg:col-span-5 lg:pt-0"
+      >
         <p class="reveal mb-4 font-mono text-sm tracking-wide text-accent">
           backend / devops / systems
         </p>
 
         <h1
-          class="aurora-text mb-6 font-heading text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl"
+          class="aurora-text mb-5 font-heading text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl"
           data-scrub="parallax"
-          data-speed="0.08"
+          data-speed="0.05"
         >
           Carlos García
         </h1>
 
         <p
-          class="mb-8 max-w-xl text-lg leading-relaxed text-text-secondary md:text-xl"
+          class="mb-8 max-w-md text-lg leading-relaxed text-text-secondary"
           data-scrub="fade"
         >
           I build software systems and automate the infrastructure that runs
@@ -98,13 +129,12 @@ const metrics = [
           </a>
         </div>
       </div>
-
-      <div class="hidden lg:block" data-scrub="parallax" data-speed="0.12">
-        <AsciiFigure />
-      </div>
     </div>
 
-    <div class="mt-16 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+    <!-- Las métricas se montan sobre la base del ASCII para que el cristal refracte el arte -->
+    <div
+      class="relative z-20 -mt-10 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6 lg:-mt-24"
+    >
       {
         metrics.map((m) => (
           <div class={`metric-card reveal reveal-delay-${m.delay}`}>
