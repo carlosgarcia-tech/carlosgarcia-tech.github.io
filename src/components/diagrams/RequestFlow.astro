@@ -1,0 +1,342 @@
+---
+/**
+ * RequestFlow — a request's journey through the layers of Onion Architecture.
+ * Pick an endpoint and advance step by step (or play it all).
+ */
+const flows = {
+  login: {
+    label: "POST /auth/login",
+    steps: [
+      {
+        layer: "Presentation",
+        text: "Route + validator check email and password.",
+      },
+      {
+        layer: "Application",
+        text: "LoginUseCase orchestrates the sign-in.",
+      },
+      {
+        layer: "Core",
+        text: "IAuthRepository interface: the use case doesn't know which provider is behind it.",
+      },
+      {
+        layer: "Infrastructure",
+        text: "SupabaseAuthRepository signs the JWT in Supabase.",
+      },
+      {
+        layer: "Presentation",
+        text: "Controller responds 200 with the token.",
+      },
+    ],
+  },
+  product: {
+    label: "POST /products",
+    steps: [
+      {
+        layer: "Presentation",
+        text: "Middlewares: auth → role → store ownership.",
+      },
+      {
+        layer: "Application",
+        text: "CreateProductUseCase validates the DTO and business rules.",
+      },
+      {
+        layer: "Core",
+        text: "Product entity enforces invariants (price, stock).",
+      },
+      {
+        layer: "Infrastructure",
+        text: "MongoProductRepository persists with Mongoose.",
+      },
+      {
+        layer: "Presentation",
+        text: "Controller responds 201 with the created product.",
+      },
+    ],
+  },
+  message: {
+    label: "Send chat message",
+    steps: [
+      {
+        layer: "Presentation",
+        text: "Socket/HTTP handler receives the message.",
+      },
+      {
+        layer: "Application",
+        text: "SendMessageUseCase verifies membership in the conversation.",
+      },
+      {
+        layer: "Core",
+        text: "IChatRepository: same contract for Socket.io and Ably.",
+      },
+      {
+        layer: "Infrastructure",
+        text: "Active implementation (DI) emits and saves the message.",
+      },
+      {
+        layer: "Presentation",
+        text: "Connected clients receive the event in real time.",
+      },
+    ],
+  },
+};
+const colors: Record<string, string> = {
+  Presentation: "#EA580C",
+  Application: "#DC2626",
+  Core: "#15803D",
+  Infrastructure: "#f57c00",
+};
+---
+
+<div
+  class="rf card-surface p-6 md:p-8"
+  data-component="request-flow"
+  data-flows={JSON.stringify(flows)}
+  data-colors={JSON.stringify(colors)}
+>
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <h3 class="font-heading font-semibold text-text-primary">
+      Request lifecycle
+    </h3>
+    <div
+      class="flex flex-wrap gap-2"
+      role="tablist"
+      aria-label="Choose endpoint"
+    >
+      {
+        Object.entries(flows).map(([key, f], i) => (
+          <button
+            type="button"
+            role="tab"
+            data-flow-key={key}
+            aria-selected={i === 0 ? "true" : "false"}
+            class={`rf-tab${i === 0 ? " is-active" : ""}`}
+          >
+            {f.label}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="rf-track" data-rf-track></div>
+
+  <p
+    class="rf-text mt-5 text-sm text-text-secondary min-h-[3rem]"
+    data-rf-text
+    aria-live="polite"
+  >
+    Press "Next" or "Play" to follow the request.
+  </p>
+
+  <div class="flex gap-2 mt-3">
+    <button type="button" class="rf-btn" data-rf-prev>← Previous</button>
+    <button type="button" class="rf-btn" data-rf-next>Next →</button>
+    <button type="button" class="rf-btn rf-btn-primary" data-rf-play
+      >▶ Play</button
+    >
+  </div>
+</div>
+
+<script>
+  function initRequestFlow() {
+    document
+      .querySelectorAll<HTMLElement>('[data-component="request-flow"]')
+      .forEach((root) => {
+        if (root.dataset.ready) return;
+        root.dataset.ready = "true";
+
+        type Step = { layer: string; text: string };
+        const flows: Record<string, { label: string; steps: Step[] }> =
+          JSON.parse(root.dataset.flows || "{}");
+        const colors: Record<string, string> = JSON.parse(
+          root.dataset.colors || "{}",
+        );
+        const track = root.querySelector<HTMLElement>("[data-rf-track]")!;
+        const textEl = root.querySelector<HTMLElement>("[data-rf-text]")!;
+        const tabs = Array.from(
+          root.querySelectorAll<HTMLButtonElement>("[data-flow-key]"),
+        );
+        const playBtn =
+          root.querySelector<HTMLButtonElement>("[data-rf-play]")!;
+        const reduce = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+
+        let key = Object.keys(flows)[0];
+        let idx = -1;
+        let timer: ReturnType<typeof setInterval> | null = null;
+
+        function build() {
+          track.replaceChildren();
+          flows[key].steps.forEach((s, i) => {
+            const node = document.createElement("button");
+            node.type = "button";
+            node.className = "rf-node";
+            node.style.setProperty("--c", colors[s.layer] || "#FF6B1C");
+            const n = document.createElement("span");
+            n.className = "rf-n";
+            n.textContent = String(i + 1);
+            const l = document.createElement("span");
+            l.className = "rf-layer";
+            l.textContent = s.layer;
+            node.append(n, l);
+            node.addEventListener("click", () => {
+              stop();
+              go(i);
+            });
+            track.append(node);
+          });
+        }
+
+        function go(i: number) {
+          const steps = flows[key].steps;
+          idx = Math.max(0, Math.min(steps.length - 1, i));
+          Array.from(track.children).forEach((c, j) => {
+            c.classList.toggle("is-current", j === idx);
+            c.classList.toggle("is-done", j < idx);
+          });
+          textEl.textContent = steps[idx].text;
+        }
+
+        function stop() {
+          if (timer) clearInterval(timer);
+          timer = null;
+          playBtn.textContent = "▶ Play";
+        }
+
+        function play() {
+          if (timer) return stop();
+          playBtn.textContent = "■ Stop";
+          if (idx >= flows[key].steps.length - 1) idx = -1;
+          go(idx + 1);
+          timer = setInterval(
+            () => {
+              if (idx >= flows[key].steps.length - 1) return stop();
+              go(idx + 1);
+            },
+            reduce ? 800 : 1500,
+          );
+        }
+
+        tabs.forEach((t) =>
+          t.addEventListener("click", () => {
+            stop();
+            key = t.dataset.flowKey!;
+            tabs.forEach((x) => {
+              const on = x === t;
+              x.classList.toggle("is-active", on);
+              x.setAttribute("aria-selected", String(on));
+            });
+            idx = -1;
+            build();
+            textEl.textContent =
+              'Press "Next" or "Play" to follow the request.';
+          }),
+        );
+        root.querySelector("[data-rf-next]")!.addEventListener("click", () => {
+          stop();
+          go(idx + 1);
+        });
+        root.querySelector("[data-rf-prev]")!.addEventListener("click", () => {
+          stop();
+          go(idx - 1);
+        });
+        playBtn.addEventListener("click", play);
+        build();
+      });
+  }
+
+  document.addEventListener("astro:page-load", initRequestFlow);
+  initRequestFlow();
+</script>
+
+<style>
+  .rf-tab,
+  .rf-btn {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #d6d3d1;
+    color: #57534e;
+    transition: all 0.15s ease;
+  }
+  .rf-tab:hover,
+  .rf-btn:hover {
+    border-color: #ff6b1c;
+    color: #ff6b1c;
+  }
+  .rf-tab.is-active {
+    background: rgb(255 107 28 / 0.1);
+    border-color: #ff6b1c;
+    color: #ea580c;
+  }
+  .rf-btn-primary {
+    background: #ff6b1c;
+    border-color: #ff6b1c;
+    color: #fff;
+  }
+  .rf-btn-primary:hover {
+    background: #ea580c;
+    color: #fff;
+  }
+  .rf-track {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .rf-node {
+    --c: #ff6b1c;
+    flex: 1 0 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 6px;
+    border-radius: 10px;
+    border: 2px solid #e7e5e4;
+    opacity: 0.65;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .rf-n {
+    width: 24px;
+    height: 24px;
+    border-radius: 9999px;
+    display: grid;
+    place-items: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    font-weight: 600;
+    border: 2px solid var(--c);
+    color: var(--c);
+  }
+  .rf-layer {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: #57534e;
+  }
+  .rf-node.is-done {
+    opacity: 1;
+    border-color: color-mix(in srgb, var(--c) 45%, white);
+  }
+  .rf-node.is-current {
+    opacity: 1;
+    border-color: var(--c);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px -10px var(--c);
+  }
+  .rf-node.is-current .rf-n {
+    background: var(--c);
+    color: #fff;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rf-node {
+      transition: none;
+    }
+    .rf-node.is-current {
+      transform: none;
+    }
+  }
+</style>
