@@ -1,13 +1,13 @@
 ---
-import '@fontsource/space-grotesk/400.css';
-import '@fontsource/space-grotesk/500.css';
-import '@fontsource/space-grotesk/600.css';
-import '@fontsource/space-grotesk/700.css';
-import '@fontsource/inter/400.css';
-import '@fontsource/inter/500.css';
-import '@fontsource/inter/600.css';
-import '@fontsource/jetbrains-mono/400.css';
-import '../styles/global.css';
+import "@fontsource/space-grotesk/400.css";
+import "@fontsource/space-grotesk/500.css";
+import "@fontsource/space-grotesk/600.css";
+import "@fontsource/space-grotesk/700.css";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "../styles/global.css";
 
 interface Props {
   title: string;
@@ -17,8 +17,8 @@ interface Props {
 
 const {
   title,
-  description = 'Software Developer — Backend & DevOps. I build software systems and automate the infrastructure that runs them.',
-  ogImage = '/og-default.png',
+  description = "Software Developer — Backend & DevOps. I build software systems and automate the infrastructure that runs them.",
+  ogImage = "/og-default.png",
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -40,7 +40,10 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:site_name" content="Carlos García — Software Developer" />
+    <meta
+      property="og:site_name"
+      content="Carlos García — Software Developer"
+    />
     <meta property="og:image" content={absoluteOgImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -53,39 +56,54 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
     <meta name="theme-color" content="#F6F7FA" />
   </head>
   <body class="min-h-screen">
-    <nav class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
-      <div class="glass-bar glass-nav-pill glass-interactive glass-sheen pointer-events-auto">
-        <div class="flex items-center h-14 px-5 md:px-6 gap-4 md:gap-5">
-          <a href="/" class="font-heading font-bold text-lg text-text-primary hover:text-accent transition-colors duration-150 rounded-full px-3 py-2.5 hover:bg-white/25"> CG </a>
-          <div class="w-px h-5 bg-white/10" aria-hidden="true"></div>
-          <div class="flex items-center gap-4 md:gap-6">
-            <a href="/#projects" class="link-subtle text-sm font-medium rounded-full px-3 py-2.5 hover:text-text-primary hover:bg-white/25">Projects</a>
-            <a href="/#stack" class="link-subtle text-sm font-medium rounded-full px-3 py-2.5 hover:text-text-primary hover:bg-white/25">Stack</a>
-            <a href="/about" class="link-subtle text-sm font-medium rounded-full px-3 py-2.5 hover:text-text-primary hover:bg-white/25">About</a>
+    <nav
+      class="fixed top-3 md:top-4 left-0 right-0 z-50 flex justify-center px-3 md:px-4 pointer-events-none"
+    >
+      <div
+        class="glass-bar glass-nav-pill glass-interactive glass-sheen pointer-events-auto max-w-full"
+      >
+        <div
+          class="flex items-center h-12 md:h-14 px-2 sm:px-4 md:px-6 gap-1 sm:gap-3 md:gap-5"
+        >
+          <a
+            href="/"
+            class="nav-link font-heading font-bold text-base md:text-lg text-text-primary shrink-0"
+          >
+            CG
+          </a>
+          <div class="w-px h-5 bg-white/10 shrink-0" aria-hidden="true"></div>
+          <div
+            class="nav-scroll flex items-center gap-0.5 sm:gap-2 md:gap-4 overflow-x-auto"
+          >
+            <a href="/#projects" class="nav-link link-subtle">Projects</a>
+            <a href="/#stack" class="nav-link link-subtle">Stack</a>
+            <a href="/about" class="nav-link link-subtle">About</a>
             <a
               href="https://github.com/carlosgarcia-tech"
               target="_blank"
               rel="noopener noreferrer"
-              class="link-subtle text-sm font-medium rounded-full px-3 py-2.5 hover:text-text-primary hover:bg-white/25"
-            > GitHub </a>
+              class="nav-link link-subtle">GitHub</a
+            >
             <a
               href="https://www.linkedin.com/in/carlos-garcia-gg/"
               target="_blank"
               rel="noopener noreferrer"
-              class="link-subtle text-sm font-medium rounded-full px-3 py-2.5 hover:text-text-primary hover:bg-white/25"
-            > LinkedIn </a>
+              class="nav-link link-subtle">LinkedIn</a
+            >
           </div>
         </div>
       </div>
     </nav>
 
-    <main class="pt-24">
+    <main class="pt-20 md:pt-24">
       <slot />
     </main>
 
     <footer class="border-t border-surface-border section-spacing glass-footer">
       <div class="container-narrow">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div
+          class="flex flex-col md:flex-row items-center justify-between gap-4"
+        >
           <p class="text-text-muted text-sm">
             Built with Astro. Deployed on GitHub Pages.
           </p>
@@ -106,7 +124,10 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
             >
               LinkedIn
             </a>
-            <a href="mailto:contact@carlosgarcia.dev" class="link-subtle text-sm">
+            <a
+              href="mailto:contact@carlosgarcia.dev"
+              class="link-subtle text-sm"
+            >
               Email
             </a>
           </div>
@@ -121,22 +142,24 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
           (entries) => {
             entries.forEach((entry) => {
               if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
+                entry.target.classList.add("visible");
               }
             });
           },
-          { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+          { threshold: 0.1, rootMargin: "0px 0px -40px 0px" },
         );
 
-        document.querySelectorAll('.reveal, .stagger-children').forEach((el) => observer.observe(el));
+        document
+          .querySelectorAll(".reveal, .stagger-children")
+          .forEach((el) => observer.observe(el));
       }
 
       // ─── Count-up animation ───
       function animateCountUp(el: HTMLElement) {
-        const rawText = el.getAttribute('data-count') || el.textContent || '0';
-        const hasPlus = rawText.includes('+');
-        const hasPercent = rawText.includes('%');
-        const cleanNumber = parseInt(rawText.replace(/[^0-9]/g, ''), 10);
+        const rawText = el.getAttribute("data-count") || el.textContent || "0";
+        const hasPlus = rawText.includes("+");
+        const hasPercent = rawText.includes("%");
+        const cleanNumber = parseInt(rawText.replace(/[^0-9]/g, ""), 10);
 
         if (isNaN(cleanNumber) || cleanNumber === 0) return;
 
@@ -152,11 +175,13 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
           const elapsed = currentTime - startTime;
           const progress = Math.min(elapsed / duration, 1);
           const easedProgress = easeOutCubic(progress);
-          const current = Math.round(startValue + (cleanNumber - startValue) * easedProgress);
+          const current = Math.round(
+            startValue + (cleanNumber - startValue) * easedProgress,
+          );
 
           let display = String(current);
-          if (hasPlus) display += '+';
-          if (hasPercent) display += '%';
+          if (hasPlus) display += "+";
+          if (hasPercent) display += "%";
 
           el.textContent = display;
 
@@ -165,7 +190,7 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
           }
         }
 
-        el.classList.add('visible');
+        el.classList.add("visible");
         requestAnimationFrame(update);
       }
 
@@ -173,20 +198,23 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
         const observer = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {
-              if (entry.isIntersecting && !entry.target.classList.contains('counted')) {
-                entry.target.classList.add('counted');
+              if (
+                entry.isIntersecting &&
+                !entry.target.classList.contains("counted")
+              ) {
+                entry.target.classList.add("counted");
                 animateCountUp(entry.target as HTMLElement);
               }
             });
           },
-          { threshold: 0.5 }
+          { threshold: 0.5 },
         );
 
-        document.querySelectorAll('.count-up-value').forEach((el) => {
+        document.querySelectorAll(".count-up-value").forEach((el) => {
           // Store original text as data attribute
           const el2 = el as HTMLElement;
-          if (!el2.getAttribute('data-count')) {
-            el2.setAttribute('data-count', el2.textContent || '0');
+          if (!el2.getAttribute("data-count")) {
+            el2.setAttribute("data-count", el2.textContent || "0");
           }
           observer.observe(el);
         });
@@ -198,19 +226,22 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
           (entries) => {
             entries.forEach((entry) => {
               if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
+                entry.target.classList.add("visible");
               }
             });
           },
-          { threshold: 0.3 }
+          { threshold: 0.3 },
         );
 
-        document.querySelectorAll('.metric-card').forEach((el) => observer.observe(el));
+        document
+          .querySelectorAll(".metric-card")
+          .forEach((el) => observer.observe(el));
       }
 
       // ─── Interactive Liquid Glass: the specular highlight follows the cursor ───
       function initInteractiveGlass() {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+          return;
 
         /**
          * Track the cursor inside a glass pane and park its position in
@@ -220,23 +251,31 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
         function trackPane(pane: HTMLDivElement) {
           let raf: number | null = null;
 
-          pane.addEventListener('pointermove', (ev: PointerEvent) => {
+          pane.addEventListener("pointermove", (ev: PointerEvent) => {
             const fromEvent = ev;
             if (raf !== null) return;
             raf = requestAnimationFrame(() => {
               raf = null;
               const rect = pane.getBoundingClientRect();
-              pane.style.setProperty('--spec-x', `${(((fromEvent.clientX - rect.left) / rect.width) * 100).toFixed(1)}%`);
-              pane.style.setProperty('--spec-y', `${(((fromEvent.clientY - rect.top) / rect.height) * 100).toFixed(1)}%`);
+              pane.style.setProperty(
+                "--spec-x",
+                `${(((fromEvent.clientX - rect.left) / rect.width) * 100).toFixed(1)}%`,
+              );
+              pane.style.setProperty(
+                "--spec-y",
+                `${(((fromEvent.clientY - rect.top) / rect.height) * 100).toFixed(1)}%`,
+              );
             });
           });
-          pane.addEventListener('pointerleave', () => {
+          pane.addEventListener("pointerleave", () => {
             if (raf !== null) cancelAnimationFrame(raf);
             raf = null;
           });
         }
 
-        document.querySelectorAll<HTMLDivElement>('.glass-interactive').forEach(trackPane);
+        document
+          .querySelectorAll<HTMLDivElement>(".glass-interactive")
+          .forEach(trackPane);
       }
 
       // ─── Init all ───
@@ -247,11 +286,11 @@ const absoluteOgImage = new URL(ogImage, Astro.site).href;
         initInteractiveGlass();
       }
 
-      document.addEventListener('astro:page-load', initAll);
+      document.addEventListener("astro:page-load", initAll);
       initAll();
     </script>
     <script>
-      import '../scripts/scroll.js';
+      import "../scripts/scroll.js";
     </script>
   </body>
 </html>
