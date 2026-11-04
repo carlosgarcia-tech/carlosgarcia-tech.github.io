@@ -107,21 +107,46 @@ const workflows = [
 ---
 
 <Layout title={`${project.title} — Carlos García`} ogImage="/og-deploy.png">
+  <!-- Barra de progreso de lectura (solo navegadores con scroll-driven animations) -->
+  <div class="scroll-progress" aria-hidden="true"></div>
+
   <article class="section-spacing relative overflow-hidden">
-    <div class="aurora-orb aurora-orb-sm aurora-orb-blue" aria-hidden="true"></div>
-    <div class="grid-lines parallax-layer opacity-25" data-scrub="parallax" data-speed="0.05" aria-hidden="true"></div>
+    <div class="aurora-orb aurora-orb-sm aurora-orb-blue" aria-hidden="true">
+    </div>
+    <div
+      class="grid-lines parallax-layer opacity-25"
+      data-scrub="parallax"
+      data-speed="0.05"
+      aria-hidden="true"
+    >
+    </div>
     <div class="container-narrow relative z-10">
       <div class="mb-12 reveal">
         <a
           href="/"
-          class="font-mono text-sm text-accent hover:text-accent-muted transition-colors duration-150 mb-4 inline-block"
+          class="back-link font-mono text-sm text-accent hover:text-accent-muted transition-colors duration-150 mb-4 inline-block"
         >
-          ← Back to projects
+          <span class="back-arrow">←</span> Back to projects
         </a>
-        <h1 class="text-display font-heading text-text-primary mb-2">
-          {project.title}
+        <h1
+          class="text-display font-heading text-text-primary mb-2"
+          aria-label={project.title}
+        >
+          {
+            project.title.split(" ").map((word, i) => (
+              <Fragment>
+                <span class="title-word" aria-hidden="true">
+                  <span class="title-word-inner" style={`--i:${i}`}>
+                    {word}
+                  </span>
+                </span>{" "}
+              </Fragment>
+            ))
+          }
         </h1>
-        <p class="text-text-muted font-mono text-sm mb-6">{project.subtitle}</p>
+        <p class="text-text-muted font-mono text-sm mb-6 subtitle-in">
+          {project.subtitle}
+        </p>
         <p class="text-text-secondary text-lg leading-relaxed max-w-2xl">
           {project.description}
         </p>
@@ -131,7 +156,14 @@ const workflows = [
         class="flex flex-wrap items-center gap-4 mb-12 font-mono text-xs text-text-muted reveal reveal-delay-1"
       >
         <span class="flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald"></span>
+          <span class="relative flex h-1.5 w-1.5">
+            <span
+              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald opacity-60"
+            ></span>
+            <span
+              class="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald"
+            ></span>
+          </span>
           Active
         </span>
         <span>Started Jan 2024</span>
@@ -148,14 +180,22 @@ const workflows = [
         </a>
       </div>
 
-      <div class="flex flex-wrap gap-2 mb-12 reveal reveal-delay-1">
-        {project.tags.map((tag) => <span class="tech-badge">{tag}</span>)}
+      <div class="flex flex-wrap gap-2 mb-12 reveal reveal-delay-1 tag-row">
+        {
+          project.tags.map((tag, i) => (
+            <span class="tech-badge" style={`--i:${i}`}>
+              {tag}
+            </span>
+          ))
+        }
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
         {
-          metrics.map((metric) => (
-            <div class="metric-card reveal">
+          metrics.map((metric, i) => (
+            <div
+              class={`metric-card glass-interactive reveal reveal-delay-${Math.min(i + 1, 5)}`}
+            >
               <span class="metric-value count-up-value">{metric.value}</span>
               <p class="metric-label">{metric.label}</p>
               <p class="text-xs text-text-muted mt-0.5">{metric.detail}</p>
@@ -165,7 +205,9 @@ const workflows = [
       </div>
 
       <section class="mb-16">
-        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+        <h2
+          class="section-title text-headline font-heading text-text-primary mb-6 reveal"
+        >
           Deployment Terminal
         </h2>
         <div class="reveal reveal-delay-1">
@@ -174,10 +216,12 @@ const workflows = [
       </section>
 
       <section class="mb-16">
-        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+        <h2
+          class="section-title text-headline font-heading text-text-primary mb-6 reveal"
+        >
           Deploys
         </h2>
-        <div class="card-surface p-6 reveal reveal-delay-1">
+        <div class="card-surface glass-interactive p-6 reveal reveal-delay-1">
           <p class="text-text-secondary text-sm leading-relaxed mb-4">
             This pipeline deploys the Commons Marketplace backend and client.
             The Blue/Green strategy ensures zero-downtime releases with instant
@@ -185,49 +229,62 @@ const workflows = [
           </p>
           <a
             href="/projects/commons-marketplace"
-            class="inline-flex items-center gap-2 font-mono text-sm text-accent hover:text-accent-muted transition-colors duration-150"
+            class="link-arrow inline-flex items-center gap-2 font-mono text-sm text-accent hover:text-accent-muted transition-colors duration-150"
           >
-            → Commons Marketplace
+            <span class="link-arrow-icon">→</span> Commons Marketplace
           </a>
         </div>
       </section>
 
       <section class="mb-16">
-        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+        <h2
+          class="section-title text-headline font-heading text-text-primary mb-6 reveal"
+        >
           Evolution
         </h2>
         <div class="grid gap-4 stagger-children">
           {
-            evolution.map((item) => (
-              <div class="card-surface card-hover p-6">
-                <div class="flex items-start justify-between mb-3">
-                  <h3 class="font-heading font-semibold text-text-primary">
-                    {item.phase}
-                  </h3>
-                  <span class="font-mono text-xs text-text-muted">
-                    {item.commits} commits
-                  </span>
+            evolution.map((item, i) => (
+              <Fragment>
+                <div class="card-surface glass-interactive card-hover p-6">
+                  <div class="flex items-start justify-between mb-3">
+                    <h3 class="font-heading font-semibold text-text-primary">
+                      {item.phase}
+                    </h3>
+                    <span class="font-mono text-xs text-text-muted">
+                      {item.commits} commits
+                    </span>
+                  </div>
+                  <p class="font-mono text-xs text-accent mb-2">{item.stack}</p>
+                  <p class="text-text-secondary text-sm leading-relaxed mb-4">
+                    {item.description}
+                  </p>
+                  <a
+                    href={item.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="link-arrow font-mono text-xs text-accent hover:text-accent-muted transition-colors duration-150"
+                  >
+                    View Repository <span class="link-arrow-icon">↗</span>
+                  </a>
                 </div>
-                <p class="font-mono text-xs text-accent mb-2">{item.stack}</p>
-                <p class="text-text-secondary text-sm leading-relaxed mb-4">
-                  {item.description}
-                </p>
-                <a
-                  href={item.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="font-mono text-xs text-accent hover:text-accent-muted transition-colors duration-150"
-                >
-                  View Repository ↗
-                </a>
-              </div>
+                {i < evolution.length - 1 && (
+                  <div class="evo-connector" aria-hidden="true">
+                    <span class="evo-line" />
+                    <span class="evo-dot" />
+                    <span class="evo-label">evolved into</span>
+                  </div>
+                )}
+              </Fragment>
             ))
           }
         </div>
       </section>
 
       <section class="mb-16">
-        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+        <h2
+          class="section-title text-headline font-heading text-text-primary mb-6 reveal"
+        >
           Blue/Green deployment flow
         </h2>
         <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
@@ -235,11 +292,16 @@ const workflows = [
           <div class="grid gap-3 mt-8">
             {
               blueGreenSteps.map((step, i) => (
-                <div class="flex items-start gap-4 py-2 border-b border-surface-border last:border-0">
-                  <span class="font-mono text-xs text-accent mt-0.5">
+                <div
+                  class="bg-step flex items-start gap-4 py-2 border-b border-surface-border last:border-0"
+                  style={`--i:${i}`}
+                >
+                  <span class="bg-step-num font-mono text-xs text-accent mt-0.5">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span class="text-text-secondary text-sm">{step}</span>
+                  <span class="bg-step-text text-text-secondary text-sm">
+                    {step}
+                  </span>
                 </div>
               ))
             }
@@ -248,16 +310,20 @@ const workflows = [
       </section>
 
       <section class="mb-16">
-        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+        <h2
+          class="section-title text-headline font-heading text-text-primary mb-6 reveal"
+        >
           Components
         </h2>
         <div class="grid gap-3">
           {
             components.map((item, i) => (
               <div
-                class={`card-surface p-4 flex items-start gap-4 reveal reveal-delay-${Math.min(i + 1, 4)}`}
+                class={`card-surface glass-interactive comp-row p-4 flex items-start gap-4 reveal reveal-delay-${Math.min(i + 1, 4)}`}
               >
-                <span class="font-mono text-sm text-accent">{item.name}</span>
+                <span class="comp-name font-mono text-sm text-accent">
+                  {item.name}
+                </span>
                 <span class="text-text-secondary text-sm">
                   {item.description}
                 </span>
@@ -268,14 +334,16 @@ const workflows = [
       </section>
 
       <section class="mb-16">
-        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+        <h2
+          class="section-title text-headline font-heading text-text-primary mb-6 reveal"
+        >
           GitHub Actions workflows
         </h2>
         <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
           <div class="grid gap-3">
             {
               workflows.map((item) => (
-                <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 py-2 border-b border-surface-border last:border-0">
+                <div class="wf-row flex flex-col md:flex-row md:items-center gap-1 md:gap-4 py-2 border-b border-surface-border last:border-0">
                   <span class="font-mono text-sm text-accent">{item.name}</span>
                   <span class="text-text-muted text-sm">
                     {item.description}
@@ -288,19 +356,20 @@ const workflows = [
       </section>
 
       <div class="flex flex-wrap gap-4 reveal">
+        <!-- Se quitó bg-accent: pisaba el degradado de cristal de .cta-glass -->
         <a
           href={project.github}
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center px-7 py-3 bg-accent text-white font-medium hover:bg-accent-muted transition-colors duration-150 pressable cta-glass"
+          class="cta-btn inline-flex items-center px-7 py-3 text-white font-medium pressable cta-glass"
         >
-          View Source Code
+          View Source Code <span class="cta-arrow">→</span>
         </a>
         <a
           href={`${project.github}/blob/main/README.md`}
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center px-6 py-3 border border-surface-border text-text-secondary font-medium rounded-md hover:border-text-muted hover:text-text-primary transition-colors duration-150"
+          class="glass-chip glass-interactive rounded-full font-medium text-text-secondary"
         >
           Read README
         </a>
@@ -308,13 +377,13 @@ const workflows = [
           href="https://github.com/carlosgarcia-tech/automation-deployments"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center px-6 py-3 border border-surface-border text-text-secondary font-medium rounded-md hover:border-text-muted hover:text-text-primary transition-colors duration-150"
+          class="glass-chip glass-interactive rounded-full font-medium text-text-secondary"
         >
           Legacy Implementation
         </a>
         <a
           href="/"
-          class="inline-flex items-center px-6 py-3 border border-surface-border text-text-secondary font-medium rounded-md hover:border-text-muted hover:text-text-primary transition-colors duration-150"
+          class="glass-chip glass-interactive rounded-full font-medium text-text-secondary"
         >
           Back to Projects
         </a>
@@ -322,3 +391,313 @@ const workflows = [
     </div>
   </article>
 </Layout>
+
+<style>
+  /* ───────── Barra de progreso de lectura ───────── */
+  .scroll-progress {
+    display: none;
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 3px;
+    z-index: 60;
+    pointer-events: none;
+    transform-origin: left center;
+    transform: scaleX(0);
+    background: linear-gradient(90deg, #ff6b1c, #ff8e3d 55%, #e53935);
+    box-shadow: 0 0 12px rgb(255 107 28 / 0.6);
+  }
+  @supports (animation-timeline: scroll()) {
+    .scroll-progress {
+      display: block;
+      animation: progress-grow linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+  @keyframes progress-grow {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* ───────── Título: entrada palabra por palabra + destello ───────── */
+  .title-word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+  }
+  .title-word-inner {
+    display: inline-block;
+    background: linear-gradient(100deg, #0b1220 42%, #ff6b1c 50%, #0b1220 58%);
+    background-size: 260% 100%;
+    background-position: 130% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation:
+      word-in 0.9s var(--ease-out, ease-out) both,
+      title-sheen 6s ease-in-out 2s infinite;
+    animation-delay: calc(0.15s + var(--i) * 0.12s), 2s;
+  }
+  @keyframes word-in {
+    from {
+      transform: translateY(105%) rotate(4deg);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes title-sheen {
+    0% {
+      background-position: 130% 0;
+    }
+    35%,
+    100% {
+      background-position: -30% 0;
+    }
+  }
+
+  .subtitle-in {
+    animation: fade-up 0.8s var(--ease-out, ease-out) 0.55s both;
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ───────── Back link / flechas ───────── */
+  .back-arrow,
+  .link-arrow-icon,
+  .cta-arrow {
+    display: inline-block;
+    transition: translate 0.25s var(--ease-spring, ease-out);
+  }
+  .back-link:hover .back-arrow {
+    translate: -4px 0;
+  }
+  .link-arrow:hover .link-arrow-icon {
+    translate: 3px -1px;
+  }
+  .cta-arrow {
+    margin-left: 0.5rem;
+  }
+  .cta-btn:hover .cta-arrow {
+    translate: 4px 0;
+  }
+
+  /* ───────── Títulos de sección: línea que se dibuja ───────── */
+  .section-title::after {
+    content: "";
+    display: block;
+    height: 2px;
+    width: 0;
+    margin-top: 0.6rem;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #ff6b1c, #e53935 70%, transparent);
+    transition: width 0.9s var(--ease-out, ease-out) 0.25s;
+  }
+  .section-title.visible::after {
+    width: 3.5rem;
+  }
+
+  /* ───────── Tags: aparecen en cascada ───────── */
+  .tag-row.visible .tech-badge {
+    animation: pop-in 0.55s var(--ease-spring, ease-out) both;
+    animation-delay: calc(var(--i) * 70ms + 150ms);
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ───────── Evolution: conector con pulso viajando ───────── */
+  .evo-connector {
+    position: relative;
+    height: 3rem;
+    margin-block: -0.5rem;
+    display: flex;
+    justify-content: center;
+  }
+  .evo-line {
+    width: 2px;
+    height: 100%;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgb(255 107 28 / 0.55) 0 4px,
+      transparent 4px 8px
+    );
+    animation: evo-march 0.7s linear infinite;
+    background-size: 2px 8px;
+  }
+  .evo-dot {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    margin-left: -4px;
+    border-radius: 50%;
+    background: #ff6b1c;
+    box-shadow: 0 0 12px 2px rgb(255 107 28 / 0.65);
+    animation: evo-travel 2.2s ease-in-out infinite;
+  }
+  .evo-label {
+    position: absolute;
+    top: 50%;
+    left: calc(50% + 16px);
+    translate: 0 -50%;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: #6b7689;
+    white-space: nowrap;
+  }
+  @keyframes evo-march {
+    to {
+      background-position: 0 8px;
+    }
+  }
+  @keyframes evo-travel {
+    0% {
+      top: 0;
+      opacity: 0;
+    }
+    15% {
+      opacity: 1;
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      top: calc(100% - 8px);
+      opacity: 0;
+    }
+  }
+
+  /* ───────── Lista de pasos: barra que se enciende en secuencia ───────── */
+  .bg-step {
+    position: relative;
+    transition: translate 0.25s var(--ease-out, ease-out);
+  }
+  .bg-step::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(#ff6b1c, #e53935);
+    transform-origin: top;
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  .reveal.visible .bg-step::before {
+    animation: step-flash 1.3s ease-out both;
+    animation-delay: calc(var(--i) * 150ms + 600ms);
+  }
+  .reveal.visible .bg-step-num {
+    animation: num-flash 1.3s ease-out both;
+    animation-delay: calc(var(--i) * 150ms + 600ms);
+  }
+  .bg-step:hover {
+    translate: 4px 0;
+  }
+  .bg-step:hover .bg-step-text {
+    color: #0b1220;
+  }
+  @keyframes step-flash {
+    0% {
+      transform: scaleY(0);
+      opacity: 1;
+    }
+    40% {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scaleY(1);
+      opacity: 0;
+    }
+  }
+  @keyframes num-flash {
+    0%,
+    100% {
+      text-shadow: none;
+    }
+    40% {
+      text-shadow: 0 0 10px rgb(255 107 28 / 0.9);
+    }
+  }
+
+  /* ───────── Components ───────── */
+  .comp-row {
+    transition:
+      translate 0.25s var(--ease-out, ease-out),
+      box-shadow 0.25s ease;
+  }
+  .comp-row:hover {
+    translate: 0 -3px;
+  }
+  .comp-name {
+    display: inline-block;
+    transition:
+      translate 0.25s var(--ease-spring, ease-out),
+      letter-spacing 0.25s ease;
+  }
+  .comp-row:hover .comp-name {
+    translate: 4px 0;
+    letter-spacing: 0.02em;
+  }
+
+  /* ───────── Workflows: subrayado que corre al hover ───────── */
+  .wf-row {
+    position: relative;
+    transition: translate 0.25s var(--ease-out, ease-out);
+  }
+  .wf-row::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    height: 1px;
+    width: 0;
+    background: linear-gradient(90deg, #ff6b1c, transparent);
+    transition: width 0.5s var(--ease-out, ease-out);
+  }
+  .wf-row:hover {
+    translate: 4px 0;
+  }
+  .wf-row:hover::after {
+    width: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-progress {
+      display: none;
+    }
+    .title-word-inner {
+      animation: none;
+      color: #0b1220;
+      background: none;
+    }
+    .evo-line,
+    .evo-dot {
+      animation: none;
+    }
+  }
+</style>
