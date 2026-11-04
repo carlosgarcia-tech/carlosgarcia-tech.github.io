@@ -1,6 +1,8 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import OnionDiagram from "../../components/diagrams/OnionDiagram.astro";
+import RequestFlow from "../../components/diagrams/RequestFlow.astro";
+import BlueGreenDiagram from "../../components/diagrams/BlueGreenDiagram.astro";
 
 const project = {
   title: "Commons Marketplace",
@@ -23,13 +25,30 @@ const project = {
   ],
 };
 
+// count = número final; suffix se añade después (los valores ya no se parsean desde el texto)
 const metrics = [
-  { value: "1010", label: "tests passing", detail: "across 114 suites" },
-  { value: "80%", label: "statement coverage", detail: "use cases at 100%" },
-  { value: "50+", label: "API endpoints", detail: "across 7 domains" },
-  { value: "202", label: "commits", detail: "on main branch" },
+  {
+    count: 1010,
+    suffix: "",
+    label: "tests passing",
+    detail: "across 114 suites",
+  },
+  {
+    count: 80,
+    suffix: "%",
+    label: "statement coverage",
+    detail: "use cases at 100%",
+  },
+  {
+    count: 50,
+    suffix: "+",
+    label: "API endpoints",
+    detail: "across 7 domains",
+  },
+  { count: 202, suffix: "", label: "commits", detail: "on main branch" },
 ];
 
+// Mismo orden (afuera → adentro) y mismos colores que OnionDiagram
 const architecture = {
   title: "Onion Architecture",
   description:
@@ -40,16 +59,16 @@ const architecture = {
       detail: "Controllers, Routes, Middlewares",
       color: "#EA580C",
     },
+    {
+      name: "Infrastructure",
+      detail: "MongoDB, Supabase, Ably, Socket.io, DI",
+      color: "#f57c00",
+    },
     { name: "Application", detail: "Use Cases, DTOs", color: "#DC2626" },
     {
       name: "Core",
       detail: "Entities, Repository Interfaces, Domain Services",
       color: "#15803D",
-    },
-    {
-      name: "Infrastructure",
-      detail: "MongoDB, Supabase, Ably, Socket.io, DI",
-      color: "#f57c00",
     },
   ],
 };
@@ -88,19 +107,32 @@ const stack = [
   { layer: "Deployment", technology: "Blue/Green CI/CD" },
 ];
 
+// value numérico para las barras; label es lo que se muestra
 const testCoverage = [
   {
     layer: "Use Cases",
-    coverage: "100%",
+    value: 100,
+    label: "100%",
     note: "Core business logic, fully mocked",
   },
-  { layer: "Core Entities", coverage: "100%", note: "Domain models" },
-  { layer: "Validators", coverage: "100%", note: "All input paths covered" },
-  { layer: "Controllers", coverage: "~90%", note: "HTTP handling layer" },
-  { layer: "Services", coverage: "~80%", note: "Domain logic" },
+  { layer: "Core Entities", value: 100, label: "100%", note: "Domain models" },
+  {
+    layer: "Validators",
+    value: 100,
+    label: "100%",
+    note: "All input paths covered",
+  },
+  {
+    layer: "Controllers",
+    value: 90,
+    label: "~90%",
+    note: "HTTP handling layer",
+  },
+  { layer: "Services", value: 80, label: "~80%", note: "Domain logic" },
   {
     layer: "Infrastructure",
-    coverage: "~25%",
+    value: 25,
+    label: "~25%",
     note: "Intentionally excluded from unit tests",
   },
 ];
@@ -118,8 +150,16 @@ const apiDomains = [
 
 <Layout title={`${project.title} — Carlos García`} ogImage="/og-commons.png">
   <article class="section-spacing relative overflow-hidden">
-    <div class="aurora-orb aurora-orb-sm aurora-orb-blue" aria-hidden="true"></div>
-    <div class="grid-lines parallax-layer opacity-25" data-scrub="parallax" data-speed="0.05" aria-hidden="true"></div>
+    <div class="aurora-orb aurora-orb-sm aurora-orb-blue" aria-hidden="true">
+    </div>
+    <div
+      class="grid-lines parallax-layer opacity-25"
+      data-scrub="parallax"
+      data-speed="0.05"
+      aria-hidden="true"
+    >
+    </div>
+    <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
     <div class="container-narrow relative z-10">
       <div class="mb-12 reveal">
         <a
@@ -141,7 +181,7 @@ const apiDomains = [
         class="flex flex-wrap items-center gap-4 mb-12 font-mono text-xs text-text-muted reveal reveal-delay-1"
       >
         <span class="flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald pulse-dot"></span>
           Active
         </span>
         <span>Started Mar 2024</span>
@@ -166,7 +206,14 @@ const apiDomains = [
         {
           metrics.map((metric) => (
             <div class="metric-card reveal">
-              <span class="metric-value count-up-value">{metric.value}</span>
+              <span
+                class="metric-value"
+                data-count={metric.count}
+                data-suffix={metric.suffix}
+              >
+                {metric.count}
+                {metric.suffix}
+              </span>
               <p class="metric-label">{metric.label}</p>
               <p class="text-xs text-text-muted mt-0.5">{metric.detail}</p>
             </div>
@@ -191,7 +238,7 @@ const apiDomains = [
               architecture.layers.map((layer) => (
                 <div class="flex items-center gap-4">
                   <div
-                    class="w-3 h-3 rounded-sm"
+                    class="w-3 h-3 rounded-sm shrink-0"
                     style={`background-color: ${layer.color}`}
                   />
                   <div>
@@ -211,11 +258,20 @@ const apiDomains = [
 
       <section class="mb-16">
         <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+          How a request flows
+        </h2>
+        <div class="reveal reveal-delay-1">
+          <RequestFlow />
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
           Key decisions
         </h2>
         <div class="grid gap-4 stagger-children">
           {
-            decisions.map((decision, i) => (
+            decisions.map((decision) => (
               <div class="card-surface card-hover p-6">
                 <h3 class="font-heading font-semibold text-text-primary mb-2">
                   {decision.title}
@@ -231,24 +287,48 @@ const apiDomains = [
 
       <section class="mb-16">
         <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+          Zero-downtime deploys
+        </h2>
+        <div class="reveal reveal-delay-1">
+          <BlueGreenDiagram />
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
           Test coverage
         </h2>
-        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
-          <div class="grid gap-3">
+        <div
+          class="card-surface p-6 md:p-8 reveal reveal-delay-1"
+          data-coverage
+        >
+          <div class="grid gap-4">
             {
               testCoverage.map((item) => (
-                <div class="flex items-center justify-between py-2 border-b border-surface-border last:border-0">
-                  <div>
-                    <span class="font-mono text-sm text-text-primary">
-                      {item.layer}
-                    </span>
-                    <span class="text-text-muted text-xs ml-2">
-                      {item.note}
+                <div class="py-1">
+                  <div class="flex items-center justify-between mb-1.5">
+                    <div>
+                      <span class="font-mono text-sm text-text-primary">
+                        {item.layer}
+                      </span>
+                      <span class="text-text-muted text-xs ml-2">
+                        {item.note}
+                      </span>
+                    </div>
+                    <span class="font-mono text-sm font-semibold text-accent">
+                      {item.label}
                     </span>
                   </div>
-                  <span class="font-mono text-sm font-semibold text-accent">
-                    {item.coverage}
-                  </span>
+                  <div
+                    class="cov-track"
+                    role="progressbar"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow={item.value}
+                    aria-label={`${item.layer} coverage`}
+                  >
+                    <span class="cov-bar" data-value={item.value} />
+                  </div>
                 </div>
               ))
             }
@@ -260,11 +340,24 @@ const apiDomains = [
         <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
           API surface
         </h2>
-        <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
+        <div
+          class="card-surface p-6 md:p-8 reveal reveal-delay-1"
+          data-api-filter
+        >
+          <label class="sr-only" for="api-search">Filter API domains</label>
+          <input
+            id="api-search"
+            type="search"
+            placeholder="Filter domains or endpoints…"
+            class="api-search w-full mb-4 px-3 py-2 font-mono text-sm rounded-md border border-surface-border bg-transparent text-text-primary"
+          />
           <div class="grid gap-3">
             {
               apiDomains.map((item) => (
-                <div class="flex items-center justify-between py-2 border-b border-surface-border last:border-0">
+                <div
+                  class="api-row flex items-center justify-between py-2 border-b border-surface-border last:border-0"
+                  data-search={`${item.domain} ${item.endpoints}`.toLowerCase()}
+                >
                   <span class="font-mono text-sm text-text-primary">
                     {item.domain}
                   </span>
@@ -275,6 +368,9 @@ const apiDomains = [
               ))
             }
           </div>
+          <p class="api-empty hidden text-text-muted text-sm font-mono mt-3">
+            No matches.
+          </p>
         </div>
       </section>
 
@@ -335,7 +431,7 @@ const apiDomains = [
           href={project.github}
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center px-7 py-3 bg-accent text-white font-medium hover:bg-accent-muted transition-colors duration-150 pressable cta-glass"
+          class="inline-flex items-center px-7 py-3 bg-accent text-white font-medium rounded-md hover:bg-accent-muted transition-colors duration-150 pressable cta-glass"
         >
           View Source Code
         </a>
@@ -357,3 +453,162 @@ const apiDomains = [
     </div>
   </article>
 </Layout>
+
+<script>
+  const reduce = () =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Contadores animados al entrar al viewport
+  function initCountUp() {
+    document.querySelectorAll<HTMLElement>("[data-count]").forEach((el) => {
+      if (el.dataset.ready) return;
+      el.dataset.ready = "true";
+      const target = Number(el.dataset.count);
+      const suffix = el.dataset.suffix || "";
+      if (reduce()) return; // el valor final ya está en el HTML
+
+      el.textContent = `0${suffix}`;
+      const io = new IntersectionObserver(
+        ([e]) => {
+          if (!e.isIntersecting) return;
+          io.disconnect();
+          const start = performance.now();
+          const dur = 1400;
+          const tick = (now: number) => {
+            const p = Math.min((now - start) / dur, 1);
+            const eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = `${Math.round(target * eased)}${suffix}`;
+            if (p < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        },
+        { threshold: 0.6 },
+      );
+      io.observe(el);
+    });
+  }
+
+  // Barras de cobertura: crecen al entrar al viewport
+  function initCoverage() {
+    document
+      .querySelectorAll<HTMLElement>("[data-coverage]")
+      .forEach((root) => {
+        if (root.dataset.ready) return;
+        root.dataset.ready = "true";
+        const bars = root.querySelectorAll<HTMLElement>(".cov-bar");
+        const fill = () =>
+          bars.forEach((b, i) => {
+            b.style.transitionDelay = reduce() ? "0ms" : `${i * 90}ms`;
+            b.style.width = `${b.dataset.value}%`;
+          });
+        if (reduce()) return fill();
+        const io = new IntersectionObserver(
+          ([e]) => {
+            if (!e.isIntersecting) return;
+            io.disconnect();
+            fill();
+          },
+          { threshold: 0.3 },
+        );
+        io.observe(root);
+      });
+  }
+
+  // Filtro de dominios de la API
+  function initApiFilter() {
+    document
+      .querySelectorAll<HTMLElement>("[data-api-filter]")
+      .forEach((root) => {
+        if (root.dataset.ready) return;
+        root.dataset.ready = "true";
+        const input = root.querySelector<HTMLInputElement>(".api-search")!;
+        const rows = Array.from(root.querySelectorAll<HTMLElement>(".api-row"));
+        const empty = root.querySelector<HTMLElement>(".api-empty")!;
+        input.addEventListener("input", () => {
+          const q = input.value.trim().toLowerCase();
+          let visible = 0;
+          rows.forEach((r) => {
+            const show = !q || (r.dataset.search || "").includes(q);
+            r.classList.toggle("hidden", !show);
+            if (show) visible++;
+          });
+          empty.classList.toggle("hidden", visible > 0);
+        });
+      });
+  }
+
+  // Barra de progreso de lectura
+  function initScrollProgress() {
+    const bar = document.querySelector<HTMLElement>("[data-scroll-progress]");
+    if (!bar || bar.dataset.ready) return;
+    bar.dataset.ready = "true";
+    const update = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = `scaleX(${max > 0 ? window.scrollY / max : 0})`;
+    };
+    window.addEventListener("scroll", update, { passive: true });
+    update();
+  }
+
+  function initAll() {
+    initCountUp();
+    initCoverage();
+    initApiFilter();
+    initScrollProgress();
+  }
+  document.addEventListener("astro:page-load", initAll);
+  initAll();
+</script>
+
+<style>
+  .cov-track {
+    height: 6px;
+    border-radius: 9999px;
+    background: rgb(120 113 108 / 0.15);
+    overflow: hidden;
+  }
+  .cov-bar {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #ff6b1c, #ea580c);
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .api-search:focus-visible {
+    outline: 2px solid #ff6b1c;
+    outline-offset: 1px;
+  }
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 50;
+    background: #ff6b1c;
+    transform: scaleX(0);
+    transform-origin: left;
+    pointer-events: none;
+  }
+  .pulse-dot {
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgb(16 185 129 / 0.5);
+    }
+    50% {
+      box-shadow: 0 0 0 5px rgb(16 185 129 / 0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cov-bar {
+      transition: none;
+    }
+    .pulse-dot {
+      animation: none;
+    }
+  }
+</style>
