@@ -1,8 +1,15 @@
 ---
 /**
- * DeployMini — small auto-typing terminal for home card.
- * 4 lines type out in sequence, loop, pause when not in viewport.
+ * DeployMini — small auto-typing terminal for the home card.
+ * At rest it shows the finished output (never an empty box).
+ * On hover/focus the 4 lines type out in sequence and loop.
  */
+const lines = [
+  { text: "$ ansible-playbook deploy.yml", kind: "cmd" },
+  { text: "✓ Health check passed", kind: "ok" },
+  { text: "$ docker compose up -d", kind: "cmd" },
+  { text: "✓ Green → Blue traffic switched", kind: "ok" },
+];
 ---
 
 <div class="dm-terminal" data-preview="deploy" aria-hidden="true">
@@ -12,112 +19,187 @@
     <span class="dm-dot-green"></span>
   </div>
   <div class="dm-body">
-    <div class="dm-line" data-type="$ ansible-playbook deploy.yml" data-color="cmd"></div>
-    <div class="dm-line" data-type="✓ Health check passed" data-color="ok"></div>
-    <div class="dm-line" data-type="$ docker compose up -d" data-color="cmd"></div>
-    <div class="dm-line" data-type="✓ Green → Blue traffic switched" data-color="ok"></div>
+    {
+      lines.map((l) => (
+        <div class={`dm-line dm-${l.kind}`} data-type={l.text}>
+          {l.text}
+        </div>
+      ))
+    }
   </div>
 </div>
 
 <script>
   function initDeployMini() {
-    const roots = document.querySelectorAll('[data-preview="deploy"]');
-    roots.forEach(root => {
-      let paused = true;
-      const lines = root.querySelectorAll('.dm-line') as NodeListOf<HTMLElement>;
-      let lineIdx = 0;
-      let typing = false;
-      let animTimer = null;
+    const roots = document.querySelectorAll<HTMLElement>(
+      '[data-preview="deploy"]',
+    );
 
-      function reset() {
-        lines.forEach(l => { l.textContent = ''; l.style.opacity = '0'; });
-        lineIdx = 0;
+    roots.forEach((root) => {
+      // Evita listeners duplicados (astro:page-load + llamada directa)
+      if (root.dataset.ready) return;
+      root.dataset.ready = "true";
+
+      const lines = Array.from(root.querySelectorAll<HTMLElement>(".dm-line"));
+      const texts = lines.map((l) => l.dataset.type ?? "");
+      const reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      let running = false;
+      let runId = 0; // invalida callbacks viejos al parar o reiniciar
+
+      function showAll() {
+        lines.forEach((l, i) => {
+          l.textContent = texts[i];
+          l.style.opacity = "1";
+          l.classList.remove("is-typing");
+        });
       }
 
-      function typeLine(el, text, cb) {
-        let i = 0;
-        typing = true;
-        function tick() {
-          if (paused) { typing = false; return; }
-          if (i < text.length) {
-            el.textContent += text[i];
-            i++;
-            animTimer = setTimeout(tick, 35 + Math.random() * 25);
+      function clear() {
+        lines.forEach((l) => {
+          l.textContent = "";
+          l.style.opacity = "0";
+          l.classList.remove("is-typing");
+        });
+      }
+
+      function typeLine(i: number, id: number) {
+        if (id !== runId) return;
+
+        if (i >= lines.length) {
+          // Pausa con todo escrito, luego repite
+          timer = setTimeout(() => {
+            if (id !== runId) return;
+            clear();
+            timer = setTimeout(() => typeLine(0, id), 500);
+          }, 2500);
+          return;
+        }
+
+        const el = lines[i];
+        const text = texts[i];
+        let c = 0;
+        el.style.opacity = "1";
+        el.classList.add("is-typing");
+
+        const step = () => {
+          if (id !== runId) return;
+          if (c < text.length) {
+            c++;
+            el.textContent = text.slice(0, c);
+            timer = setTimeout(step, 30 + Math.random() * 25);
           } else {
-            typing = false;
-            cb();
+            el.classList.remove("is-typing");
+            timer = setTimeout(() => typeLine(i + 1, id), 250);
           }
-        }
-        tick();
+        };
+        step();
       }
 
-      function showNext() {
-        if (paused || typing) return;
-        if (lineIdx < lines.length) {
-          const el = lines[lineIdx];
-          const text = el.getAttribute('data-type') || '';
-          el.style.opacity = '1';
-          lineIdx++;
-          typeLine(el, text, () => { animTimer = setTimeout(showNext, 250); });
-        } else {
-          animTimer = setTimeout(() => { reset(); animTimer = setTimeout(showNext, 500); }, 3000);
-        }
+      function start() {
+        if (running || reduce) return;
+        running = true;
+        runId++;
+        clear();
+        const id = runId;
+        timer = setTimeout(() => typeLine(0, id), 400);
       }
 
-      function startAnimation() {
-        if (!paused) return;
-        paused = false;
-        reset();
-        animTimer = setTimeout(showNext, 600);
+      function stop() {
+        runId++;
+        if (timer) clearTimeout(timer);
+        timer = null;
+        running = false;
+        showAll();
       }
 
-      function stopAnimation() {
-        paused = true;
-        if (animTimer) { clearTimeout(animTimer); animTimer = null; }
-        typing = false;
-        reset();
-      }
-
-      const card = root.closest('a');
-      if (card) {
-        card.addEventListener('mouseenter', startAnimation);
-        card.addEventListener('mouseleave', stopAnimation);
-      }
+      const card = root.closest("a");
+      if (!card) return;
+      card.addEventListener("mouseenter", start);
+      card.addEventListener("mouseleave", stop);
+      card.addEventListener("focusin", start);
+      card.addEventListener("focusout", stop);
     });
   }
-  document.addEventListener('astro:page-load', initDeployMini);
+
+  document.addEventListener("astro:page-load", initDeployMini);
   initDeployMini();
 </script>
 
 <style>
+  /* Sin backdrop-filter: va dentro de una card glass y el blur anidado se
+     vería plano. El cristal sale de gradientes translúcidos, borde brillante
+     y reflejo diagonal. */
   .dm-terminal {
+    position: relative;
     width: 100%;
     height: 160px;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    border: 1px solid #1F2C47;
-    background: #0A101D;
+    border: 1px solid rgb(255 255 255 / 0.7);
+    background: linear-gradient(
+      160deg,
+      rgb(255 255 255 / 0.3) 0%,
+      rgb(255 255 255 / 0.08) 50%,
+      rgb(255 255 255 / 0.2) 100%
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      inset 1px 0 0 rgb(255 255 255 / 0.35),
+      inset 0 -10px 22px -12px rgb(255 255 255 / 0.5),
+      inset 0 -1px 0 rgb(11 18 32 / 0.08),
+      0 10px 24px -14px rgb(255 107 28 / 0.45);
     display: flex;
     flex-direction: column;
+    color: #3f3f46;
   }
+
+  .dm-terminal::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      115deg,
+      rgb(255 255 255 / 0.35) 0%,
+      rgb(255 255 255 / 0.06) 30%,
+      rgb(255 255 255 / 0) 55%,
+      rgb(255 255 255 / 0.12) 100%
+    );
+  }
+
   .dm-dots {
     display: flex;
     gap: 5px;
     padding: 8px 12px;
-    border-bottom: 1px solid #1F2C47;
+    border-bottom: 1px solid rgb(255 255 255 / 0.55);
+    background: rgb(255 255 255 / 0.18);
   }
-  .dm-dot-red, .dm-dot-yellow, .dm-dot-green {
-    width: 8px; height: 8px;
+  .dm-dot-red,
+  .dm-dot-yellow,
+  .dm-dot-green {
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6);
   }
-  .dm-dot-red { background: rgba(239, 68, 68, 0.7); }
-  .dm-dot-yellow { background: rgba(234, 179, 8, 0.7); }
-  .dm-dot-green { background: rgba(34, 197, 94, 0.7); }
+  .dm-dot-red {
+    background: rgb(239 68 68 / 0.75);
+  }
+  .dm-dot-yellow {
+    background: rgb(234 179 8 / 0.75);
+  }
+  .dm-dot-green {
+    background: rgb(34 197 94 / 0.75);
+  }
 
   .dm-body {
     flex: 1;
     padding: 10px 14px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: "JetBrains Mono", monospace;
     font-size: 11px;
     line-height: 1.7;
     display: flex;
@@ -125,10 +207,41 @@
     justify-content: center;
     gap: 2px;
   }
+
   .dm-line {
-    opacity: 0;
-    transition: opacity 0.15s ease;
     white-space: nowrap;
     overflow: hidden;
+    min-height: 1.7em;
+    transition: opacity 0.15s ease;
+  }
+  /* Antes data-color no se aplicaba: ahora cada tipo tiene su color */
+  .dm-cmd {
+    color: #3f3f46;
+  }
+  .dm-ok {
+    color: #1e7a45;
+  }
+
+  .dm-line.is-typing::after {
+    content: "▋";
+    margin-left: 1px;
+    color: #ff6b1c;
+    animation: dm-blink 0.9s step-end infinite;
+  }
+
+  @keyframes dm-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dm-line.is-typing::after {
+      animation: none;
+    }
   }
 </style>

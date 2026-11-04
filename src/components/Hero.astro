@@ -1,36 +1,87 @@
 ---
-import AsciiFigure from './AsciiFigure.astro';
+import AsciiFigure from "./AsciiFigure.astro";
+
+const metrics = [
+  { value: "1010", label: "tests passing", delay: 4 },
+  { value: "50+", label: "API endpoints", delay: 4 },
+  { value: "200+", label: "commands", delay: 5 },
+  { value: "50", label: "concurrent sessions", delay: 5 },
+];
 ---
 
-<section class="relative min-h-[85vh] flex items-center section-spacing overflow-hidden">
+<!-- Filtro de refracción para el liquid glass (Chromium; en Safari/Firefox cae al blur normal) -->
+<svg width="0" height="0" class="absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="liquid-glass" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence
+        type="fractalNoise"
+        baseFrequency="0.010 0.014"
+        numOctaves="2"
+        seed="7"
+        result="noise"></feTurbulence>
+      <feGaussianBlur in="noise" stdDeviation="2" result="softNoise"
+      ></feGaussianBlur>
+      <feDisplacementMap
+        in="SourceGraphic"
+        in2="softNoise"
+        scale="26"
+        xChannelSelector="R"
+        yChannelSelector="G"></feDisplacementMap>
+    </filter>
+  </defs>
+</svg>
+
+<section class="relative overflow-hidden pt-0 pb-10 md:pt-0 md:pb-10">
   <div class="aurora-orb aurora-orb-blue" aria-hidden="true"></div>
   <div class="aurora-orb aurora-orb-cyan" aria-hidden="true"></div>
-  <div class="absolute inset-0 grid-lines opacity-40" data-scrub="parallax" data-speed="0.06" aria-hidden="true"></div>
+  <div
+    class="absolute inset-0 grid-lines opacity-30"
+    data-scrub="parallax"
+    data-speed="0.06"
+    aria-hidden="true"
+  >
+  </div>
 
-  <div class="container-narrow relative z-10">
-    <div class="grid md:grid-cols-[1fr_auto] gap-12 items-center">
-      <div>
-        <div class="reveal">
-          <p class="font-mono text-sm text-accent mb-4 tracking-wide">
-            backend / devops / systems
-          </p>
-        </div>
+  <div class="relative z-10 mx-auto w-full max-w-7xl px-6">
+    <div class="grid items-start gap-6 lg:grid-cols-12 lg:gap-0">
+      <!-- ASCII: protagonista. Va primero en móvil y ocupa 7/12 en desktop,
+           desbordando un poco el contenedor hacia la derecha -->
+      <div
+        class="order-1 mt-12 lg:order-2 lg:col-span-7 lg:-mr-6 lg:-mt-44"
+        data-scrub="parallax"
+        data-speed="0.1"
+      >
+        <AsciiFigure />
+      </div>
 
-        <h1 class="text-display font-heading text-text-primary mb-6 aurora-text" data-scrub="parallax" data-speed="0.08">
+      <!-- Texto: más compacto, flota sobre el borde del ASCII -->
+      <div
+        class="relative z-20 order-2 min-w-0 lg:order-1 lg:col-span-5 lg:pt-0"
+      >
+        <p class="reveal mb-4 font-mono text-sm tracking-wide text-accent">
+          backend / devops / systems
+        </p>
+
+        <h1
+          class="aurora-text mb-5 font-heading text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl"
+          data-scrub="parallax"
+          data-speed="0.05"
+        >
           Carlos García
         </h1>
 
         <p
-          class="text-xl md:text-2xl text-text-secondary leading-relaxed max-w-2xl mb-8"
+          class="mb-8 max-w-md text-lg leading-relaxed text-text-secondary"
           data-scrub="fade"
         >
-          I build software systems and automate the infrastructure that runs them.
+          I build software systems and automate the infrastructure that runs
+          them.
         </p>
 
-        <div class="flex flex-wrap items-center gap-4 reveal reveal-delay-3">
+        <div class="reveal reveal-delay-3 flex flex-wrap items-center gap-3">
           <a
             href="#projects"
-            class="inline-flex items-center px-7 py-3 bg-accent text-white font-medium hover:bg-accent-muted transition-colors duration-150 pressable cta-glass"
+            class="cta-glass pressable inline-flex items-center px-6 py-2.5 font-medium text-white transition-colors duration-150"
           >
             View Projects
           </a>
@@ -38,54 +89,60 @@ import AsciiFigure from './AsciiFigure.astro';
             href="https://github.com/carlosgarcia-tech"
             target="_blank"
             rel="noopener noreferrer"
-            class="glass-chip rounded-full glass-interactive"
+            class="glass-chip glass-interactive rounded-full text-sm"
           >
-            GitHub Profile
-          </a>
-          <a
-            href="/cv-carlos-garcia.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="glass-chip rounded-full glass-interactive"
-          >
-            Download CV
+            GitHub
           </a>
           <a
             href="https://www.linkedin.com/in/carlos-garcia-gg/"
             target="_blank"
             rel="noopener noreferrer"
-            class="glass-chip rounded-full glass-interactive"
+            class="glass-chip glass-interactive rounded-full text-sm"
           >
-            <svg class="shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+            <svg
+              class="shrink-0"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"
+              ></path>
+              <rect x="2" y="9" width="4" height="12"></rect>
+              <circle cx="4" cy="4" r="2"></circle>
+            </svg>
             LinkedIn
           </a>
-        </div>
-
-        <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div class="metric-card reveal reveal-delay-4">
-            <span class="metric-value count-up-value">1010</span>
-            <p class="metric-label">tests passing</p>
-          </div>
-          <div class="metric-card reveal reveal-delay-4">
-            <span class="metric-value count-up-value">50+</span>
-            <p class="metric-label">API endpoints</p>
-          </div>
-          <div class="metric-card reveal reveal-delay-5">
-            <span class="metric-value count-up-value">200+</span>
-            <p class="metric-label">commands</p>
-          </div>
-          <div class="metric-card reveal reveal-delay-5">
-            <span class="metric-value count-up-value">50</span>
-            <p class="metric-label">concurrent sessions</p>
-          </div>
+          <a
+            href="/cv-carlos-garcia.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="glass-chip glass-interactive rounded-full text-sm"
+          >
+            Download CV
+          </a>
         </div>
       </div>
+    </div>
 
-      <div class="hidden md:block">
-        <div data-scrub="parallax" data-speed="0.15">
-          <AsciiFigure />
-        </div>
-      </div>
+    <!-- Las métricas se montan sobre la base del ASCII para que el cristal refracte el arte -->
+    <div
+      class="relative z-20 -mt-10 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6 lg:-mt-24"
+    >
+      {
+        metrics.map((m) => (
+          <div class={`metric-card reveal reveal-delay-${m.delay}`}>
+            <span class="metric-value count-up-value">{m.value}</span>
+            <p class="metric-label">{m.label}</p>
+          </div>
+        ))
+      }
     </div>
   </div>
 </section>

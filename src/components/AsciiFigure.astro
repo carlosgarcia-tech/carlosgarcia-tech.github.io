@@ -1,42 +1,248 @@
 ---
-// Sky-gazer: two open hands raised in a V, censored face tilted to the
-// sky, body dissolving into particles. Centered near column 12.
+import raw from "../../public/ascii-art.txt?raw";
+
+const lines = raw
+  .replace(/\r/g, "")
+  .split("\n")
+  .map((l) => l.replace(/\s+$/, ""));
+
+while (lines.length && !lines[0].trim()) lines.shift();
+while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+
+const indent = Math.min(
+  ...lines.filter((l) => l.trim()).map((l) => l.search(/\S/)),
+);
+const trimmed = lines.map((l) => l.slice(indent));
+
+const cols = Math.max(...trimmed.map((l) => l.length));
+const rows = trimmed.length;
+const grid = trimmed.map((l) => l.padEnd(cols, " ").split(""));
+
+const RY = 3;
+const RX = 6;
+const FIGURE_THRESHOLD = 0.18;
+
+const density = (y: number, x: number) => {
+  let filled = 0;
+  let total = 0;
+  for (let dy = -RY; dy <= RY; dy++) {
+    const row = grid[y + dy];
+    if (!row) continue;
+    for (let dx = -RX; dx <= RX; dx++) {
+      const ch = row[x + dx];
+      if (ch === undefined) continue;
+      total++;
+      if (ch !== " ") filled++;
+    }
+  }
+  return filled / total;
+};
+
+const HEAVY = new Set(["@", "%", "#", "*", "+"]);
+const blank = () => grid.map((r) => r.map(() => " "));
+const back = blank();
+const mid = blank();
+const front = blank();
+
+for (let y = 0; y < rows; y++) {
+  for (let x = 0; x < cols; x++) {
+    const ch = grid[y][x];
+    if (ch === " ") continue;
+    if (density(y, x) < FIGURE_THRESHOLD) back[y][x] = ch;
+    else if (HEAVY.has(ch)) front[y][x] = ch;
+    else mid[y][x] = ch;
+  }
+}
+
+const toText = (layer: string[][]) => layer.map((r) => r.join("")).join("\n");
 ---
 
-<div class="ascii-wrap">
-  <pre class="ascii-pre ascii-figure" data-scrub="draw" aria-hidden="true">      ·      ✦     ·     ⋆        ·
-  ⋆     ·       ⋆    ·      ✦
-      ✦    ·     ⋆    ·    ⋆     ·
-   ·    ⋆     ✦    ⋆    ·      ⋆
-      ·    ·    ⋆    ⋆   ·    ✦
-   ⋆     ✦    ⋆    ·    ⋆    ·    ⋆
-      ⋆    ·    ✦    ⋆   ·     ⋆
-   ·     ⋆     ·    ⋆   ⋆    ·
-       \|/        ·    \|/
-       \ |    ✦      | /     ·
-        \|    ·      |/
-         ╱▒▓▒╲      ⋆
-    ·     │▓│      ✦    ⋆
-     ▄░▒▓█▓▒░▄ ⋆   ·   ⋆
-       ░▒▓▒░   ·   ⋆   ✦
-        ░▒░  ⋆    ·    ·
-   ✦     ░   ·   ⋆    ⋆
-       ·   °   ⋆   ·  ·
-  ⋆     ·    °   ·  ⋆   ·
-      ✦     ·   ° °  ⋆</pre>
-  <p class="sr-only">ASCII art: una persona joven con las manos abiertas alzadas hacia el cielo, el rostro censurado, mirando hacia arriba.</p>
+<div class="ascii-wrap" data-ascii-3d style={`--cols:${cols}; --rows:${rows};`}>
+  <!-- Halo detrás de la figura: le da profundidad y la separa del fondo -->
+  <div class="ascii-halo" aria-hidden="true"></div>
+
+  <div class="ascii-figure" data-scrub="draw" aria-hidden="true">
+    <div class="ascii-scene">
+      <div class="ascii-stage">
+        <pre
+          class="ascii-layer layer-back"
+          style="--z:-120">{toText(back)}</pre>
+        <pre class="ascii-layer layer-mid" style="--z:0">{toText(mid)}</pre>
+        <pre
+          class="ascii-layer layer-front"
+          style="--z:24">{toText(front)}</pre>
+      </div>
+    </div>
+  </div>
+  <p class="sr-only">Ilustración ASCII</p>
 </div>
 
 <style>
+  /* Sin caja: el ASCII es el hero, no un widget dentro de una tarjeta */
   .ascii-wrap {
-    @reference '../styles/global.css';
-    @apply relative max-w-full overflow-hidden;
+    width: 100%;
+    container-type: inline-size;
+    position: relative;
+    padding: 0;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    overflow: visible;
   }
-  .ascii-figure {
-    @apply text-sm md:text-base;
+
+  /* Anula el ::before global (brillo dentro de la caja) */
+  .ascii-wrap::before {
+    display: none;
   }
+
+  .ascii-halo {
+    position: absolute;
+    inset: -12% -8%;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(
+        closest-side at var(--gx, 50%) var(--gy, 45%),
+        rgba(255, 107, 28, 0.55),
+        rgba(255, 107, 28, 0.2) 55%,
+        transparent 80%
+      ),
+      radial-gradient(
+        closest-side at 25% 80%,
+        rgba(229, 57, 53, 0.18),
+        transparent 70%
+      );
+    filter: blur(30px);
+    animation: ascii-glow 7s ease-in-out infinite alternate;
+  }
+
+  .ascii-scene {
+    position: relative;
+    z-index: 1;
+    perspective: 900px;
+    perspective-origin: 50% 50%;
+  }
+
+  .ascii-stage {
+    display: grid;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .ascii-layer {
+    grid-area: 1 / 1;
+    margin: 0;
+    white-space: pre;
+    user-select: none;
+    font-family:
+      "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas,
+      "Courier New", monospace;
+    /* La figura ocupa todo el ancho de su columna */
+    font-size: calc(100cqw / (var(--cols) * 0.6));
+    line-height: 1.05;
+    /* scale compensa la perspectiva: en reposo todas las capas miden lo mismo */
+    transform: translateZ(calc(var(--z) * 1px))
+      scale(calc((900 - var(--z)) / 900));
+  }
+
+  .layer-back {
+    color: rgba(224, 86, 24, 0.95);
+    text-shadow: 0 0 18px rgba(255, 107, 28, 0.8);
+  }
+
+  .layer-mid {
+    color: #0b1220;
+    text-shadow: 0 0 1px rgba(11, 18, 32, 0.5);
+  }
+
+  .layer-front {
+    color: #000;
+    font-weight: 800;
+    text-shadow:
+      0 0 1px rgba(0, 0, 0, 0.8),
+      0 0 14px rgba(255, 107, 28, 0.55),
+      0 8px 26px rgba(255, 107, 28, 0.45);
+  }
+
+  /* Resplandor general: separa la figura del fondo */
+  .ascii-stage {
+    filter: drop-shadow(0 10px 30px rgba(255, 107, 28, 0.35));
+  }
+
   .sr-only {
-    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    white-space: nowrap;
+    border: 0;
     clip: rect(0, 0, 0, 0);
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ascii-halo {
+      animation: none;
+    }
+  }
 </style>
+
+<script>
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const clamp = (v: number, a: number, b: number) =>
+    Math.min(b, Math.max(a, v));
+
+  document.querySelectorAll<HTMLElement>("[data-ascii-3d]").forEach((wrap) => {
+    const stage = wrap.querySelector<HTMLElement>(".ascii-stage");
+    if (!stage || reduce) return;
+
+    let px = 0;
+    let py = 0;
+    let cx = 0;
+    let cy = 0;
+    let raf = 0;
+
+    window.addEventListener(
+      "pointermove",
+      (e) => {
+        px = (e.clientX / window.innerWidth - 0.5) * 2;
+        py = (e.clientY / window.innerHeight - 0.5) * 2;
+      },
+      { passive: true },
+    );
+
+    const tick = (t: number) => {
+      const r = wrap.getBoundingClientRect();
+      const scroll = clamp(
+        (r.top + r.height / 2 - window.innerHeight / 2) / window.innerHeight,
+        -1,
+        1,
+      );
+
+      // Deriva lenta: se mueve aunque el mouse esté quieto
+      const idleX = Math.sin(t / 2600) * 0.3;
+      const idleY = Math.cos(t / 3400) * 0.2;
+
+      cx += (px + idleX - cx) * 0.07;
+      cy += (py + idleY - cy) * 0.07;
+
+      // Más rotación que antes: con más tamaño el efecto 3D se lee mejor
+      const rotY = cx * 18 + scroll * 16;
+      const rotX = -cy * 10 - scroll * 10;
+
+      stage.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
+      wrap.style.setProperty("--gx", `${(50 + cx * 18).toFixed(1)}%`);
+      wrap.style.setProperty("--gy", `${(45 + cy * 18).toFixed(1)}%`);
+
+      raf = requestAnimationFrame(tick);
+    };
+
+    new IntersectionObserver(([entry]) => {
+      cancelAnimationFrame(raf);
+      if (entry.isIntersecting) raf = requestAnimationFrame(tick);
+    }).observe(wrap);
+  });
+</script>

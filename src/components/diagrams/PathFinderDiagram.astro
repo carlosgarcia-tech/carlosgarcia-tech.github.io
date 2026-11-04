@@ -1,13 +1,13 @@
 ---
 const pipeline = [
-  { label: 'Request', icon: '→', color: '#94A3B8' },
-  { label: 'JWT Auth', sublabel: 'access + refresh', color: '#61A0FF' },
-  { label: 'RBAC', sublabel: 'Admin / Editor / Viewer', color: '#7b1fa2' },
+  { label: 'Request', icon: '→', color: '#78716C' },
+  { label: 'JWT Auth', sublabel: 'access + refresh', color: '#FF6B1C' },
+  { label: 'RBAC', sublabel: 'Admin / Editor / Viewer', color: '#DC2626' },
   { label: 'Rate Limit', sublabel: 'Redis + fallback', color: '#F59E0B' },
-  { label: 'Cache Check', sublabel: 'Redis lookup', color: '#2FD9F5' },
-  { label: 'Controller', sublabel: 'Express route', color: '#3BE8A8' },
-  { label: 'MongoDB', sublabel: 'Mongoose query', color: '#388e3c' },
-  { label: 'Response', sublabel: 'JSON', color: '#94A3B8' },
+  { label: 'Cache Check', sublabel: 'Redis lookup', color: '#D97706' },
+  { label: 'Controller', sublabel: 'Express route', color: '#16A34A' },
+  { label: 'MongoDB', sublabel: 'Mongoose query', color: '#15803D' },
+  { label: 'Response', sublabel: 'JSON', color: '#78716C' },
 ];
 ---
 
@@ -16,7 +16,7 @@ const pipeline = [
     <svg viewBox="0 0 720 160" class="w-full h-auto" role="img" aria-label="PathFinder API request pipeline diagram">
       <defs>
         <marker id="arrow-pf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#61A0FF" />
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#FF6B1C" />
         </marker>
       </defs>
 
@@ -24,20 +24,20 @@ const pipeline = [
         const x = 10 + i * 88;
         return (
           <g class="pipeline-step" data-step={i} style="cursor: pointer;">
-            <rect x={x} y="40" width="78" height="80" rx="8" fill="#131C30" stroke={step.color} stroke-width="1.5" opacity="0.7" class="step-rect" />
+            <rect x={x} y="40" width="78" height="80" rx="8" fill="#FFFFFF" stroke={step.color} stroke-width="1.5" opacity="0.7" class="step-rect" />
             <text x={x + 39} y="70" text-anchor="middle" fill={step.color} font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">{step.label}</text>
             {step.sublabel && (
-              <text x={x + 39} y="88" text-anchor="middle" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="7">{step.sublabel}</text>
+              <text x={x + 39} y="88" text-anchor="middle" fill="#A8A29E" font-family="JetBrains Mono, monospace" font-size="7">{step.sublabel}</text>
             )}
             {i < pipeline.length - 1 && (
-              <line x1={x + 78} y1="80" x2={x + 88} y2="80" stroke="#1F2C47" stroke-width="1.5" marker-end="url(#arrow-pf)" class="pipeline-arrow" />
+              <line x1={x + 78} y1="80" x2={x + 88} y2="80" stroke="#D6D3D1" stroke-width="1.5" marker-end="url(#arrow-pf)" class="pipeline-arrow" />
             )}
           </g>
         );
       })}
 
       <!-- Animated flow dot -->
-      <circle r="3" fill="#61A0FF" opacity="0.8" class="flow-dot">
+      <circle r="3" fill="#FF6B1C" opacity="0.8" class="flow-dot">
         <animateMotion dur="3s" repeatCount="indefinite" path="M10,80 L710,80" />
       </circle>
     </svg>
@@ -80,10 +80,10 @@ const pipeline = [
         arrows.forEach((arrow, j) => {
           const el = arrow as SVGLineElement;
           if (j < i) {
-            el.setAttribute('stroke', '#61A0FF');
+            el.setAttribute('stroke', '#FF6B1C');
             el.setAttribute('stroke-width', '2');
           } else {
-            el.setAttribute('stroke', '#1F2C47');
+            el.setAttribute('stroke', '#D6D3D1');
             el.setAttribute('stroke-width', '1.5');
           }
         });
@@ -97,7 +97,7 @@ const pipeline = [
         });
         arrows.forEach((arrow) => {
           const el = arrow as SVGLineElement;
-          el.setAttribute('stroke', '#1F2C47');
+          el.setAttribute('stroke', '#D6D3D1');
           el.setAttribute('stroke-width', '1.5');
         });
       });
@@ -116,10 +116,10 @@ const pipeline = [
         arrows.forEach((arrow, j) => {
           const el = arrow as SVGLineElement;
           if (j < i) {
-            el.setAttribute('stroke', '#61A0FF');
+            el.setAttribute('stroke', '#FF6B1C');
             el.setAttribute('stroke-width', '2');
           } else {
-            el.setAttribute('stroke', '#1F2C47');
+            el.setAttribute('stroke', '#D6D3D1');
             el.setAttribute('stroke-width', '1.5');
           }
         });
@@ -132,7 +132,7 @@ const pipeline = [
           });
           arrows.forEach((arrow) => {
             const el = arrow as SVGLineElement;
-            el.setAttribute('stroke', '#1F2C47');
+            el.setAttribute('stroke', '#D6D3D1');
             el.setAttribute('stroke-width', '1.5');
           });
         }, 2000);

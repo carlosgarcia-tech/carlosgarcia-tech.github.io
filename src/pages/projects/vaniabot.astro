@@ -83,24 +83,87 @@ const stack = [
   { layer: "Testing", technology: "Vitest" },
   { layer: "Containers", technology: "Docker + Compose" },
 ];
+
+// Árbol del proyecto, una línea por elemento: así cada línea puede animarse
+// por separado. El comentario (# ...) se separa para pintarlo atenuado.
+const treeSource = [
+  "VaniaBot/",
+  "├── src/",
+  "│   ├── commands/           # One file per command, auto-registered",
+  "│   │   ├── admin/",
+  "│   │   ├── economy/",
+  "│   │   ├── fun/",
+  "│   │   ├── game/",
+  "│   │   ├── media/",
+  "│   │   └── utility/",
+  "│   ├── core/               # Client bootstrap + CommandRegistry",
+  "│   ├── middlewares/        # Auth, rate limit, anti-spam, context",
+  "│   ├── services/",
+  "│   │   ├── ai/             # Fallback chain + Circuit Breaker",
+  "│   │   ├── convert/        # Document conversion bridge",
+  "│   │   ├── database/       # SQLite + MongoDB adapters",
+  "│   │   ├── cache/          # Redis + in-memory fallback",
+  "│   │   └── external/       # Third-party API wrappers",
+  "│   ├── orchestrator/       # SubBot lifecycle management",
+  "│   ├── workers/            # Bull queue workers",
+  "│   ├── repositories/       # Data access layer",
+  "│   └── types/              # Shared TypeScript types",
+  "├── vania.ts                # Bootstrapper",
+  "├── index.ts                # Entry point",
+  "└── docker-compose.yml",
+];
+const tree = treeSource.map((line) => {
+  const i = line.indexOf("#");
+  const code = i === -1 ? line : line.slice(0, i);
+  return {
+    code,
+    comment: i === -1 ? "" : line.slice(i),
+    isDir: /\/\s*$/.test(code),
+  };
+});
 ---
 
 <Layout title={`${project.title} — Carlos García`} ogImage="/og-vaniabot.png">
+  <!-- Barra de progreso de lectura (solo navegadores con scroll-driven animations) -->
+  <div class="scroll-progress" aria-hidden="true"></div>
+
   <article class="section-spacing relative overflow-hidden">
-    <div class="aurora-orb aurora-orb-sm aurora-orb-blue" aria-hidden="true"></div>
-    <div class="grid-lines parallax-layer opacity-25" data-scrub="parallax" data-speed="0.05" aria-hidden="true"></div>
+    <div class="aurora-orb aurora-orb-sm aurora-orb-blue" aria-hidden="true">
+    </div>
+    <div
+      class="grid-lines parallax-layer opacity-25"
+      data-scrub="parallax"
+      data-speed="0.05"
+      aria-hidden="true"
+    >
+    </div>
     <div class="container-narrow relative z-10">
       <div class="mb-12 reveal">
         <a
           href="/"
-          class="font-mono text-sm text-accent hover:text-accent-muted transition-colors duration-150 mb-4 inline-block"
+          class="back-link font-mono text-sm text-accent hover:text-accent-muted transition-colors duration-150 mb-4 inline-block"
         >
-          ← Back to projects
+          <span class="back-arrow">←</span> Back to projects
         </a>
-        <h1 class="text-display font-heading text-text-primary mb-2">
-          {project.title}
+        <h1
+          class="text-display font-heading text-text-primary mb-2"
+          aria-label={project.title}
+        >
+          {
+            project.title.split(" ").map((word, i) => (
+              <Fragment>
+                <span class="title-word" aria-hidden="true">
+                  <span class="title-word-inner" style={`--i:${i}`}>
+                    {word}
+                  </span>
+                </span>{" "}
+              </Fragment>
+            ))
+          }
         </h1>
-        <p class="text-text-muted font-mono text-sm mb-6">{project.subtitle}</p>
+        <p class="text-text-muted font-mono text-sm mb-6 subtitle-in">
+          {project.subtitle}
+        </p>
         <p class="text-text-secondary text-lg leading-relaxed max-w-2xl">
           {project.description}
         </p>
@@ -110,7 +173,14 @@ const stack = [
         class="flex flex-wrap items-center gap-4 mb-12 font-mono text-xs text-text-muted reveal reveal-delay-1"
       >
         <span class="flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald"></span>
+          <span class="relative flex h-1.5 w-1.5">
+            <span
+              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald opacity-60"
+            ></span>
+            <span
+              class="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald"
+            ></span>
+          </span>
           Active
         </span>
         <span>Started Jan 2024</span>
@@ -127,14 +197,22 @@ const stack = [
         </a>
       </div>
 
-      <div class="flex flex-wrap gap-2 mb-12 reveal reveal-delay-1">
-        {project.tags.map((tag) => <span class="tech-badge">{tag}</span>)}
+      <div class="flex flex-wrap gap-2 mb-12 reveal reveal-delay-1 tag-row">
+        {
+          project.tags.map((tag, i) => (
+            <span class="tech-badge" style={`--i:${i}`}>
+              {tag}
+            </span>
+          ))
+        }
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
         {
-          metrics.map((metric) => (
-            <div class="metric-card reveal">
+          metrics.map((metric, i) => (
+            <div
+              class={`metric-card glass-interactive reveal reveal-delay-${Math.min(i + 1, 5)}`}
+            >
               <span class="metric-value count-up-value">{metric.value}</span>
               <p class="metric-label">{metric.label}</p>
               <p class="text-xs text-text-muted mt-0.5">{metric.detail}</p>
@@ -144,7 +222,9 @@ const stack = [
       </div>
 
       <section class="mb-16">
-        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+        <h2
+          class="section-title text-headline font-heading text-text-primary mb-6 reveal"
+        >
           Chat Simulator
         </h2>
         <div class="reveal reveal-delay-1">
@@ -153,22 +233,33 @@ const stack = [
       </section>
 
       <section class="mb-16">
-        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+        <h2
+          class="section-title text-headline font-heading text-text-primary mb-6 reveal"
+        >
           Architecture
         </h2>
         <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
           <VaniaBotDiagram />
+          <p class="mt-4 text-center font-mono text-[11px] text-text-muted">
+            Click a SubBot to drop its connection · hover a provider to trip its
+            circuit breaker
+          </p>
         </div>
       </section>
 
       <section class="mb-16">
-        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+        <h2
+          class="section-title text-headline font-heading text-text-primary mb-6 reveal"
+        >
           Engineering highlights
         </h2>
         <div class="grid gap-4 stagger-children">
           {
-            features.map((feature) => (
-              <div class="card-surface card-hover p-6">
+            features.map((feature, i) => (
+              <div class="feature-card card-surface glass-interactive card-hover p-6">
+                <span class="feature-index" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 <h3 class="font-heading font-semibold text-text-primary mb-2">
                   {feature.title}
                 </h3>
@@ -182,19 +273,28 @@ const stack = [
       </section>
 
       <section class="mb-16">
-        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+        <h2
+          class="section-title text-headline font-heading text-text-primary mb-6 reveal"
+        >
           Commands
         </h2>
         <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
           <div class="grid gap-3">
             {
-              commandDomains.map((item) => (
-                <div class="flex flex-col md:flex-row md:items-center justify-between py-2 border-b border-surface-border last:border-0 gap-1">
+              commandDomains.map((item, r) => (
+                <div
+                  class="cmd-row flex flex-col md:flex-row md:items-center justify-between py-2 border-b border-surface-border last:border-0 gap-2"
+                  style={`--r:${r}`}
+                >
                   <span class="font-mono text-sm text-text-primary">
                     {item.domain}
                   </span>
-                  <span class="text-text-muted text-sm font-mono">
-                    {item.examples}
+                  <span class="flex flex-wrap gap-1.5 md:justify-end">
+                    {item.examples.split(", ").map((c, j) => (
+                      <code class="cmd-chip" style={`--j:${j}`}>
+                        {c}
+                      </code>
+                    ))}
                   </span>
                 </div>
               ))
@@ -204,14 +304,16 @@ const stack = [
       </section>
 
       <section class="mb-16">
-        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+        <h2
+          class="section-title text-headline font-heading text-text-primary mb-6 reveal"
+        >
           Stack
         </h2>
         <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
           <div class="grid gap-3">
             {
               stack.map((item) => (
-                <div class="flex items-center justify-between py-2 border-b border-surface-border last:border-0">
+                <div class="stack-row flex items-center justify-between py-2 border-b border-surface-border last:border-0">
                   <span class="font-mono text-sm text-text-muted">
                     {item.layer}
                   </span>
@@ -226,58 +328,40 @@ const stack = [
       </section>
 
       <section class="mb-16">
-        <h2 class="text-headline font-heading text-text-primary mb-6 reveal">
+        <h2
+          class="section-title text-headline font-heading text-text-primary mb-6 reveal"
+        >
           Project structure
         </h2>
         <div class="card-surface p-6 md:p-8 reveal reveal-delay-1">
           <pre
-            class="font-mono text-sm text-text-secondary leading-relaxed overflow-x-auto"><code>VaniaBot/
-├── src/
-│   ├── commands/           # One file per command, auto-registered
-│   │   ├── admin/
-│   │   ├── economy/
-│   │   ├── fun/
-│   │   ├── game/
-│   │   ├── media/
-│   │   └── utility/
-│   ├── core/               # Client bootstrap + CommandRegistry
-│   ├── middlewares/        # Auth, rate limit, anti-spam, context
-│   ├── services/
-│   │   ├── ai/             # Fallback chain + Circuit Breaker
-│   │   ├── convert/        # Document conversion bridge
-│   │   ├── database/       # SQLite + MongoDB adapters
-│   │   ├── cache/          # Redis + in-memory fallback
-│   │   └── external/       # Third-party API wrappers
-│   ├── orchestrator/       # SubBot lifecycle management
-│   ├── workers/            # Bull queue workers
-│   ├── repositories/       # Data access layer
-│   └── types/              # Shared TypeScript types
-├── vania.ts                # Bootstrapper
-├── index.ts                # Entry point
-└── docker-compose.yml</code></pre>
+            class="tree font-mono text-sm text-text-secondary leading-relaxed overflow-x-auto"><code>{tree.map((l, i) => (
+            <span class="tree-line" style={`--i:${i}`}><span class={l.isDir ? "tree-dir" : ""}>{l.code}</span>{l.comment && <span class="tree-comment">{l.comment}</span>}</span>
+          ))}</code></pre>
         </div>
       </section>
 
       <div class="flex flex-wrap gap-4 reveal">
+        <!-- Se quitó bg-accent: pisaba el degradado de cristal de .cta-glass -->
         <a
           href={project.github}
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center px-7 py-3 bg-accent text-white font-medium hover:bg-accent-muted transition-colors duration-150 pressable cta-glass"
+          class="cta-btn inline-flex items-center px-7 py-3 text-white font-medium pressable cta-glass"
         >
-          View Source Code
+          View Source Code <span class="cta-arrow">→</span>
         </a>
         <a
           href={`${project.github}/blob/main/README.md`}
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center px-6 py-3 border border-surface-border text-text-secondary font-medium rounded-md hover:border-text-muted hover:text-text-primary transition-colors duration-150"
+          class="glass-chip glass-interactive rounded-full font-medium text-text-secondary"
         >
           Read README
         </a>
         <a
           href="/"
-          class="inline-flex items-center px-6 py-3 border border-surface-border text-text-secondary font-medium rounded-md hover:border-text-muted hover:text-text-primary transition-colors duration-150"
+          class="glass-chip glass-interactive rounded-full font-medium text-text-secondary"
         >
           Back to Projects
         </a>
@@ -285,3 +369,257 @@ const stack = [
     </div>
   </article>
 </Layout>
+
+<style>
+  /* ───────── Barra de progreso de lectura ───────── */
+  .scroll-progress {
+    display: none;
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 3px;
+    z-index: 60;
+    pointer-events: none;
+    transform-origin: left center;
+    transform: scaleX(0);
+    background: linear-gradient(90deg, #ff6b1c, #ff8e3d 55%, #e53935);
+    box-shadow: 0 0 12px rgb(255 107 28 / 0.6);
+  }
+  @supports (animation-timeline: scroll()) {
+    .scroll-progress {
+      display: block;
+      animation: progress-grow linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+  @keyframes progress-grow {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* ───────── Título: entrada palabra por palabra + destello ───────── */
+  .title-word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+  }
+  .title-word-inner {
+    display: inline-block;
+    background: linear-gradient(100deg, #0b1220 42%, #ff6b1c 50%, #0b1220 58%);
+    background-size: 260% 100%;
+    background-position: 130% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation:
+      word-in 0.9s var(--ease-out, ease-out) both,
+      title-sheen 6s ease-in-out 2s infinite;
+    animation-delay: calc(0.15s + var(--i) * 0.12s), 2s;
+  }
+  @keyframes word-in {
+    from {
+      transform: translateY(105%) rotate(4deg);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes title-sheen {
+    0% {
+      background-position: 130% 0;
+    }
+    35%,
+    100% {
+      background-position: -30% 0;
+    }
+  }
+
+  .subtitle-in {
+    animation: fade-up 0.8s var(--ease-out, ease-out) 0.55s both;
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ───────── Back link / flechas ───────── */
+  .back-arrow,
+  .cta-arrow {
+    display: inline-block;
+    transition: translate 0.25s var(--ease-spring, ease-out);
+  }
+  .back-link:hover .back-arrow {
+    translate: -4px 0;
+  }
+  .cta-arrow {
+    margin-left: 0.5rem;
+  }
+  .cta-btn:hover .cta-arrow {
+    translate: 4px 0;
+  }
+
+  /* ───────── Títulos de sección: línea que se dibuja ───────── */
+  .section-title::after {
+    content: "";
+    display: block;
+    height: 2px;
+    width: 0;
+    margin-top: 0.6rem;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #ff6b1c, #e53935 70%, transparent);
+    transition: width 0.9s var(--ease-out, ease-out) 0.25s;
+  }
+  .section-title.visible::after {
+    width: 3.5rem;
+  }
+
+  /* ───────── Tags: aparecen en cascada ───────── */
+  .tag-row.visible .tech-badge {
+    animation: pop-in 0.55s var(--ease-spring, ease-out) both;
+    animation-delay: calc(var(--i) * 70ms + 150ms);
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ───────── Engineering highlights ───────── */
+  .feature-card {
+    overflow: hidden;
+  }
+  .feature-index {
+    position: absolute;
+    top: 0.25rem;
+    right: 1.1rem;
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 4.25rem;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: rgb(255 107 28 / 0.1);
+    pointer-events: none;
+    transition:
+      translate 0.5s var(--ease-out, ease-out),
+      color 0.4s ease;
+  }
+  .feature-card:hover .feature-index {
+    translate: -8px 4px;
+    color: rgb(255 107 28 / 0.2);
+  }
+
+  /* ───────── Commands: chips que aparecen en cascada ───────── */
+  .cmd-chip {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 9999px;
+    color: #3a4658;
+    border: 1px solid rgb(255 255 255 / 0.85);
+    background: linear-gradient(
+      180deg,
+      rgb(255 255 255 / 0.6),
+      rgb(255 255 255 / 0.28)
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      0 2px 8px -3px rgb(255 107 28 / 0.3);
+    transition:
+      translate 0.25s var(--ease-spring, ease-out),
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .cmd-chip:hover {
+    translate: 0 -2px;
+    color: #c2410c;
+    border-color: rgb(255 107 28 / 0.5);
+  }
+  .reveal.visible .cmd-chip {
+    animation: pop-in 0.5s var(--ease-spring, ease-out) both;
+    animation-delay: calc(var(--r) * 60ms + var(--j) * 50ms + 300ms);
+  }
+
+  /* ───────── Filas con subrayado que corre al hover (stack / commands) ───────── */
+  .stack-row,
+  .cmd-row {
+    position: relative;
+    transition: translate 0.25s var(--ease-out, ease-out);
+  }
+  .stack-row::after,
+  .cmd-row::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    height: 1px;
+    width: 0;
+    background: linear-gradient(90deg, #ff6b1c, transparent);
+    transition: width 0.5s var(--ease-out, ease-out);
+  }
+  .stack-row:hover,
+  .cmd-row:hover {
+    translate: 4px 0;
+  }
+  .stack-row:hover::after,
+  .cmd-row:hover::after {
+    width: 100%;
+  }
+
+  /* ───────── Árbol del proyecto: se escribe línea por línea ───────── */
+  .tree-line {
+    display: block;
+    white-space: pre;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+  .tree-line:hover {
+    background: linear-gradient(90deg, rgb(255 107 28 / 0.1), transparent);
+  }
+  .tree-dir {
+    color: #b45309;
+  }
+  .tree-comment {
+    color: #6b7689;
+    font-style: italic;
+  }
+  .reveal.visible .tree-line {
+    animation: tree-in 0.45s var(--ease-out, ease-out) both;
+    animation-delay: calc(var(--i) * 35ms + 300ms);
+  }
+  @keyframes tree-in {
+    from {
+      opacity: 0;
+      translate: -8px 0;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-progress {
+      display: none;
+    }
+    .title-word-inner {
+      animation: none;
+      color: #0b1220;
+      background: none;
+    }
+  }
+</style>

@@ -1,101 +1,172 @@
 ---
 /**
- * CommonsCrossfade — mini image crossfade carousel for home card.
- * Pure CSS crossfade between 3 panels, pauses when not in viewport.
+ * CommonsCrossfade — mini crossfade carousel for the home card.
+ * Crossfades between 3 panels while the card is hovered or focused,
+ * and goes back to the first panel when the pointer leaves.
  */
+const slides = [
+  { icon: "🛒", title: "Marketplace", subtitle: "Users, stores, products" },
+  { icon: "💬", title: "Real-time Chat", subtitle: "Socket.io + Ably" },
+  {
+    icon: "⚡",
+    title: "Onion Architecture",
+    subtitle: "1010 tests, 80% coverage",
+  },
+];
 ---
 
 <div class="cc-carousel" data-preview="commons" aria-hidden="true">
   <div class="cc-slides">
-    <div class="cc-slide cc-slide-1">
-      <div class="cc-inner">
-        <div class="cc-icon">🛒</div>
-        <div class="cc-title">Marketplace</div>
-        <div class="cc-subtitle">Users, stores, products</div>
-      </div>
-    </div>
-    <div class="cc-slide cc-slide-2">
-      <div class="cc-inner">
-        <div class="cc-icon">💬</div>
-        <div class="cc-title">Real-time Chat</div>
-        <div class="cc-subtitle">Socket.io + Ably</div>
-      </div>
-    </div>
-    <div class="cc-slide cc-slide-3">
-      <div class="cc-inner">
-        <div class="cc-icon">⚡</div>
-        <div class="cc-title">Onion Architecture</div>
-        <div class="cc-subtitle">1010 tests, 80% coverage</div>
-      </div>
-    </div>
+    {
+      slides.map((s, i) => (
+        <div class={`cc-slide cc-slide-${i + 1}${i === 0 ? " is-active" : ""}`}>
+          <div class="cc-inner">
+            <div class="cc-icon">{s.icon}</div>
+            <div class="cc-title">{s.title}</div>
+            <div class="cc-subtitle">{s.subtitle}</div>
+          </div>
+        </div>
+      ))
+    }
   </div>
-  <div class="cc-overlay">
-    <span class="cc-cta">View project →</span>
+
+  <div class="cc-dots">
+    {
+      slides.map((_, i) => (
+        <span class={`cc-dot${i === 0 ? " is-active" : ""}`} />
+      ))
+    }
   </div>
+
+  <span class="cc-cta">View project →</span>
 </div>
 
 <script>
   function initCommonsCrossfade() {
-    const roots = document.querySelectorAll('[data-preview="commons"]');
-    roots.forEach(root => {
-      let paused = true;
-      const slides = root.querySelector('.cc-slides') as HTMLDivElement;
+    const roots = document.querySelectorAll<HTMLElement>(
+      '[data-preview="commons"]',
+    );
+
+    roots.forEach((root) => {
+      // Evita listeners duplicados (astro:page-load + llamada directa)
+      if (root.dataset.ready) return;
+      root.dataset.ready = "true";
+
+      const slides = Array.from(
+        root.querySelectorAll<HTMLElement>(".cc-slide"),
+      );
+      const dots = Array.from(root.querySelectorAll<HTMLElement>(".cc-dot"));
+      const reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
       let idx = 0;
-      const total = 3;
-      let intervalId = null;
+      let timer: ReturnType<typeof setInterval> | null = null;
 
-      function tick() {
-        if (!paused) {
-          idx = (idx + 1) % total;
-          slides.style.transform = `translateX(-${idx * 100}%)`;
-        }
+      function show(next: number) {
+        idx = next;
+        slides.forEach((s, i) => s.classList.toggle("is-active", i === idx));
+        dots.forEach((d, i) => d.classList.toggle("is-active", i === idx));
       }
 
-      function startAnimation() {
-        if (!paused) return;
-        paused = false;
-        intervalId = setInterval(tick, 3000);
+      function start() {
+        if (timer || reduce) return;
+        timer = setInterval(() => show((idx + 1) % slides.length), 2600);
       }
 
-      function stopAnimation() {
-        paused = true;
-        if (intervalId) { clearInterval(intervalId); intervalId = null; }
+      function stop() {
+        if (timer) clearInterval(timer);
+        timer = null;
+        show(0);
       }
 
-      const card = root.closest('a');
-      if (card) {
-        card.addEventListener('mouseenter', startAnimation);
-        card.addEventListener('mouseleave', stopAnimation);
-      }
+      const card = root.closest("a");
+      if (!card) return;
+      card.addEventListener("mouseenter", start);
+      card.addEventListener("mouseleave", stop);
+      card.addEventListener("focusin", start);
+      card.addEventListener("focusout", stop);
     });
   }
-  document.addEventListener('astro:page-load', initCommonsCrossfade);
+
+  document.addEventListener("astro:page-load", initCommonsCrossfade);
   initCommonsCrossfade();
 </script>
 
 <style>
+  /* Liquid glass dentro de una card que ya es glass: aquí no se usa
+     backdrop-filter (el blur anidado solo vería el interior de la card y se
+     vería plano). El efecto sale de gradientes translúcidos, borde brillante
+     y reflejo diagonal. */
   .cc-carousel {
     position: relative;
     width: 100%;
     height: 160px;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    border: 1px solid #1F2C47;
+    border: 1px solid rgb(255 255 255 / 0.7);
+    background: rgb(255 255 255 / 0.04);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      inset 1px 0 0 rgb(255 255 255 / 0.35),
+      inset 0 -10px 22px -12px rgb(255 255 255 / 0.55),
+      inset 0 -1px 0 rgb(11 18 32 / 0.08),
+      0 10px 24px -14px rgb(255 107 28 / 0.45);
   }
+
+  /* Reflejo diagonal */
+  .cc-carousel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    background: linear-gradient(
+      115deg,
+      rgb(255 255 255 / 0.4) 0%,
+      rgb(255 255 255 / 0.08) 30%,
+      rgb(255 255 255 / 0) 55%,
+      rgb(255 255 255 / 0.14) 100%
+    );
+  }
+
   .cc-slides {
-    display: flex;
-    width: 300%;
-    height: 100%;
-    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute;
+    inset: 0;
   }
+
+  /* Crossfade real: todas las slides apiladas, cambia la opacidad */
   .cc-slide {
-    width: calc(100% / 3);
-    height: 100%;
-    flex-shrink: 0;
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .cc-slide-1 { background: linear-gradient(135deg, #131C30 0%, #1F2C47 100%); }
-  .cc-slide-2 { background: linear-gradient(135deg, #0f1a2e 0%, #162033 100%); }
-  .cc-slide-3 { background: linear-gradient(135deg, #151b2d 0%, #1a2540 100%); }
+  .cc-slide.is-active {
+    opacity: 1;
+  }
+
+  .cc-slide-1 {
+    background: linear-gradient(
+      135deg,
+      rgb(255 246 239 / 0.3) 0%,
+      rgb(255 190 150 / 0.28) 100%
+    );
+  }
+  .cc-slide-2 {
+    background: linear-gradient(
+      135deg,
+      rgb(255 252 247 / 0.28) 0%,
+      rgb(255 205 160 / 0.26) 100%
+    );
+  }
+  .cc-slide-3 {
+    background: linear-gradient(
+      135deg,
+      rgb(255 243 237 / 0.3) 0%,
+      rgb(255 170 130 / 0.3) 100%
+    );
+  }
 
   .cc-inner {
     display: flex;
@@ -104,37 +175,92 @@
     justify-content: center;
     height: 100%;
     gap: 6px;
+    transform: scale(0.97);
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .cc-icon { font-size: 28px; }
+  .cc-slide.is-active .cc-inner {
+    transform: scale(1);
+  }
+
+  .cc-icon {
+    font-size: 28px;
+    filter: drop-shadow(0 4px 8px rgb(255 107 28 / 0.35));
+  }
   .cc-title {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: "Space Grotesk", system-ui, sans-serif;
     font-weight: 600;
     font-size: 14px;
-    color: #F1F5F9;
+    color: #1c1917;
   }
   .cc-subtitle {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: "JetBrains Mono", monospace;
     font-size: 11px;
-    color: #94A3B8;
+    color: #57534e;
   }
-  .cc-overlay {
+
+  .cc-dots {
     position: absolute;
-    inset: 0;
-    background: rgba(10, 14, 26, 0.7);
+    left: 12px;
+    bottom: 10px;
+    z-index: 4;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    gap: 5px;
   }
-  .cc-carousel:hover .cc-overlay {
-    opacity: 1;
+  .cc-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.65);
+    box-shadow: inset 0 0 0 1px rgb(11 18 32 / 0.12);
+    transition:
+      width 0.3s ease,
+      background 0.3s ease;
   }
+  .cc-dot.is-active {
+    width: 16px;
+    background: #ff6b1c;
+    box-shadow: none;
+  }
+
+  /* CTA: pastilla de cristal abajo a la derecha. Ya no cubre todo el
+     carrusel, así que las slides se ven mientras se animan. */
   .cc-cta {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
-    font-size: 13px;
+    position: absolute;
+    right: 10px;
+    bottom: 8px;
+    z-index: 4;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    border: 1px solid rgb(255 255 255 / 0.85);
+    background: linear-gradient(
+      180deg,
+      rgb(255 255 255 / 0.7),
+      rgb(255 255 255 / 0.4)
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      0 4px 12px -4px rgb(255 107 28 / 0.45);
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    font-size: 12px;
     font-weight: 600;
-    color: #61A0FF;
     letter-spacing: 0.02em;
+    color: #c2410c;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+  }
+  .cc-carousel:hover .cc-cta {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cc-slide,
+    .cc-inner,
+    .cc-cta {
+      transition-duration: 0.01ms;
+    }
   }
 </style>

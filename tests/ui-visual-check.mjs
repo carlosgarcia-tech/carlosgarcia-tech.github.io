@@ -44,9 +44,11 @@ for (const [path, cfg] of Object.entries(PAGE_CONFIG)) {
   check(`${path} → hojas de estilo cargadas`, cssState.sheets > 0 && cssState.rules > 50,
     `hojas: ${cssState.sheets}, reglas: ${cssState.rules}`);
 
-  // Fondo del body pintado con la base profunda de la nueva paleta
+  // Fondo del body: en la paleta clara el body es transparente y se pinta
+  // sobre el gradiente de html/body; por eso getComputedStyle devuelve rgba(0,0,0,0).
+  // Lo que importa es que no esté pintado con un negro profundo de tema oscuro.
   const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  check(`${path} → fondo base profunda`, bodyBg === 'rgb(4, 6, 12)', bodyBg);
+  check(`${path} → no fondo oscuro`, bodyBg === 'rgba(0, 0, 0, 0)', bodyBg);
 
   // Nav líquida flotante en todas las páginas: el contenedor es fixed,
   // la píldora interior es la cápsula con el material

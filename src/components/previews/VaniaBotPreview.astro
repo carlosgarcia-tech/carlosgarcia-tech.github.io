@@ -1,70 +1,138 @@
 ---
 /**
  * VaniaBotPreview — "Chat Simulator"
- * WhatsApp-style chat with command buttons, typing indicators, circuit breaker state.
+ * WhatsApp-style chat with command buttons, typing indicators and a real
+ * 3-state circuit breaker (CLOSED → OPEN → HALF-OPEN → CLOSED).
  * Mock data, no backend.
  */
 ---
 
 <div class="vb-preview" data-component="vaniabot-preview">
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 border border-surface-border rounded-lg overflow-hidden">
+  <div
+    class="vb-glass grid grid-cols-1 gap-0 overflow-hidden rounded-xl lg:grid-cols-2"
+  >
     <!-- Left: Chat window -->
-    <div class="bg-[#0A101D] flex flex-col">
+    <div class="vb-pane flex flex-col">
       <!-- Chat header -->
-      <div class="bg-surface-raised px-4 py-3 border-b border-surface-border flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-          <svg class="shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.74.45 3.38 1.24 4.81L2 22l5.19-1.24C8.62 21.55 10.26 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+      <div class="vb-head flex items-center gap-3 px-4 py-3">
+        <div
+          class="vb-avatar flex h-8 w-8 items-center justify-center rounded-full"
+        >
+          <svg
+            class="shrink-0"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            ><path
+              d="M12 2C6.48 2 2 6.48 2 12c0 1.74.45 3.38 1.24 4.81L2 22l5.19-1.24C8.62 21.55 10.26 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"
+            ></path></svg
+          >
         </div>
         <div>
-          <div class="font-heading text-sm text-text-primary font-semibold">VaniaBot</div>
+          <div class="font-heading text-sm font-semibold text-text-primary">
+            VaniaBot
+          </div>
           <div class="flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald animate-pulse"></span>
-            <span class="font-mono text-[10px] text-emerald">Online</span>
+            <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald"
+            ></span>
+            <span id="vb-online" class="font-mono text-[10px] text-emerald"
+              >Online</span
+            >
           </div>
         </div>
         <div class="ml-auto flex items-center gap-2">
-          <div id="vb-circuit-badge" class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald/15 text-emerald border border-emerald/30">
+          <div
+            id="vb-circuit-badge"
+            class="vb-badge is-closed font-mono text-[10px]"
+            role="status"
+          >
             Circuit: CLOSED
           </div>
         </div>
       </div>
 
       <!-- Messages area -->
-      <div id="vb-messages" class="flex-1 overflow-y-auto p-4 space-y-3 min-h-[320px] max-h-[420px]">
-        <div class="vb-msg-in text-sm">
-          <div class="vb-bubble-in rounded-2xl rounded-tl-sm px-3 py-2 max-w-[80%]">
+      <div
+        id="vb-messages"
+        class="vb-screen m-3 mb-0 min-h-[320px] max-h-[420px] flex-1 space-y-3 overflow-y-auto p-4"
+        aria-live="off"
+      >
+        <div class="vb-row is-bot">
+          <div class="vb-bubble">
             Hey! I'm VaniaBot. Type a command or pick one below.
           </div>
         </div>
       </div>
 
       <!-- Command buttons -->
-      <div class="px-4 py-3 border-t border-surface-border">
-        <div class="flex gap-2 flex-wrap">
-          <button class="vb-cmd pressable font-mono text-[11px] px-3 py-1.5 rounded-full border border-accent/40 text-accent hover:bg-accent/10 transition-colors duration-150" data-cmd="/status">
-            /status
-          </button>
-          <button class="vb-cmd pressable font-mono text-[11px] px-3 py-1.5 rounded-full border border-accent/40 text-accent hover:bg-accent/10 transition-colors duration-150" data-cmd="/screenshot">
-            /screenshot
-          </button>
-          <button class="vb-cmd pressable font-mono text-[11px] px-3 py-1.5 rounded-full border border-accent/40 text-accent hover:bg-accent/10 transition-colors duration-150" data-cmd="/ping">
-            /ping
-          </button>
-          <button class="vb-cmd font-mono text-[11px] px-3 py-1.5 rounded-full border border-cyan/40 text-cyan hover:bg-cyan/10 transition-colors duration-150" data-cmd="/reboot">
-            /reboot
-          </button>
+      <div class="px-4 pt-3">
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="vb-cmd pressable font-mono text-[11px]"
+            data-cmd="/status">/status</button
+          >
+          <button
+            type="button"
+            class="vb-cmd pressable font-mono text-[11px]"
+            data-cmd="/screenshot">/screenshot</button
+          >
+          <button
+            type="button"
+            class="vb-cmd pressable font-mono text-[11px]"
+            data-cmd="/ping">/ping</button
+          >
+          <button
+            type="button"
+            class="vb-cmd vb-cmd-danger pressable font-mono text-[11px]"
+            data-cmd="/reboot">/reboot</button
+          >
         </div>
       </div>
+
+      <!-- Input: antes el código lo buscaba pero el HTML no tenía ningún input -->
+      <form
+        id="vb-form"
+        class="flex items-center gap-2 px-4 pb-4 pt-3"
+        autocomplete="off"
+      >
+        <input
+          id="vb-input"
+          class="vb-input flex-1 font-mono text-xs"
+          type="text"
+          placeholder="Type a command… (try /help)"
+          aria-label="Type a command"
+          maxlength="40"
+        />
+        <button
+          type="submit"
+          class="vb-send pressable"
+          aria-label="Send command">➤</button
+        >
+      </form>
     </div>
 
     <!-- Right: Request/Response inspector -->
-    <div class="bg-surface-raised p-4 md:p-6 border-t lg:border-t-0 lg:border-l border-surface-border flex flex-col">
-      <div class="flex items-center gap-2 mb-3">
-        <span class="w-2 h-2 rounded-full bg-accent"></span>
-        <span class="font-mono text-xs text-text-muted uppercase tracking-wider">Webhook Inspector</span>
+    <div class="vb-pane vb-pane-right flex flex-col p-4 md:p-6">
+      <div class="mb-3 flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-accent"></span>
+        <span class="font-mono text-xs uppercase tracking-wider text-text-muted"
+          >Webhook Inspector</span
+        >
+        <span id="vb-status-pill" class="vb-pill ml-auto font-mono text-[10px]"
+        ></span>
       </div>
-      <div id="vb-inspector" class="font-mono text-xs leading-relaxed flex-1 overflow-y-auto">
-        <div class="text-text-muted mb-2">// Waiting for command...</div>
+      <div
+        id="vb-inspector"
+        class="vb-screen flex-1 overflow-y-auto p-3 font-mono text-xs leading-relaxed"
+      >
+        <div class="mb-2 text-text-muted">// Waiting for command...</div>
         <div class="text-text-muted">Click a command or type in the chat.</div>
       </div>
     </div>
@@ -72,148 +140,306 @@
 </div>
 
 <script>
+  type Cmd = { response: string; latency: number; showImage?: boolean };
+  type Circuit = "closed" | "open" | "half";
+
   function initVaniaBotPreview() {
-    const root = document.querySelector('[data-component="vaniabot-preview"]');
-    if (!root) return;
+    const root = document.querySelector<HTMLElement>(
+      '[data-component="vaniabot-preview"]',
+    );
+    // Evita listeners duplicados (astro:page-load + llamada directa)
+    if (!root || root.dataset.ready) return;
+    root.dataset.ready = "true";
 
-    const messagesEl = root.querySelector('#vb-messages') as HTMLDivElement;
-    const inspectorEl = root.querySelector('#vb-inspector') as HTMLDivElement;
-    const circuitBadge = root.querySelector('#vb-circuit-badge') as HTMLSpanElement;
-    const cmdBtns = root.querySelectorAll('.vb-cmd') as NodeListOf<HTMLButtonElement>;
+    const messagesEl = root.querySelector<HTMLDivElement>("#vb-messages")!;
+    const inspectorEl = root.querySelector<HTMLDivElement>("#vb-inspector")!;
+    const circuitBadge =
+      root.querySelector<HTMLDivElement>("#vb-circuit-badge")!;
+    const statusPill = root.querySelector<HTMLSpanElement>("#vb-status-pill")!;
+    const onlineEl = root.querySelector<HTMLSpanElement>("#vb-online")!;
+    const form = root.querySelector<HTMLFormElement>("#vb-form")!;
+    const input = root.querySelector<HTMLInputElement>("#vb-input")!;
+    const cmdBtns = root.querySelectorAll<HTMLButtonElement>(".vb-cmd");
 
-    let circuitOpen = false;
-    let typingTimeout: ReturnType<typeof setTimeout> | null = null;
-
-    const COMMANDS: Record<string, { response: string; latency: number; showImage?: boolean }> = {
-      '/status': {
-        response: '🟢 Bot is healthy. Uptime: 14d 7h 32m. Memory: 128MB/512MB. Messages processed: 4,203.',
+    const COMMANDS: Record<string, Cmd> = {
+      "/status": {
+        response:
+          "🟢 Bot is healthy. Uptime: 14d 7h 32m. Memory: 128MB/512MB. Messages processed: 4,203.",
         latency: 180,
       },
-      '/screenshot': {
-        response: '📸 Screenshot captured. Generating thumbnail...',
+      "/screenshot": {
+        response: "📸 Screenshot captured. Generating thumbnail...",
         latency: 650,
         showImage: true,
       },
-      '/ping': {
-        response: '🏓 Pong! Latency: 23ms. WebSocket: connected.',
+      "/ping": {
+        response: "🏓 Pong! Latency: 23ms. WebSocket: connected.",
         latency: 80,
       },
-      '/reboot': {
-        response: '⚠️ Circuit breaker OPEN — 3 consecutive failures. Auto-retry in 30s.',
+      "/reboot": {
+        response:
+          "⚠️ Circuit breaker OPEN — 3 consecutive failures. Auto-retry in 30s.",
         latency: 300,
+      },
+      "/help": {
+        response: "Commands: /status · /screenshot · /ping · /reboot",
+        latency: 120,
       },
     };
 
+    const STATUS_TEXT: Record<number, string> = {
+      200: "OK",
+      404: "NOT FOUND",
+      503: "UNAVAILABLE",
+    };
+
+    let circuit: Circuit = "closed";
+    let halfTimer: number | null = null;
+    const queue: string[] = [];
+    let busy = false;
+
+    const sleep = (ms: number) =>
+      new Promise<void>((r) => window.setTimeout(r, ms));
+    // Escapa texto del usuario: ahora que hay input, `cmd` ya no es un valor fijo
+    const esc = (s: string) =>
+      s.replace(
+        /[&<>"']/g,
+        (c) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[c]!,
+      );
+
     function scrollToBottom() {
-      messagesEl.scrollTop = messagesEl.scrollHeight;
+      messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: "smooth" });
     }
 
-    function addMessage(text: string, isBot: boolean, delay: number) {
-      setTimeout(() => {
-        const div = document.createElement('div');
-        div.className = isBot ? 'vb-msg-in' : 'vb-msg-out flex justify-end';
-        const bubble = document.createElement('div');
-        bubble.className = isBot ? 'vb-bubble-in rounded-2xl rounded-tl-sm px-3 py-2 max-w-[80%] text-sm' : 'vb-bubble-out rounded-2xl rounded-tr-sm px-3 py-2 max-w-[80%] text-sm';
-        bubble.textContent = text;
-        div.appendChild(bubble);
-        messagesEl.appendChild(div);
-        scrollToBottom();
-      }, delay);
+    function nowTime() {
+      return new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     }
 
-    function showTypingIndicator() {
-      const div = document.createElement('div');
-      div.className = 'vb-msg-in vb-typing';
-      div.innerHTML = '<div class="vb-bubble-in rounded-2xl rounded-tl-sm px-3 py-2"><div class="flex gap-1"><span class="w-1.5 h-1.5 rounded-full bg-text-muted animate-bounce" style="animation-delay:0ms"></span><span class="w-1.5 h-1.5 rounded-full bg-text-muted animate-bounce" style="animation-delay:150ms"></span><span class="w-1.5 h-1.5 rounded-full bg-text-muted animate-bounce" style="animation-delay:300ms"></span></div></div>';
-      messagesEl.appendChild(div);
+    /* ───────── Mensajes ───────── */
+    function addBubble(
+      text: string,
+      isBot: boolean,
+    ): { row: HTMLElement; tick: HTMLElement | null } {
+      const row = document.createElement("div");
+      row.className = `vb-row ${isBot ? "is-bot" : "is-user"}`;
+      const bubble = document.createElement("div");
+      bubble.className = "vb-bubble";
+      bubble.textContent = text;
+
+      const meta = document.createElement("span");
+      meta.className = "vb-meta";
+      meta.textContent = nowTime();
+      let tick: HTMLElement | null = null;
+      if (!isBot) {
+        tick = document.createElement("span");
+        tick.className = "vb-tick";
+        tick.textContent = " ✓";
+        meta.appendChild(tick);
+      }
+      bubble.appendChild(meta);
+      row.appendChild(bubble);
+      messagesEl.appendChild(row);
       scrollToBottom();
-      return div;
+      return { row, tick };
     }
 
-    function removeTypingIndicator(el: HTMLDivElement) {
+    function showTyping(): HTMLElement {
+      const row = document.createElement("div");
+      row.className = "vb-row is-bot";
+      const bubble = document.createElement("div");
+      bubble.className = "vb-bubble vb-dots";
+      bubble.innerHTML = "<span></span><span></span><span></span>";
+      row.appendChild(bubble);
+      messagesEl.appendChild(row);
+      scrollToBottom();
+      onlineEl.textContent = "typing…";
+      return row;
+    }
+
+    function removeTyping(el: HTMLElement) {
       el.remove();
+      onlineEl.textContent = "Online";
     }
 
-    function updateInspector(cmd: string, response: string, status: number) {
-      inspectorEl.innerHTML = '';
+    /** Captura simulada: se desenfoca mientras "carga" y luego se revela */
+    function addScreenshot() {
+      const row = document.createElement("div");
+      row.className = "vb-row is-bot";
+      const shot = document.createElement("div");
+      shot.className = "vb-shot is-loading";
+      shot.innerHTML =
+        '<svg viewBox="0 0 160 96" aria-hidden="true">' +
+        '<rect width="160" height="96" fill="rgb(255 247 240)"/>' +
+        '<rect x="8" y="8" width="144" height="10" rx="3" fill="rgb(255 107 28 / .35)"/>' +
+        '<rect x="8" y="26" width="64" height="62" rx="4" fill="rgb(11 18 32 / .08)"/>' +
+        '<rect x="80" y="26" width="72" height="8" rx="2" fill="rgb(11 18 32 / .14)"/>' +
+        '<rect x="80" y="40" width="58" height="6" rx="2" fill="rgb(11 18 32 / .09)"/>' +
+        '<rect x="80" y="52" width="66" height="6" rx="2" fill="rgb(11 18 32 / .09)"/>' +
+        '<rect x="80" y="70" width="40" height="14" rx="7" fill="rgb(255 107 28 / .8)"/>' +
+        "</svg>";
+      row.appendChild(shot);
+      messagesEl.appendChild(row);
+      scrollToBottom();
+      window.setTimeout(() => {
+        shot.classList.remove("is-loading");
+        scrollToBottom();
+      }, 900);
+    }
+
+    /* ───────── Circuit breaker ───────── */
+    const CIRCUIT_LABEL: Record<Circuit, string> = {
+      closed: "Circuit: CLOSED",
+      open: "Circuit: OPEN",
+      half: "Circuit: HALF-OPEN",
+    };
+
+    function setCircuit(next: Circuit) {
+      circuit = next;
+      if (halfTimer) {
+        clearTimeout(halfTimer);
+        halfTimer = null;
+      }
+      circuitBadge.textContent = CIRCUIT_LABEL[next];
+      circuitBadge.className = `vb-badge is-${next} font-mono text-[10px]`;
+      // Reinicia el pulso de cambio de estado
+      circuitBadge.classList.remove("is-changed");
+      void circuitBadge.offsetWidth;
+      circuitBadge.classList.add("is-changed");
+
+      // Pasado un tiempo en OPEN, deja pasar una petición de prueba (HALF-OPEN)
+      if (next === "open") {
+        halfTimer = window.setTimeout(() => setCircuit("half"), 6000);
+      }
+    }
+
+    /* ───────── Inspector ───────── */
+    function updateInspector(
+      cmd: string,
+      response: string,
+      status: number,
+      latency: number,
+    ) {
+      inspectorEl.innerHTML = "";
+      const ok = status === 200;
       const lines = [
         '<span class="text-emerald">POST</span> <span class="text-text-primary">/webhook/vania</span>',
-        '',
-        '{',
-        `  <span class="text-cyan">"command"</span>: <span class="text-amber-300">"${cmd}"</span>,`,
-        `  <span class="text-cyan">"chatId"</span>: <span class="text-amber-300">"waba_3EBG793sb1LmuaU"</span>,`,
-        `  <span class="text-cyan">"timestamp"</span>: <span class="text-amber-300">"${new Date().toISOString()}"</span>`,
-        '}',
-        '',
-        `<span class="${status === 200 ? 'text-emerald' : 'text-red-400'}">← ${status} ${status === 200 ? 'OK' : 'OPEN'} (${COMMANDS[cmd]?.latency || 0}ms)</span>`,
-        '',
-        '{',
+        "",
+        "{",
+        `  <span class="text-cyan">"command"</span>: <span class="text-amber-700">"${esc(cmd)}"</span>,`,
+        `  <span class="text-cyan">"chatId"</span>: <span class="text-amber-700">"waba_3EBG793sb1LmuaU"</span>,`,
+        `  <span class="text-cyan">"timestamp"</span>: <span class="text-amber-700">"${new Date().toISOString()}"</span>`,
+        "}",
+        "",
+        `<span class="${ok ? "text-emerald" : "text-red-600"}">← ${status} ${STATUS_TEXT[status] ?? ""} (${latency}ms)</span>`,
+        "",
+        "{",
         `  <span class="text-cyan">"status"</span>: ${status},`,
-        `  <span class="text-cyan">"reply"</span>: <span class="text-amber-300">"${response.slice(0, 50)}..."</span>,`,
-        `  <span class="text-cyan">"circuit"</span>: <span class="${circuitOpen ? 'text-red-400' : 'text-emerald'}">"${circuitOpen ? 'OPEN' : 'CLOSED'}"</span>`,
-        '}',
+        `  <span class="text-cyan">"reply"</span>: <span class="text-amber-700">"${esc(response.slice(0, 50))}${response.length > 50 ? "..." : ""}"</span>,`,
+        `  <span class="text-cyan">"circuit"</span>: <span class="${circuit === "closed" ? "text-emerald" : circuit === "open" ? "text-red-600" : "text-amber-700"}">"${circuit.toUpperCase()}"</span>`,
+        "}",
       ];
       lines.forEach((line, i) => {
-        const div = document.createElement('div');
-        div.innerHTML = line;
-        div.style.opacity = '0';
-        div.style.transform = 'translateY(3px)';
-        div.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+        const div = document.createElement("div");
+        div.className = "vb-line";
+        div.style.animationDelay = `${i * 40}ms`;
+        div.innerHTML = line || "&nbsp;";
         inspectorEl.appendChild(div);
-        setTimeout(() => {
-          div.style.opacity = '1';
-          div.style.transform = 'translateY(0)';
-        }, i * 40);
       });
+
+      // Barra de latencia: se llena hasta su valor relativo
+      const bar = document.createElement("div");
+      bar.className = "vb-latency";
+      bar.innerHTML = `<span style="--w:${Math.max(4, Math.min(100, (latency / 700) * 100))}%"></span><em>${latency}ms</em>`;
+      inspectorEl.appendChild(bar);
+
+      statusPill.textContent = `${status} ${STATUS_TEXT[status] ?? ""}`;
+      statusPill.className = `vb-pill ml-auto font-mono text-[10px] ${ok ? "is-ok" : "is-err"}`;
     }
 
-    function updateCircuitBadge() {
-      circuitBadge.textContent = circuitOpen ? 'Circuit: OPEN' : 'Circuit: CLOSED';
-      circuitBadge.className = circuitOpen
-        ? 'font-mono text-[10px] px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30'
-        : 'font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald/15 text-emerald border border-emerald/30';
-    }
+    /* ───────── Comandos (en cola: ya no se pisan si pulsas varios seguidos) ───────── */
+    async function runCommand(cmd: string) {
+      const { tick } = addBubble(cmd, false);
+      await sleep(200);
 
-    function handleCommand(cmd: string) {
-      const cmdData = COMMANDS[cmd];
-      if (!cmdData) return;
+      const known = COMMANDS[cmd];
+      let reply: string;
+      let status = 200;
+      let latency: number;
 
-      // User message
-      addMessage(cmd, false, 0);
-
-      if (cmd === '/reboot') {
-        circuitOpen = true;
-        updateCircuitBadge();
-      } else if (circuitOpen && cmd !== '/reboot') {
-        circuitOpen = false;
-        updateCircuitBadge();
+      if (!known) {
+        reply = `❓ Unknown command "${cmd}". Try /help`;
+        status = 404;
+        latency = 60;
+      } else if (circuit === "open") {
+        // Con el circuito abierto las peticiones se rechazan sin llegar al backend
+        reply =
+          "⛔ Circuit OPEN — request rejected (fast-fail). Retrying soon…";
+        status = 503;
+        latency = 4;
+      } else if (cmd === "/reboot") {
+        reply = known.response;
+        status = 503;
+        latency = known.latency;
+        setCircuit("open");
+      } else {
+        reply = known.response;
+        latency = known.latency;
+        if (circuit === "half") {
+          // La petición de prueba salió bien: el circuito se cierra
+          setCircuit("closed");
+          reply += " (probe OK — circuit closed)";
+        }
       }
 
-      // Typing indicator
-      setTimeout(() => {
-        const typing = showTypingIndicator();
-        setTimeout(() => {
-          removeTypingIndicator(typing);
-          addMessage(cmdData.response, true, 0);
-          updateInspector(cmd, cmdData.response, cmd === '/reboot' ? 503 : 200);
-        }, cmdData.latency);
-      }, 200);
+      const typing = showTyping();
+      await sleep(Math.max(latency, 350));
+      removeTyping(typing);
+      addBubble(reply, true);
+      if (known?.showImage && status === 200) addScreenshot();
+      if (tick) {
+        tick.textContent = " ✓✓";
+        tick.classList.add("is-read");
+      }
+      updateInspector(cmd, reply, status, latency);
     }
 
-    // Button clicks
-    cmdBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        handleCommand(btn.dataset.cmd || '');
-      });
+    async function drain() {
+      if (busy) return;
+      busy = true;
+      while (queue.length) {
+        await runCommand(queue.shift()!);
+      }
+      busy = false;
+    }
+
+    function enqueue(cmd: string) {
+      if (queue.length >= 5) return; // evita acumular demasiados
+      queue.push(cmd);
+      void drain();
+    }
+
+    cmdBtns.forEach((btn) => {
+      btn.addEventListener("click", () => enqueue(btn.dataset.cmd || ""));
     });
 
-    // Text input on Enter
-    messagesEl.closest('.vb-preview')?.querySelector('input')?.addEventListener('keydown', (e: any) => {
-      if (e.key === 'Enter' && e.target.value.trim()) {
-        const cmd = e.target.value.trim();
-        e.target.value = '';
-        handleCommand(cmd.startsWith('/') ? cmd : '/' + cmd);
-      }
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const raw = input.value.trim();
+      if (!raw) return;
+      input.value = "";
+      enqueue(
+        raw.startsWith("/") ? raw.toLowerCase() : "/" + raw.toLowerCase(),
+      );
     });
 
     // Auto-play demo when widget enters viewport
@@ -224,36 +450,415 @@
           if (entry.isIntersecting && !autoPlayed) {
             autoPlayed = true;
             autoPlayObserver.disconnect();
-            setTimeout(() => handleCommand('/status'), 500);
+            window.setTimeout(() => enqueue("/status"), 500);
           }
         });
       },
-      { threshold: 0.3 }
+      { threshold: 0.3 },
     );
     autoPlayObserver.observe(root);
   }
 
-  document.addEventListener('astro:page-load', initVaniaBotPreview);
+  document.addEventListener("astro:page-load", initVaniaBotPreview);
   initVaniaBotPreview();
 </script>
 
 <style>
-  .vb-bubble-in {
-    background: #1F2C47;
-    color: #F1F5F9;
+  /* ─── Liquid glass ─── */
+  .vb-glass {
+    position: relative;
+    border: 1px solid rgb(255 255 255 / 0.6);
+    background:
+      linear-gradient(
+        115deg,
+        rgb(255 255 255 / 0.34) 0%,
+        rgb(255 255 255 / 0.06) 30%,
+        rgb(255 255 255 / 0) 55%,
+        rgb(255 255 255 / 0.12) 100%
+      ),
+      rgb(255 255 255 / 0.05);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      inset 1px 0 0 rgb(255 255 255 / 0.35),
+      inset -1px 0 0 rgb(255 255 255 / 0.15),
+      inset 0 -12px 26px -12px rgb(255 255 255 / 0.5),
+      inset 0 -1px 0 rgb(11 18 32 / 0.08),
+      0 22px 50px -20px rgb(11 18 32 / 0.3),
+      0 12px 30px -14px rgb(255 107 28 / 0.4);
+    -webkit-backdrop-filter: blur(6px) saturate(210%) brightness(1.04);
+    backdrop-filter: blur(6px) saturate(210%) brightness(1.04);
   }
-  .vb-bubble-out {
-    background: #3B7BF7;
-    color: white;
+
+  .vb-pane-right {
+    border-top: 1px solid rgb(255 255 255 / 0.55);
   }
-  .vb-typing {
+  @media (min-width: 1024px) {
+    .vb-pane-right {
+      border-top: 0;
+      border-left: 1px solid rgb(255 255 255 / 0.55);
+    }
+  }
+
+  .vb-head {
+    border-bottom: 1px solid rgb(255 255 255 / 0.55);
+    background: rgb(255 255 255 / 0.14);
+  }
+  .vb-avatar {
+    background: rgb(255 107 28 / 0.2);
+    color: #ea580c;
+    border: 1px solid rgb(255 255 255 / 0.7);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.8);
+  }
+
+  /* Pantallas internas: cristal un poco más oscuro para leer sobre transparencia */
+  .vb-screen {
+    border-radius: 12px;
+    background: rgb(11 18 32 / 0.045);
+    border: 1px solid rgb(255 255 255 / 0.5);
+    box-shadow:
+      inset 0 2px 8px rgb(11 18 32 / 0.08),
+      inset 0 1px 0 rgb(11 18 32 / 0.04);
+  }
+
+  /* ─── Badge del circuit breaker ─── */
+  .vb-badge {
+    padding: 2px 8px;
+    border-radius: 9999px;
+    border: 1px solid;
+    transition:
+      background 0.3s ease,
+      color 0.3s ease,
+      border-color 0.3s ease;
+  }
+  .vb-badge.is-closed {
+    background: rgb(30 122 69 / 0.14);
+    color: #1e7a45;
+    border-color: rgb(30 122 69 / 0.35);
+  }
+  .vb-badge.is-open {
+    background: rgb(239 68 68 / 0.14);
+    color: #dc2626;
+    border-color: rgb(239 68 68 / 0.4);
+  }
+  .vb-badge.is-half {
+    background: rgb(245 158 11 / 0.16);
+    color: #b45309;
+    border-color: rgb(245 158 11 / 0.45);
+  }
+  .vb-badge.is-changed {
+    animation: vb-badge-pop 0.6s var(--ease-spring, ease-out);
+  }
+  .vb-badge.is-open.is-changed {
+    animation:
+      vb-badge-pop 0.6s var(--ease-spring, ease-out),
+      vb-badge-glow 1.4s ease-out;
+  }
+
+  /* ─── Mensajes ─── */
+  /* Las filas se crean desde JS y no llevan el atributo de scope de Astro:
+     por eso todo cuelga de .vb-screen (que sí está en la plantilla) + :global */
+  .vb-screen :global(.vb-row) {
+    display: flex;
+    animation: vb-pop 0.4s var(--ease-spring, ease-out) both;
+  }
+  .vb-screen :global(.vb-row.is-user) {
+    justify-content: flex-end;
+    transform-origin: right bottom;
+  }
+  .vb-screen :global(.vb-row.is-bot) {
+    transform-origin: left bottom;
+  }
+  .vb-screen :global(.vb-bubble) {
+    max-width: 80%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+  .vb-screen :global(.vb-row.is-bot .vb-bubble) {
+    border-radius: 1rem;
+    border-top-left-radius: 0.25rem;
+    color: #3f3f46;
+    background: linear-gradient(
+      135deg,
+      rgb(255 255 255 / 0.7),
+      rgb(255 255 255 / 0.36)
+    );
+    border: 1px solid rgb(255 255 255 / 0.85);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      0 3px 10px -5px rgb(11 18 32 / 0.2);
+  }
+  .vb-screen :global(.vb-row.is-user .vb-bubble) {
+    border-radius: 1rem;
+    border-top-right-radius: 0.25rem;
+    color: #fff;
+    background: linear-gradient(
+      180deg,
+      rgb(255 140 70 / 0.96),
+      rgb(255 107 28 / 0.94)
+    );
+    border: 1px solid rgb(255 255 255 / 0.5);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.6),
+      0 5px 14px -6px rgb(255 107 28 / 0.6);
+  }
+  .vb-screen :global(.vb-meta) {
+    display: block;
+    margin-top: 2px;
+    text-align: right;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    opacity: 0.65;
+  }
+  .vb-screen :global(.vb-tick.is-read) {
+    color: #bff2ff;
+    opacity: 1;
+  }
+
+  /* Indicador "escribiendo…" */
+  .vb-screen :global(.vb-bubble.vb-dots) {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.7rem 0.8rem;
+  }
+  .vb-screen :global(.vb-dots span) {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #6b7689;
+    animation: vb-bounce 1s ease-in-out infinite;
+  }
+  .vb-screen :global(.vb-dots span:nth-child(2)) {
+    animation-delay: 0.15s;
+  }
+  .vb-screen :global(.vb-dots span:nth-child(3)) {
+    animation-delay: 0.3s;
+  }
+
+  /* Captura simulada */
+  .vb-screen :global(.vb-shot) {
+    width: 180px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 0.9);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 8px 20px -10px rgb(11 18 32 / 0.35);
+    transition:
+      filter 0.7s ease,
+      opacity 0.7s ease,
+      transform 0.7s var(--ease-out, ease-out);
+  }
+  .vb-screen :global(.vb-shot svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .vb-screen :global(.vb-shot.is-loading) {
+    filter: blur(8px) saturate(0.6);
     opacity: 0.7;
+    transform: scale(0.96);
   }
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
+
+  /* ─── Botones de comando ─── */
+  .vb-cmd {
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    color: #c2410c;
+    border: 1px solid rgb(255 255 255 / 0.8);
+    background: linear-gradient(
+      180deg,
+      rgb(255 255 255 / 0.6),
+      rgb(255 255 255 / 0.28)
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      0 4px 12px -5px rgb(255 107 28 / 0.35);
+    transition:
+      transform 120ms ease-out,
+      translate 200ms var(--ease-spring, ease-out),
+      border-color 150ms ease,
+      box-shadow 200ms ease;
   }
-  .animate-bounce {
-    animation: bounce 0.6s ease-in-out infinite;
+  .vb-cmd:hover {
+    translate: 0 -2px;
+    border-color: rgb(255 107 28 / 0.55);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      0 8px 20px -8px rgb(255 107 28 / 0.5);
+  }
+  .vb-cmd-danger {
+    color: #9a3412;
+  }
+
+  /* ─── Input ─── */
+  .vb-input {
+    padding: 0.5rem 0.9rem;
+    border-radius: 9999px;
+    color: #0b1220;
+    background: rgb(255 255 255 / 0.28);
+    border: 1px solid rgb(255 255 255 / 0.8);
+    box-shadow:
+      inset 0 2px 6px rgb(11 18 32 / 0.08),
+      inset 0 1px 0 rgb(11 18 32 / 0.03);
+    outline: none;
+    transition:
+      border-color 150ms ease,
+      box-shadow 200ms ease;
+  }
+  .vb-input::placeholder {
+    color: #6b7689;
+  }
+  .vb-input:focus {
+    border-color: rgb(255 107 28 / 0.6);
+    box-shadow:
+      inset 0 2px 6px rgb(11 18 32 / 0.06),
+      0 0 0 3px rgb(255 107 28 / 0.18);
+  }
+  .vb-send {
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 9999px;
+    color: #fff;
+    font-size: 0.8rem;
+    border: 1px solid rgb(255 255 255 / 0.55);
+    background: linear-gradient(
+      180deg,
+      rgb(255 107 28 / 0.95),
+      rgb(224 86 24 / 0.92)
+    );
+    box-shadow:
+      inset 0 1.5px 0 rgb(255 255 255 / 0.65),
+      0 6px 16px -6px rgb(255 107 28 / 0.6);
+    transition:
+      transform 100ms ease-out,
+      box-shadow 200ms ease;
+  }
+  .vb-send:hover {
+    box-shadow:
+      inset 0 1.5px 0 rgb(255 255 255 / 0.8),
+      0 10px 22px -8px rgb(255 107 28 / 0.75);
+  }
+
+  /* ─── Inspector ─── */
+  .vb-pill {
+    padding: 1px 8px;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    opacity: 0;
+  }
+  .vb-pill:global(.is-ok) {
+    opacity: 1;
+    color: #1e7a45;
+    background: rgb(30 122 69 / 0.14);
+    border-color: rgb(30 122 69 / 0.35);
+    animation: vb-badge-pop 0.5s var(--ease-spring, ease-out);
+  }
+  .vb-pill:global(.is-err) {
+    opacity: 1;
+    color: #dc2626;
+    background: rgb(239 68 68 / 0.14);
+    border-color: rgb(239 68 68 / 0.4);
+    animation: vb-badge-pop 0.5s var(--ease-spring, ease-out);
+  }
+  .vb-screen :global(.vb-line) {
+    animation: vb-line-in 0.25s ease-out both;
+    white-space: pre-wrap;
+  }
+  .vb-screen :global(.vb-latency) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .vb-screen :global(.vb-latency span) {
+    display: block;
+    height: 4px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #ff6b1c, #e53935);
+    box-shadow: 0 0 8px rgb(255 107 28 / 0.5);
+    animation: vb-bar 0.9s var(--ease-out, ease-out) 0.6s both;
+  }
+  .vb-screen :global(.vb-latency em) {
+    font-style: normal;
+    font-size: 10px;
+    color: #6b7689;
+  }
+
+  @keyframes vb-pop {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes vb-bounce {
+    0%,
+    60%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.5;
+    }
+    30% {
+      transform: translateY(-4px);
+      opacity: 1;
+    }
+  }
+  @keyframes vb-line-in {
+    from {
+      opacity: 0;
+      transform: translateX(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes vb-bar {
+    from {
+      width: 0;
+    }
+    to {
+      width: var(--w, 30%);
+    }
+  }
+  @keyframes vb-badge-pop {
+    0% {
+      transform: scale(0.8);
+    }
+    60% {
+      transform: scale(1.12);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes vb-badge-glow {
+    0% {
+      box-shadow: 0 0 0 0 rgb(239 68 68 / 0.6);
+    }
+    100% {
+      box-shadow: 0 0 0 10px rgb(239 68 68 / 0);
+    }
+  }
+
+  @media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+    .vb-glass {
+      background: rgb(255 255 255 / 0.95);
+      border-color: rgb(0 0 0 / 0.4);
+      box-shadow: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vb-screen :global(.vb-dots span) {
+      animation: none;
+    }
   }
 </style>

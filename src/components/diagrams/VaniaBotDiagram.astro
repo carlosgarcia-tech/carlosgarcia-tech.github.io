@@ -1,102 +1,320 @@
 ---
 const subbots = [
-  { name: 'SubBot 1', status: 'active' },
-  { name: 'SubBot 2', status: 'active' },
-  { name: 'SubBot N', status: 'active' },
+  { name: "SubBot 1", status: "active" },
+  { name: "SubBot 2", status: "active" },
+  { name: "SubBot N", status: "active" },
 ];
+const subbotX = [30, 260, 490];
 
 const providers = [
-  { name: 'Groq', sublabel: 'LLaMA 3', status: 'primary' },
-  { name: 'Provider 2', sublabel: 'Fallback', status: 'fallback' },
-  { name: 'Provider 3', sublabel: 'Fallback', status: 'fallback' },
+  { name: "Groq", sublabel: "LLaMA 3", status: "primary" },
+  { name: "Provider 2", sublabel: "Fallback", status: "fallback" },
+  { name: "Provider 3", sublabel: "Fallback", status: "fallback" },
 ];
+
+// Orchestrator → SubBot (heartbeat) y SubBot → RecoveryService
+const hbPaths = ["M270,60 L100,100", "M330,60 L330,100", "M390,60 L560,100"];
+const recPaths = [
+  "M100,170 L250,195",
+  "M330,170 L330,190",
+  "M560,170 L410,195",
+];
+const hbDelays = [0, 0.8, 1.6];
 ---
 
 <div class="vaniabot-diagram w-full overflow-x-auto" data-component="vaniabot">
   <div class="min-w-[600px] px-4">
-    <svg viewBox="0 0 660 320" class="w-full h-auto" role="img" aria-label="VaniaBot multi-instance architecture diagram">
+    <svg
+      viewBox="0 0 660 334"
+      class="vbd w-full h-auto"
+      role="img"
+      aria-label="VaniaBot multi-instance architecture diagram"
+    >
       <defs>
-        <marker id="arrow-vb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#61A0FF" />
+        <marker
+          id="vbd-arrow-gray"
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#A8A29E"></path>
         </marker>
-        <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#EF4444" />
+        <marker
+          id="vbd-arrow-orange"
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#FF6B1C"></path>
         </marker>
-        <filter id="vb-glow">
-          <feGaussianBlur stdDeviation="3" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
+
+        <!-- Reflejo de cristal -->
+        <linearGradient id="vbd-gloss" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff" stop-opacity="0.55"></stop>
+          <stop offset="0.5" stop-color="#fff" stop-opacity="0.08"></stop>
+          <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+        </linearGradient>
+
+        <!-- Rutas de los paquetes animados -->
+        {hbPaths.map((d, i) => <path id={`vbd-hb-${i}`} d={d} />)}
+        <path id="vbd-queue" d="M520,215 L440,215"></path>
       </defs>
 
-      <!-- Orchestrator -->
-      <rect x="240" y="10" width="180" height="50" rx="8" fill="#131C30" stroke="#61A0FF" stroke-width="2" />
-      <text x="330" y="32" text-anchor="middle" fill="#61A0FF" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Orchestrator</text>
-      <text x="330" y="48" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="8">Lifecycle management</text>
+      <!-- ───────── Enlaces ───────── -->
+      {hbPaths.map((d, i) => <path class="link link-hb" data-i={i} d={d} />)}
+      {recPaths.map((d, i) => <path class="link link-rec" data-i={i} d={d} />)}
+      <path class="link link-q" d="M520,215 L440,215"></path>
 
-      <!-- Connection lines from orchestrator to subbots -->
-      <line x1="270" y1="60" x2="100" y2="100" stroke="#1F2C47" stroke-width="1.5" stroke-dasharray="4 4" />
-      <line x1="330" y1="60" x2="330" y2="100" stroke="#1F2C47" stroke-width="1.5" stroke-dasharray="4 4" />
-      <line x1="390" y1="60" x2="560" y2="100" stroke="#1F2C47" stroke-width="1.5" stroke-dasharray="4 4" />
+      <!-- ───────── Orchestrator ───────── -->
+      <g class="orch">
+        <rect class="orch-ring" x="240" y="10" width="180" height="50" rx="12"
+        ></rect>
+        <rect
+          class="box orch-box"
+          x="240"
+          y="10"
+          width="180"
+          height="50"
+          rx="12"></rect>
+        <rect
+          class="gloss"
+          x="240"
+          y="10"
+          width="180"
+          height="50"
+          rx="12"
+          fill="url(#vbd-gloss)"></rect>
+        <text class="t orch-name" x="330" y="32" text-anchor="middle"
+          >Orchestrator</text
+        >
+        <text class="t orch-sub" x="330" y="48" text-anchor="middle"
+          >Lifecycle management</text
+        >
+      </g>
 
-      <!-- SubBot instances -->
-      {subbots.map((bot, i) => {
-        const x = i === 0 ? 30 : i === 1 ? 260 : 490;
-        return (
-          <g class="subbot-group" data-index={i}>
-            <rect x={x} y="100" width="140" height="70" rx="8" fill="#131C30" stroke="#2FD9F5" stroke-width="1.5" class="subbot-box" />
-            <text x={x + 70} y="125" text-anchor="middle" fill="#2FD9F5" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">{bot.name}</text>
-            <text x={x + 70} y="142" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="8">session + SQLite</text>
-            <circle cx={x + 20} cy="155" r="4" fill="#3BE8A8" class="status-dot" />
-            <text x={x + 30} y="158" fill="#3BE8A8" font-family="JetBrains Mono, monospace" font-size="7">{bot.status}</text>
+      <!-- Heartbeats viajando del orchestrator a cada SubBot -->
+      {
+        hbDelays.map((d, i) => (
+          <g class="hb-g" data-i={i}>
+            <circle class="hb" r="2.5">
+              <animateMotion
+                dur="2.4s"
+                begin={`${d}s`}
+                repeatCount="indefinite"
+              >
+                <mpath href={`#vbd-hb-${i}`} />
+              </animateMotion>
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0"
+                keyTimes="0;0.15;0.85;1"
+                dur="2.4s"
+                begin={`${d}s`}
+                repeatCount="indefinite"
+              />
+            </circle>
           </g>
-        );
-      })}
+        ))
+      }
+      <text class="t hb-label" x="345" y="82">heartbeat</text>
 
-      <!-- Heartbeat line -->
-      <line x1="330" y1="60" x2="330" y2="85" stroke="#F59E0B" stroke-width="1" stroke-dasharray="2 2" opacity="0.5" />
-      <text x="345" y="80" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="7">heartbeat</text>
-
-      <!-- Recovery service -->
-      <rect x="220" y="190" width="220" height="36" rx="6" fill="#131C30" stroke="#F59E0B" stroke-width="1" opacity="0.7" />
-      <text x="330" y="212" text-anchor="middle" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="9">RecoveryService — auto-reconnect</text>
-
-      <!-- Connection to subbots from recovery -->
-      <line x1="100" y1="170" x2="250" y2="195" stroke="#F59E0B" stroke-width="1" opacity="0.3" stroke-dasharray="3 3" />
-      <line x1="330" y1="170" x2="330" y2="190" stroke="#F59E0B" stroke-width="1" opacity="0.3" stroke-dasharray="3 3" />
-      <line x1="560" y1="170" x2="410" y2="195" stroke="#F59E0B" stroke-width="1" opacity="0.3" stroke-dasharray="3 3" />
-
-      <!-- AI Fallback Chain -->
-      <g transform="translate(20, 245)">
-        <text x="0" y="0" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">AI Fallback Chain</text>
-
-        {providers.map((provider, i) => {
-          const x = i * 160;
+      <!-- ───────── SubBots (clic = simula una desconexión) ───────── -->
+      {
+        subbots.map((bot, i) => {
+          const x = subbotX[i];
           return (
-            <g transform={`translate(${x}, 12)`} class="provider-group" data-index={i}>
-              <rect x="0" y="0" width="140" height="50" rx="6" fill="#131C30" stroke={i === 0 ? '#61A0FF' : '#64748B'} stroke-width="1.5" class="provider-box" />
-              <text x="70" y="22" text-anchor="middle" fill={i === 0 ? '#61A0FF' : '#94A3B8'} font-family="JetBrains Mono, monospace" font-size="10" font-weight="500">{provider.name}</text>
-              <text x="70" y="38" text-anchor="middle" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="8">{provider.sublabel}</text>
-              <circle cx="12" cy="12" r="5" fill="none" stroke={i === 0 ? '#61A0FF' : '#64748B'} stroke-width="1.5" class="circuit-breaker" data-index={i} />
-              <circle cx="12" cy="12" r="2" fill={i === 0 ? '#3BE8A8' : '#64748B'} class="cb-indicator" />
+            <g
+              class="bot is-ok"
+              data-index={i}
+              role="button"
+              tabindex="0"
+              aria-label={`${bot.name}: simulate a dropped connection`}
+            >
+              <title>Click to simulate a dropped connection</title>
+              <rect
+                class="box bot-box"
+                x={x}
+                y="100"
+                width="140"
+                height="70"
+                rx="12"
+              />
+              <rect
+                class="gloss"
+                x={x}
+                y="100"
+                width="140"
+                height="70"
+                rx="12"
+                fill="url(#vbd-gloss)"
+              />
+              <text class="t bot-name" x={x + 70} y="125" text-anchor="middle">
+                {bot.name}
+              </text>
+              <text class="t bot-sub" x={x + 70} y="142" text-anchor="middle">
+                session + SQLite
+              </text>
+              <circle class="bot-dot" cx={x + 20} cy="155" r="4" />
+              <text class="t bot-status" x={x + 30} y="158">
+                {bot.status}
+              </text>
             </g>
           );
-        })}
+        })
+      }
 
-        <!-- Arrows between providers -->
-        <line x1="140" y1="25" x2="158" y2="25" stroke="#64748B" stroke-width="1" marker-end="url(#arrow-vb)" opacity="0.5" />
-        <line x1="300" y1="25" x2="318" y2="25" stroke="#64748B" stroke-width="1" marker-end="url(#arrow-vb)" opacity="0.5" />
+      <!-- ───────── RecoveryService ───────── -->
+      <g class="rec">
+        <rect
+          class="box rec-box"
+          x="220"
+          y="190"
+          width="220"
+          height="36"
+          rx="10"></rect>
+        <rect
+          class="gloss"
+          x="220"
+          y="190"
+          width="220"
+          height="36"
+          rx="10"
+          fill="url(#vbd-gloss)"></rect>
+        <text class="t rec-name" x="330" y="208" text-anchor="middle"
+          >RecoveryService — auto-reconnect</text
+        >
+        <line class="rec-track" x1="240" y1="218" x2="420" y2="218"></line>
+        <line
+          class="rec-fill"
+          x1="240"
+          y1="218"
+          x2="420"
+          y2="218"
+          pathLength="100"></line>
+      </g>
+      <text class="t rec-note" x="330" y="240" text-anchor="middle"></text>
+
+      <!-- ───────── Redis / Bull ───────── -->
+      <g class="queue" transform="translate(520, 190)">
+        <rect class="box queue-box" x="0" y="0" width="120" height="50" rx="10"
+        ></rect>
+        <rect
+          class="gloss"
+          x="0"
+          y="0"
+          width="120"
+          height="50"
+          rx="10"
+          fill="url(#vbd-gloss)"></rect>
+        <text class="t queue-name" x="60" y="22" text-anchor="middle"
+          >Redis / Bull</text
+        >
+        <text class="t queue-sub" x="60" y="38" text-anchor="middle"
+          >Job queue</text
+        >
+      </g>
+      <!-- Jobs saliendo de la cola hacia el RecoveryService -->
+      <g class="queue-jobs">
+        {
+          [0, 0.8].map((d) => (
+            <circle r="2.5">
+              <animateMotion
+                dur="1.6s"
+                begin={`${d}s`}
+                repeatCount="indefinite"
+              >
+                <mpath href="#vbd-queue" />
+              </animateMotion>
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0"
+                keyTimes="0;0.2;0.8;1"
+                dur="1.6s"
+                begin={`${d}s`}
+                repeatCount="indefinite"
+              />
+            </circle>
+          ))
+        }
       </g>
 
-      <!-- Redis/Bull queue -->
-      <g transform="translate(520, 190)">
-        <rect x="0" y="0" width="120" height="50" rx="6" fill="#131C30" stroke="#EF4444" stroke-width="1" opacity="0.7" />
-        <text x="60" y="22" text-anchor="middle" fill="#EF4444" font-family="JetBrains Mono, monospace" font-size="10" font-weight="500">Redis / Bull</text>
-        <text x="60" y="38" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="8">Job queue</text>
+      <!-- ───────── AI Fallback Chain ───────── -->
+      <g transform="translate(20, 245)">
+        <text class="t ai-label" x="0" y="0">AI Fallback Chain</text>
+
+        {
+          /* Las flechas ahora van al centro vertical de las cajas (antes quedaban 12px arriba) */
+        }
+        <line
+          class="chain-arrow"
+          x1="140"
+          y1="37"
+          x2="158"
+          y2="37"
+          marker-end="url(#vbd-arrow-gray)"></line>
+        <line
+          class="chain-arrow"
+          x1="300"
+          y1="37"
+          x2="318"
+          y2="37"
+          marker-end="url(#vbd-arrow-gray)"></line>
+
+        {
+          providers.map((p, i) => (
+            <g
+              class={`prov is-cb-closed${i === 0 ? " is-primary" : ""}`}
+              data-index={i}
+              transform={`translate(${i * 160}, 12)`}
+              role="button"
+              tabindex="0"
+              aria-label={`${p.name}: simulate circuit breaker trip`}
+            >
+              <title>Hover to trip this circuit breaker</title>
+              <rect
+                class="box prov-box"
+                x="0"
+                y="0"
+                width="140"
+                height="50"
+                rx="10"
+              />
+              <rect
+                class="gloss"
+                x="0"
+                y="0"
+                width="140"
+                height="50"
+                rx="10"
+                fill="url(#vbd-gloss)"
+              />
+              <text class="t prov-name" x="70" y="28" text-anchor="middle">
+                {p.name}
+              </text>
+              <text class="t prov-sub" x="70" y="42" text-anchor="middle">
+                {p.sublabel}
+              </text>
+              <circle class="cb-ring" cx="12" cy="12" r="5" />
+              <circle class="cb-dot" cx="12" cy="12" r="2" />
+              <text class="t cb-label" x="22" y="14.5">
+                CLOSED
+              </text>
+            </g>
+          ))
+        }
       </g>
-      <line x1="520" y1="215" x2="440" y2="215" stroke="#EF4444" stroke-width="1" opacity="0.3" stroke-dasharray="3 3" />
+
+      <!-- Request viajando por la cadena -->
+      <circle class="ai-packet" r="4" cx="0" cy="0"></circle>
+      <text class="t ai-status" x="20" y="326"
+        >AI fallback chain · circuit breaker per provider</text
+      >
     </svg>
   </div>
 
@@ -104,141 +322,834 @@ const providers = [
   <div class="md:hidden mt-4 space-y-3 px-4">
     <div>
       <p class="font-mono text-xs text-accent mb-2">Orchestrator</p>
-      <p class="text-text-secondary text-sm">Manages lifecycle of all SubBot instances</p>
+      <p class="text-text-secondary text-sm">
+        Manages lifecycle of all SubBot instances
+      </p>
     </div>
     <div>
       <p class="font-mono text-xs text-cyan mb-2">SubBots</p>
-      <p class="text-text-secondary text-sm">Up to 50 parallel sessions, each with isolated state</p>
+      <p class="text-text-secondary text-sm">
+        Up to 50 parallel sessions, each with isolated state
+      </p>
     </div>
     <div>
       <p class="font-mono text-xs text-accent mb-2">AI Fallback Chain</p>
-      <p class="text-text-secondary text-sm">Groq → Provider 2 → Provider 3 with circuit breakers</p>
+      <p class="text-text-secondary text-sm">
+        Groq → Provider 2 → Provider 3 with circuit breakers
+      </p>
     </div>
   </div>
 </div>
 
 <script>
-  function initVaniaBotDiagram() {
-    const diagram = document.querySelector('[data-component="vaniabot"]');
-    if (!diagram) return;
+  type BotState = "ok" | "down" | "recovering";
+  type CB = "closed" | "open" | "half";
 
-    const subbotBoxes = diagram.querySelectorAll('.subbot-box');
-    const providerBoxes = diagram.querySelectorAll('.provider-box');
-    const circuitBreakers = diagram.querySelectorAll('.circuit-breaker');
-    const cbIndicators = diagram.querySelectorAll('.cb-indicator');
-    const statusDots = diagram.querySelectorAll('.status-dot');
-
-    // SubBot hover + touch
-    subbotBoxes.forEach((box, i) => {
-      box.addEventListener('mouseenter', () => {
-        const el = box as SVGRectElement;
-        el.setAttribute('stroke-width', '3');
-        el.setAttribute('filter', 'url(#vb-glow)');
-      });
-      box.addEventListener('mouseleave', () => {
-        const el = box as SVGRectElement;
-        el.setAttribute('stroke-width', '1.5');
-        el.removeAttribute('filter');
-      });
-      box.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        const el = box as SVGRectElement;
-        const isActive = el.getAttribute('stroke-width') === '3';
-        // Reset all
-        subbotBoxes.forEach((b) => {
-          const bel = b as SVGRectElement;
-          bel.setAttribute('stroke-width', '1.5');
-          bel.removeAttribute('filter');
+  /** Temporizador cancelable: al cancelar, los `await sleep()` pendientes no se reanudan. */
+  function makeTicker() {
+    let gen = 0;
+    let timers: number[] = [];
+    return {
+      sleep(ms: number) {
+        const mine = gen;
+        return new Promise<void>((resolve) => {
+          timers.push(
+            window.setTimeout(() => {
+              if (mine === gen) resolve();
+            }, ms),
+          );
         });
-        if (!isActive) {
-          el.setAttribute('stroke-width', '3');
-          el.setAttribute('filter', 'url(#vb-glow)');
-        }
-      }, { passive: false });
-    });
-
-    // Provider hover — simulate circuit breaker + touch
-    providerBoxes.forEach((box, i) => {
-      box.style.cursor = 'pointer';
-      box.addEventListener('mouseenter', () => {
-        // Toggle circuit breaker visual
-        cbIndicators.forEach((ind, j) => {
-          const el = ind as SVGCircleElement;
-          if (j === i) {
-            el.setAttribute('fill', '#EF4444');
-          } else if (j === i + 1 && i < 2) {
-            el.setAttribute('fill', '#3BE8A8');
-          }
-        });
-        circuitBreakers.forEach((cb, j) => {
-          const el = cb as SVGCircleElement;
-          if (j === i) {
-            el.setAttribute('stroke', '#EF4444');
-            el.setAttribute('stroke-width', '2.5');
-          }
-        });
-      });
-      box.addEventListener('mouseleave', () => {
-        cbIndicators.forEach((ind, j) => {
-          const el = ind as SVGCircleElement;
-          el.setAttribute('fill', j === 0 ? '#3BE8A8' : '#64748B');
-        });
-        circuitBreakers.forEach((cb, j) => {
-          const el = cb as SVGCircleElement;
-          el.setAttribute('stroke', j === 0 ? '#61A0FF' : '#64748B');
-          el.setAttribute('stroke-width', '1.5');
-        });
-      });
-      box.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        // Toggle circuit breaker visual on touch
-        cbIndicators.forEach((ind, j) => {
-          const el = ind as SVGCircleElement;
-          if (j === i) {
-            el.setAttribute('fill', '#EF4444');
-          } else if (j === i + 1 && i < 2) {
-            el.setAttribute('fill', '#3BE8A8');
-          }
-        });
-        circuitBreakers.forEach((cb, j) => {
-          const el = cb as SVGCircleElement;
-          if (j === i) {
-            el.setAttribute('stroke', '#EF4444');
-            el.setAttribute('stroke-width', '2.5');
-          }
-        });
-        // Reset after 2s on touch
-        setTimeout(() => {
-          cbIndicators.forEach((ind, j) => {
-            const el = ind as SVGCircleElement;
-            el.setAttribute('fill', j === 0 ? '#3BE8A8' : '#64748B');
-          });
-          circuitBreakers.forEach((cb, j) => {
-            const el = cb as SVGCircleElement;
-            el.setAttribute('stroke', j === 0 ? '#61A0FF' : '#64748B');
-            el.setAttribute('stroke-width', '1.5');
-          });
-        }, 2000);
-      }, { passive: false });
-    });
-
-    // Pulse status dots
-    statusDots.forEach((dot) => {
-      const el = dot as SVGCircleElement;
-      el.style.animation = 'pulse-dot 2s ease-in-out infinite';
-    });
+      },
+      cancel() {
+        gen++;
+        timers.forEach((t) => clearTimeout(t));
+        timers = [];
+      },
+    };
   }
 
-  document.addEventListener('astro:page-load', initVaniaBotDiagram);
+  function initVaniaBotDiagram() {
+    const root = document.querySelector<HTMLElement>(
+      '[data-component="vaniabot"]',
+    );
+    // Evita listeners duplicados (astro:page-load + llamada directa)
+    if (!root || root.dataset.ready) return;
+    root.dataset.ready = "true";
+
+    const svg = root.querySelector<SVGSVGElement>("svg.vbd")!;
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    const bots = Array.from(svg.querySelectorAll<SVGGElement>(".bot"));
+    const botStatus = bots.map((b) =>
+      b.querySelector<SVGTextElement>(".bot-status")!,
+    );
+    const botNames = bots.map(
+      (b) =>
+        b.querySelector<SVGTextElement>(".bot-name")?.textContent ?? "SubBot",
+    );
+    const hbG = Array.from(svg.querySelectorAll<SVGGElement>(".hb-g"));
+    const hbLinks = Array.from(
+      svg.querySelectorAll<SVGPathElement>(".link-hb"),
+    );
+    const recLinks = Array.from(
+      svg.querySelectorAll<SVGPathElement>(".link-rec"),
+    );
+    const orch = svg.querySelector<SVGGElement>(".orch")!;
+    const rec = svg.querySelector<SVGGElement>(".rec")!;
+    const recNote = svg.querySelector<SVGTextElement>(".rec-note")!;
+    const provs = Array.from(svg.querySelectorAll<SVGGElement>(".prov"));
+    const provNames = provs.map(
+      (p) =>
+        p.querySelector<SVGTextElement>(".prov-name")?.textContent ??
+        "Provider",
+    );
+    const cbLabels = provs.map((p) =>
+      p.querySelector<SVGTextElement>(".cb-label")!,
+    );
+    const arrows = Array.from(
+      svg.querySelectorAll<SVGLineElement>(".chain-arrow"),
+    );
+    const packet = svg.querySelector<SVGCircleElement>(".ai-packet")!;
+    const aiStatus = svg.querySelector<SVGTextElement>(".ai-status")!;
+
+    const sbT = makeTicker(); // ciclo de SubBots
+    const aiT = makeTicker(); // ciclo de la cadena de IA
+
+    let inView = false;
+    let sbBusy = false;
+    let nextBot = 0;
+    let aiPinned = false;
+
+    function restart(el: Element, cls: string, ms: number) {
+      el.classList.remove(cls);
+      void el.getBoundingClientRect();
+      el.classList.add(cls);
+      window.setTimeout(() => el.classList.remove(cls), ms);
+    }
+
+    /* ───────── SubBots + RecoveryService ───────── */
+    const BOT_LABEL: Record<BotState, string> = {
+      ok: "active",
+      down: "disconnected",
+      recovering: "reconnecting…",
+    };
+
+    function setBot(i: number, s: BotState) {
+      bots[i].classList.remove("is-ok", "is-down", "is-recovering");
+      bots[i].classList.add(`is-${s}`);
+      botStatus[i].textContent = BOT_LABEL[s];
+      hbLinks[i].classList.toggle("is-dead", s === "down");
+      hbG[i].classList.toggle("is-off", s !== "ok");
+    }
+
+    function setNote(text: string) {
+      recNote.textContent = text;
+      recNote.classList.toggle("is-on", text !== "");
+    }
+
+    function resetBots() {
+      bots.forEach((_, i) => {
+        setBot(i, "ok");
+        recLinks[i].classList.remove("is-active", "is-reconnect");
+      });
+      orch.classList.remove("is-alarm");
+      rec.classList.remove("is-active");
+      setNote("");
+      sbBusy = false;
+    }
+
+    async function dropBot(i: number) {
+      sbBusy = true;
+      setBot(i, "down");
+      orch.classList.add("is-alarm");
+      recLinks[i].classList.remove("is-reconnect");
+      recLinks[i].classList.add("is-active");
+      rec.classList.add("is-active");
+      setNote(`${botNames[i]} lost heartbeat · retry in 1s`);
+      await sbT.sleep(1500);
+
+      setBot(i, "recovering");
+      orch.classList.remove("is-alarm");
+      recLinks[i].classList.add("is-reconnect");
+      setNote("reconnecting… attempt 2 (backoff 2s)");
+      await sbT.sleep(1300);
+
+      setBot(i, "ok");
+      recLinks[i].classList.remove("is-active", "is-reconnect");
+      rec.classList.remove("is-active");
+      setNote("✓ session restored");
+      await sbT.sleep(900);
+      setNote("");
+      sbBusy = false;
+    }
+
+    function startSb(delay: number, first?: number, once = false) {
+      sbT.cancel();
+      void (async () => {
+        await sbT.sleep(delay);
+        let i = first ?? nextBot;
+        for (;;) {
+          await dropBot(i % bots.length);
+          i++;
+          nextBot = i % bots.length;
+          if (once) return;
+          await sbT.sleep(2200);
+        }
+      })();
+    }
+
+    /* ───────── AI Fallback Chain ───────── */
+    const PX = [90, 250, 410]; // centros de los proveedores
+    const PY = 282;
+    const CB_LABEL: Record<CB, string> = {
+      closed: "CLOSED",
+      open: "OPEN",
+      half: "HALF-OPEN",
+    };
+
+    function setCB(i: number, s: CB) {
+      provs[i].classList.remove("is-cb-closed", "is-cb-open", "is-cb-half");
+      provs[i].classList.add(`is-cb-${s}`);
+      cbLabels[i].textContent = CB_LABEL[s];
+    }
+
+    function setAi(text: string) {
+      aiStatus.textContent = text;
+      restart(aiStatus, "is-swap", 450);
+    }
+
+    function showPacket() {
+      packet.style.setProperty("--pk-ms", "0ms");
+      packet.style.transform = `translate(0px, ${PY}px)`;
+      packet.classList.remove("is-ok", "is-fail");
+      void packet.getBoundingClientRect();
+      packet.style.opacity = "1";
+    }
+    function movePacket(x: number, ms = 500) {
+      packet.style.setProperty("--pk-ms", `${ms}ms`);
+      packet.style.transform = `translate(${x}px, ${PY}px)`;
+    }
+    function hidePacket() {
+      packet.style.opacity = "0";
+    }
+
+    function clearProvs() {
+      provs.forEach((p) =>
+        p.classList.remove("is-handling", "is-success", "is-fail"),
+      );
+      arrows.forEach((a) => a.classList.remove("is-flash"));
+    }
+
+    function resetAi() {
+      clearProvs();
+      provs.forEach((_, i) => setCB(i, "closed"));
+      hidePacket();
+      aiStatus.textContent = "AI fallback chain · circuit breaker per provider";
+    }
+
+    /** 4 escenarios en bucle: ok → fallo+fallback → fast-fail → probe */
+    async function aiCycle(n: number) {
+      showPacket();
+      await aiT.sleep(250);
+
+      if (n === 0) {
+        movePacket(PX[0]);
+        provs[0].classList.add("is-handling");
+        setAi("request → Groq (LLaMA 3)…");
+        await aiT.sleep(750);
+        provs[0].classList.replace("is-handling", "is-success");
+        packet.classList.add("is-ok");
+        setAi("Groq → 200 OK (142ms)");
+        await aiT.sleep(1000);
+      } else if (n === 1) {
+        movePacket(PX[0]);
+        provs[0].classList.add("is-handling");
+        setAi("request → Groq (LLaMA 3)…");
+        await aiT.sleep(750);
+        provs[0].classList.replace("is-handling", "is-fail");
+        packet.classList.add("is-fail");
+        setCB(0, "open");
+        setAi("Groq ✕ timeout → circuit OPEN · backoff + jitter");
+        await aiT.sleep(900);
+        provs[0].classList.remove("is-fail");
+        packet.classList.remove("is-fail");
+        arrows[0].classList.add("is-flash");
+        movePacket(PX[1], 550);
+        provs[1].classList.add("is-handling");
+        setAi("falling back → Provider 2…");
+        await aiT.sleep(800);
+        provs[1].classList.replace("is-handling", "is-success");
+        packet.classList.add("is-ok");
+        setAi("Provider 2 → 200 OK (fallback)");
+        await aiT.sleep(1000);
+      } else if (n === 2) {
+        movePacket(8, 350);
+        await aiT.sleep(400);
+        provs[0].classList.add("is-fail");
+        packet.classList.add("is-fail");
+        setAi("Groq circuit is OPEN → fast-fail, skipping to Provider 2");
+        await aiT.sleep(700);
+        provs[0].classList.remove("is-fail");
+        packet.classList.remove("is-fail");
+        arrows[0].classList.add("is-flash");
+        movePacket(PX[1], 700);
+        provs[1].classList.add("is-handling");
+        await aiT.sleep(850);
+        provs[1].classList.replace("is-handling", "is-success");
+        packet.classList.add("is-ok");
+        setCB(0, "half");
+        setAi("Provider 2 → 200 OK · Groq → HALF-OPEN (probing)");
+        await aiT.sleep(1000);
+      } else {
+        movePacket(PX[0]);
+        provs[0].classList.add("is-handling");
+        setAi("Groq HALF-OPEN → probe request…");
+        await aiT.sleep(800);
+        provs[0].classList.replace("is-handling", "is-success");
+        packet.classList.add("is-ok");
+        setCB(0, "closed");
+        setAi("Groq probe ✓ → circuit CLOSED");
+        await aiT.sleep(1000);
+      }
+
+      clearProvs();
+      hidePacket();
+      await aiT.sleep(700);
+    }
+
+    function startAi(delay: number) {
+      aiT.cancel();
+      resetAi();
+      void (async () => {
+        await aiT.sleep(delay);
+        let n = 0;
+        for (;;) {
+          await aiCycle(n % 4);
+          n++;
+        }
+      })();
+    }
+
+    /* ───────── Interacción ───────── */
+    bots.forEach((b, i) => {
+      const go = () => {
+        if (sbBusy) return;
+        sbT.cancel();
+        resetBots();
+        startSb(100, i, reduce);
+      };
+      b.addEventListener("click", go);
+      b.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          go();
+        }
+      });
+    });
+
+    // Hover / foco / toque en un proveedor: dispara su circuit breaker
+    provs.forEach((p, i) => {
+      const pin = () => {
+        aiPinned = true;
+        aiT.cancel();
+        resetAi();
+        setCB(i, "open");
+        p.classList.add("is-fail");
+        if (i < provs.length - 1) {
+          provs[i + 1].classList.add("is-handling");
+          arrows[i].classList.add("is-flash");
+          setAi(
+            `${provNames[i]} ✕ circuit OPEN → routing to ${provNames[i + 1]}`,
+          );
+        } else {
+          setAi(
+            `${provNames[i]} ✕ circuit OPEN → all providers down, jobs retry via Redis / Bull`,
+          );
+        }
+      };
+      const unpin = () => {
+        aiPinned = false;
+        resetAi();
+        if (inView && !reduce) startAi(800);
+      };
+      p.addEventListener("mouseenter", pin);
+      p.addEventListener("mouseleave", unpin);
+      p.addEventListener("focus", pin);
+      p.addEventListener("blur", unpin);
+      p.addEventListener(
+        "touchstart",
+        () => {
+          pin();
+          window.setTimeout(unpin, 2000);
+        },
+        { passive: true },
+      );
+    });
+
+    // Todo corre solo mientras el diagrama es visible
+    svg.pauseAnimations();
+    new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        root.classList.toggle("is-paused", !inView);
+        if (inView) {
+          svg.unpauseAnimations();
+          if (!reduce) {
+            startSb(900);
+            if (!aiPinned) startAi(1500);
+          }
+        } else {
+          svg.pauseAnimations();
+          sbT.cancel();
+          aiT.cancel();
+          resetBots();
+          resetAi();
+        }
+      },
+      { threshold: 0.3 },
+    ).observe(root);
+  }
+
+  document.addEventListener("astro:page-load", initVaniaBotDiagram);
   initVaniaBotDiagram();
 </script>
 
 <style>
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+  /* ───────── Base ───────── */
+  .vbd {
+    overflow: visible;
   }
-  .subbot-box, .provider-box {
-    transition: all 0.2s ease;
+  .vbd text {
+    user-select: none;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+  }
+  .gloss {
+    pointer-events: none;
+  }
+  .vaniabot-diagram.is-paused :global(*) {
+    animation-play-state: paused !important;
+  }
+
+  /* Caja de cristal compartida */
+  .box {
+    fill: rgb(255 255 255 / 0.3);
+    stroke: var(--c, #a8a29e);
+    stroke-width: 1.5;
+    transition:
+      stroke 0.3s ease,
+      stroke-width 0.3s ease,
+      opacity 0.3s ease,
+      filter 0.3s ease;
+  }
+
+  /* ───────── Enlaces ───────── */
+  .link {
+    fill: none;
+    stroke-dasharray: 4 4;
+    stroke-width: 1.5;
+  }
+  .link-hb {
+    stroke: #d6d3d1;
+    animation: vbd-flow 1.2s linear infinite;
+    transition: stroke 0.3s ease;
+  }
+  .link-hb.is-dead {
+    stroke: #ef4444;
+    animation: none;
+  }
+  .link-rec {
+    stroke: #f59e0b;
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
+  }
+  .link-rec.is-active {
+    opacity: 1;
+    stroke-width: 1.75;
+    animation: vbd-flow 0.6s linear infinite;
+  }
+  .link-rec.is-reconnect {
+    stroke: #16a34a;
+    animation-direction: reverse;
+  }
+  .link-q {
+    stroke: #ef4444;
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+    opacity: 0.35;
+    animation: vbd-flow 1.6s linear infinite;
+  }
+
+  /* Paquetes */
+  .hb {
+    fill: #f59e0b;
+    filter: drop-shadow(0 0 3px #f59e0b);
+  }
+  .hb-g {
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .hb-g.is-off {
+    opacity: 0;
+  }
+  .hb-label {
+    font-size: 7px;
+    fill: #f59e0b;
+    animation: vbd-breathe 2.4s ease-in-out infinite;
+  }
+  .queue-jobs {
+    pointer-events: none;
+  }
+  .queue-jobs circle {
+    fill: #ef4444;
+    filter: drop-shadow(0 0 3px #ef4444);
+  }
+
+  /* ───────── Orchestrator ───────── */
+  .orch-box {
+    --c: #ff6b1c;
+    stroke-width: 2;
+    filter: drop-shadow(0 0 8px rgb(255 107 28 / 0.3));
+  }
+  .orch-ring {
+    fill: none;
+    stroke: #ff6b1c;
+    stroke-width: 2;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    pointer-events: none;
+  }
+  .orch.is-alarm .orch-ring {
+    stroke: #ef4444;
+    animation: vbd-ring 1s ease-out 2;
+  }
+  .orch-name {
+    font-size: 11px;
+    font-weight: 600;
+    fill: #ff6b1c;
+  }
+  .orch-sub {
+    font-size: 8px;
+    fill: #78716c;
+  }
+
+  /* ───────── SubBots ───────── */
+  .bot {
+    --c: #d97706;
+    --st: #16a34a;
+    cursor: pointer;
+    outline: none;
+  }
+  .bot.is-down {
+    --c: #ef4444;
+    --st: #ef4444;
+  }
+  .bot.is-recovering {
+    --c: #f59e0b;
+    --st: #d97706;
+  }
+  .bot-box {
+    stroke-width: 1.5;
+  }
+  .bot:hover .bot-box,
+  .bot:focus-visible .bot-box {
+    stroke-width: 3;
+    filter: drop-shadow(0 0 9px color-mix(in srgb, var(--c) 55%, transparent));
+  }
+  .bot.is-down .bot-box {
+    animation: vbd-shake 0.45s ease-in-out;
+  }
+  .bot-name {
+    font-size: 10px;
+    font-weight: 600;
+    fill: var(--c);
+    transition: fill 0.3s ease;
+  }
+  .bot-sub {
+    font-size: 8px;
+    fill: #78716c;
+  }
+  .bot-dot {
+    fill: var(--st);
+    transition: fill 0.3s ease;
+  }
+  .bot.is-ok .bot-dot {
+    animation: vbd-breathe 2s ease-in-out infinite;
+  }
+  .bot.is-recovering .bot-dot {
+    animation: vbd-blink 0.5s steps(2) infinite;
+  }
+  .bot-status {
+    font-size: 7px;
+    fill: var(--st);
+    transition: fill 0.3s ease;
+  }
+
+  /* ───────── RecoveryService ───────── */
+  .rec-box {
+    --c: #f59e0b;
+    stroke-width: 1;
+    opacity: 0.7;
+  }
+  .rec.is-active .rec-box {
+    opacity: 1;
+    stroke-width: 2;
+    filter: drop-shadow(0 0 10px rgb(245 158 11 / 0.55));
+  }
+  .rec-name {
+    font-size: 9px;
+    fill: #f59e0b;
+  }
+  .rec-track {
+    stroke: rgb(120 113 108 / 0.2);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .rec-fill {
+    stroke: #f59e0b;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 0 100;
+  }
+  .rec.is-active .rec-fill {
+    animation: vbd-backoff 2.8s ease-in-out forwards;
+  }
+  .rec-note {
+    font-size: 8px;
+    fill: #b45309;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .rec-note.is-on {
+    opacity: 1;
+  }
+
+  /* ───────── Redis / Bull ───────── */
+  .queue-box {
+    --c: #ef4444;
+    stroke-width: 1;
+    opacity: 0.7;
+  }
+  .queue-name {
+    font-size: 10px;
+    font-weight: 500;
+    fill: #ef4444;
+  }
+  .queue-sub {
+    font-size: 8px;
+    fill: #78716c;
+  }
+
+  /* ───────── AI Fallback Chain ───────── */
+  .ai-label {
+    font-size: 9px;
+    font-weight: 600;
+    fill: #78716c;
+  }
+  .chain-arrow {
+    stroke: #a8a29e;
+    stroke-width: 1;
+    opacity: 0.5;
+    transition:
+      stroke 0.3s ease,
+      opacity 0.3s ease,
+      stroke-width 0.3s ease;
+  }
+  .chain-arrow.is-flash {
+    stroke: #ff6b1c;
+    stroke-width: 2;
+    opacity: 1;
+    marker-end: url(#vbd-arrow-orange);
+  }
+
+  .prov {
+    --c: #a8a29e;
+    --cb: #a8a29e;
+    cursor: pointer;
+    outline: none;
+  }
+  .prov.is-primary {
+    --c: #ff6b1c;
+    --cb: #16a34a;
+  }
+  .prov.is-cb-open {
+    --cb: #ef4444;
+  }
+  .prov.is-cb-half {
+    --cb: #f59e0b;
+  }
+  .prov.is-handling .prov-box {
+    stroke: #ff6b1c;
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 9px rgb(255 107 28 / 0.5));
+  }
+  .prov.is-success .prov-box {
+    stroke: #16a34a;
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 9px rgb(22 163 74 / 0.5));
+  }
+  .prov.is-fail .prov-box {
+    stroke: #ef4444;
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 9px rgb(239 68 68 / 0.5));
+    animation: vbd-shake 0.45s ease-in-out;
+  }
+  .prov:hover .prov-box,
+  .prov:focus-visible .prov-box {
+    stroke-width: 2.5;
+  }
+  .prov-name {
+    font-size: 10px;
+    font-weight: 500;
+    fill: #78716c;
+    transition: fill 0.3s ease;
+  }
+  .prov.is-primary .prov-name {
+    fill: #ff6b1c;
+  }
+  .prov-sub {
+    font-size: 8px;
+    fill: #a8a29e;
+  }
+  .cb-ring {
+    fill: none;
+    stroke: var(--cb);
+    stroke-width: 1.5;
+    transition:
+      stroke 0.3s ease,
+      stroke-width 0.3s ease;
+  }
+  .prov.is-cb-open .cb-ring {
+    stroke-width: 2.5;
+  }
+  .cb-dot {
+    fill: var(--cb);
+    transition: fill 0.3s ease;
+  }
+  .prov.is-cb-half .cb-dot {
+    animation: vbd-blink 0.6s steps(2) infinite;
+  }
+  .prov.is-handling:not(.is-cb-open):not(.is-cb-half) .cb-dot,
+  .prov.is-success:not(.is-cb-open):not(.is-cb-half) .cb-dot {
+    fill: #16a34a;
+  }
+  .cb-label {
+    font-size: 6px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    fill: var(--cb);
+    transition: fill 0.3s ease;
+  }
+
+  .ai-packet {
+    fill: #ff6b1c;
+    filter: drop-shadow(0 0 5px #ff6b1c);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform var(--pk-ms, 500ms) cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.25s ease,
+      fill 0.2s ease;
+  }
+  .ai-packet.is-ok {
+    fill: #16a34a;
+    filter: drop-shadow(0 0 5px #16a34a);
+  }
+  .ai-packet.is-fail {
+    fill: #ef4444;
+    filter: drop-shadow(0 0 5px #ef4444);
+  }
+  .ai-status {
+    font-size: 8px;
+    fill: #78716c;
+    transform-box: fill-box;
+  }
+  .ai-status.is-swap {
+    animation: vbd-swap 0.45s ease-out;
+  }
+
+  /* ───────── Keyframes ───────── */
+  @keyframes vbd-flow {
+    to {
+      stroke-dashoffset: -8;
+    }
+  }
+  @keyframes vbd-breathe {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+  @keyframes vbd-blink {
+    50% {
+      opacity: 0.2;
+    }
+  }
+  @keyframes vbd-ring {
+    0% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(1.14);
+      opacity: 0;
+    }
+  }
+  @keyframes vbd-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20% {
+      transform: translateX(-3px);
+    }
+    40% {
+      transform: translateX(3px);
+    }
+    60% {
+      transform: translateX(-2px);
+    }
+    80% {
+      transform: translateX(2px);
+    }
+  }
+  @keyframes vbd-backoff {
+    0% {
+      stroke-dasharray: 0 100;
+    }
+    25% {
+      stroke-dasharray: 20 100;
+    }
+    55% {
+      stroke-dasharray: 50 100;
+    }
+    100% {
+      stroke-dasharray: 100 100;
+    }
+  }
+  @keyframes vbd-swap {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Los paquetes SMIL no respetan la media query global: se ocultan */
+    .hb-g,
+    .queue-jobs {
+      display: none;
+    }
   }
 </style>
