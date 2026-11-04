@@ -1,137 +1,266 @@
 ---
 /**
- * VaniaBotMini — small auto-animating chat simulator for home card.
- * 4 messages appear in sequence, loop, pause when not in viewport.
+ * VaniaBotMini — small chat simulator for the home card.
+ * At rest it shows the finished conversation (never an empty box).
+ * On hover/focus the 4 messages play in sequence with a typing indicator
+ * before every bot reply, then loop.
  */
+const messages = [
+  { from: "user", text: ".ai ¿Qué es la arquitectura Onion?" },
+  {
+    from: "bot",
+    text: "La arquitectura Onion separa la lógica en capas concéntricas: dominio → aplicación → infraestructura.",
+  },
+  { from: "user", text: ".daily" },
+  { from: "bot", text: "💰 +500 monedas. Saldo: $2,340" },
+];
 ---
 
 <div class="vb-mini" data-preview="vaniabot" aria-hidden="true">
   <div class="vb-mini-header">
     <div class="vb-mini-avatar">
-      <svg class="shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.74.45 3.38 1.24 4.81L2 22l5.19-1.24C8.62 21.55 10.26 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+      <svg
+        class="shrink-0"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        ><path
+          d="M12 2C6.48 2 2 6.48 2 12c0 1.74.45 3.38 1.24 4.81L2 22l5.19-1.24C8.62 21.55 10.26 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"
+        ></path></svg
+      >
     </div>
     <div>
       <div class="vb-mini-name">VaniaBot</div>
-      <div class="vb-mini-status"><span class="vb-mini-dot"></span> Online</div>
+      <div class="vb-mini-status">
+        <span class="vb-mini-dot"></span>
+        <span class="vb-mini-status-text">Online</span>
+      </div>
     </div>
   </div>
   <div class="vb-mini-body">
-    <div class="vb-mini-msg vb-msg-1">
-      <div class="vb-mini-bubble user">.ai ¿Qué es la arquitectura Onion?</div>
-    </div>
-    <div class="vb-mini-msg vb-msg-2">
-      <div class="vb-mini-bubble bot">La arquitectura Onion separa la lógica en capas concéntricas: dominio → aplicación → infraestructura.</div>
-    </div>
-    <div class="vb-mini-msg vb-msg-3">
-      <div class="vb-mini-bubble user">.daily</div>
-    </div>
-    <div class="vb-mini-msg vb-msg-4">
-      <div class="vb-mini-bubble bot">💰 +500 monedas. Saldo: $2,340</div>
-    </div>
+    {
+      messages.map((m) => (
+        <Fragment>
+          {m.from === "bot" && (
+            <div class="vb-mini-msg vb-typing-row">
+              <div class="vb-mini-bubble bot vb-typing">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          )}
+          <div class="vb-mini-msg is-static">
+            <div class={`vb-mini-bubble ${m.from}`}>{m.text}</div>
+          </div>
+        </Fragment>
+      ))
+    }
   </div>
 </div>
 
 <script>
   function initVaniaBotMini() {
-    const roots = document.querySelectorAll('[data-preview="vaniabot"]');
-    roots.forEach(root => {
-      let paused = true;
-      const msgs = root.querySelectorAll('.vb-mini-msg') as NodeListOf<HTMLElement>;
-      let idx = 0;
-      let animTimer = null;
+    const roots = document.querySelectorAll<HTMLElement>(
+      '[data-preview="vaniabot"]',
+    );
 
-      function reset() {
-        msgs.forEach(m => { m.style.opacity = '0'; m.style.transform = 'translateY(6px)'; });
-        idx = 0;
+    roots.forEach((root) => {
+      // Evita listeners duplicados (astro:page-load + llamada directa)
+      if (root.dataset.ready) return;
+      root.dataset.ready = "true";
+
+      const msgs = Array.from(
+        root.querySelectorAll<HTMLElement>(".vb-mini-msg:not(.vb-typing-row)"),
+      );
+      const typings = Array.from(
+        root.querySelectorAll<HTMLElement>(".vb-typing-row"),
+      );
+      const statusText = root.querySelector<HTMLElement>(
+        ".vb-mini-status-text",
+      )!;
+      const reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      let gen = 0; // invalida la reproducción anterior al parar o reiniciar
+      let timers: number[] = [];
+      let running = false;
+
+      const sleep = (ms: number) => {
+        const mine = gen;
+        return new Promise<void>((resolve) => {
+          timers.push(
+            window.setTimeout(() => {
+              if (mine === gen) resolve();
+            }, ms),
+          );
+        });
+      };
+
+      function showStatic() {
+        typings.forEach((t) => t.classList.remove("is-in"));
+        msgs.forEach((m) => {
+          m.classList.remove("is-in");
+          m.classList.add("is-static");
+        });
+        statusText.textContent = "Online";
       }
 
-      function showNext() {
-        if (paused) return;
-        if (idx < msgs.length) {
-          msgs[idx].style.opacity = '1';
-          msgs[idx].style.transform = 'translateY(0)';
-          idx++;
-          animTimer = setTimeout(showNext, 800);
-        } else {
-          animTimer = setTimeout(() => { reset(); animTimer = setTimeout(showNext, 400); }, 3000);
+      function clearAll() {
+        typings.forEach((t) => t.classList.remove("is-in"));
+        msgs.forEach((m) => m.classList.remove("is-in", "is-static"));
+      }
+
+      async function play() {
+        for (;;) {
+          clearAll();
+          await sleep(500);
+          for (const m of msgs) {
+            const prev = m.previousElementSibling as HTMLElement | null;
+            const typing = prev?.classList.contains("vb-typing-row")
+              ? prev
+              : null;
+            if (typing) {
+              statusText.textContent = "typing…";
+              typing.classList.add("is-in");
+              await sleep(750);
+              typing.classList.remove("is-in");
+              statusText.textContent = "Online";
+            }
+            m.classList.add("is-in");
+            await sleep(typing ? 1100 : 800);
+          }
+          await sleep(2800);
         }
       }
 
-      function startAnimation() {
-        if (!paused) return;
-        paused = false;
-        reset();
-        animTimer = setTimeout(showNext, 600);
+      function start() {
+        if (running || reduce) return;
+        running = true;
+        gen++;
+        void play();
       }
 
-      function stopAnimation() {
-        paused = true;
-        if (animTimer) { clearTimeout(animTimer); animTimer = null; }
-        reset();
+      function stop() {
+        gen++;
+        timers.forEach((t) => clearTimeout(t));
+        timers = [];
+        running = false;
+        showStatic();
       }
 
-      const card = root.closest('a');
-      if (card) {
-        card.addEventListener('mouseenter', startAnimation);
-        card.addEventListener('mouseleave', stopAnimation);
-      }
+      const card = root.closest("a");
+      if (!card) return;
+      card.addEventListener("mouseenter", start);
+      card.addEventListener("mouseleave", stop);
+      card.addEventListener("focusin", start);
+      card.addEventListener("focusout", stop);
     });
   }
-  document.addEventListener('astro:page-load', initVaniaBotMini);
+
+  document.addEventListener("astro:page-load", initVaniaBotMini);
   initVaniaBotMini();
 </script>
 
 <style>
+  /* Liquid glass dentro de una card que ya es glass: sin backdrop-filter
+     (el blur anidado solo vería el interior de la card y se vería plano).
+     El efecto sale de gradientes translúcidos, borde brillante y reflejo. */
   .vb-mini {
+    position: relative;
     width: 100%;
     height: 160px;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    border: 1px solid rgba(15, 23, 42, 0.10);
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px) saturate(160%);
-    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    border: 1px solid rgb(255 255 255 / 0.7);
+    background: linear-gradient(
+      160deg,
+      rgb(255 255 255 / 0.3) 0%,
+      rgb(255 255 255 / 0.08) 50%,
+      rgb(255 255 255 / 0.2) 100%
+    );
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 1),
-      0 8px 20px -12px rgba(255, 107, 28, 0.28);
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      inset 1px 0 0 rgb(255 255 255 / 0.35),
+      inset 0 -10px 22px -12px rgb(255 255 255 / 0.5),
+      inset 0 -1px 0 rgb(11 18 32 / 0.08),
+      0 10px 24px -14px rgb(255 107 28 / 0.45);
     display: flex;
     flex-direction: column;
   }
+  .vb-mini::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      115deg,
+      rgb(255 255 255 / 0.35) 0%,
+      rgb(255 255 255 / 0.06) 30%,
+      rgb(255 255 255 / 0) 55%,
+      rgb(255 255 255 / 0.12) 100%
+    );
+  }
+
   .vb-mini-header {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-    background: rgba(255, 255, 255, 0.6);
+    border-bottom: 1px solid rgb(255 255 255 / 0.55);
+    background: rgb(255 255 255 / 0.18);
   }
   .vb-mini-avatar {
-    width: 24px; height: 24px;
+    position: relative;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    background: rgba(255, 107, 28, 0.15);
-    color: #EA580C;
-    display: flex; align-items: center; justify-content: center;
+    background: rgb(255 107 28 / 0.18);
+    color: #ea580c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7);
+  }
+  /* Halo que respira alrededor del avatar */
+  .vb-mini-avatar::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 1px solid rgb(255 107 28 / 0.45);
+    animation: vbm-halo 2.4s ease-out infinite;
   }
   .vb-mini-name {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: "Space Grotesk", system-ui, sans-serif;
     font-weight: 600;
     font-size: 11px;
-    color: #27272A;
+    color: #1c1917;
   }
   .vb-mini-status {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: "JetBrains Mono", monospace;
     font-size: 9px;
-    color: #16A34A;
+    color: #15803d;
     display: flex;
     align-items: center;
     gap: 4px;
   }
   .vb-mini-dot {
-    width: 5px; height: 5px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
-    background: #16A34A;
+    background: #16a34a;
     display: inline-block;
+    animation: vbm-pulse 2s ease-in-out infinite;
   }
+
   .vb-mini-body {
     flex: 1;
     padding: 8px 12px;
@@ -140,14 +269,26 @@
     justify-content: flex-end;
     gap: 5px;
     overflow: hidden;
+    /* Difumina el mensaje que queda cortado arriba, como un chat con scroll */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 18px);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 18px);
   }
+
+  /* Los mensajes ocultos no ocupan espacio (antes seguían ahí con opacity 0
+     y empujaban el layout, cortando el primer mensaje desde el inicio) */
   .vb-mini-msg {
-    opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    display: none;
   }
+  .vb-mini-msg.is-static {
+    display: block;
+  }
+  .vb-mini-msg.is-in {
+    display: block;
+    animation: vbm-pop 0.45s var(--ease-spring, ease-out) both;
+  }
+
   .vb-mini-bubble {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
     font-size: 10px;
     line-height: 1.4;
     padding: 4px 8px;
@@ -156,14 +297,105 @@
     word-break: break-word;
   }
   .vb-mini-bubble.user {
-    background: #FF6B1C;
-    color: #FFFFFF;
+    background: linear-gradient(
+      180deg,
+      rgb(255 140 70 / 0.95),
+      rgb(255 107 28 / 0.92)
+    );
+    color: #fff;
     margin-left: auto;
     border-bottom-right-radius: 4px;
+    border: 1px solid rgb(255 255 255 / 0.5);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.6),
+      0 4px 10px -4px rgb(255 107 28 / 0.55);
   }
   .vb-mini-bubble.bot {
-    background: rgba(255, 107, 28, 0.08);
-    color: #3F3F46;
+    background: linear-gradient(
+      135deg,
+      rgb(255 255 255 / 0.6),
+      rgb(255 255 255 / 0.28)
+    );
+    color: #3f3f46;
     border-bottom-left-radius: 4px;
+    border: 1px solid rgb(255 255 255 / 0.8);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 3px 8px -4px rgb(11 18 32 / 0.18);
+  }
+
+  /* Indicador "escribiendo…" */
+  .vb-typing {
+    display: inline-flex;
+    gap: 3px;
+    align-items: center;
+    padding: 6px 9px;
+  }
+  .vb-typing span {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #6b7689;
+    animation: vbm-bounce 0.9s ease-in-out infinite;
+  }
+  .vb-typing span:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .vb-typing span:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  .vb-typing-row.is-in {
+    display: block;
+    animation: vbm-pop 0.3s ease-out both;
+  }
+
+  @keyframes vbm-pop {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes vbm-bounce {
+    0%,
+    60%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.5;
+    }
+    30% {
+      transform: translateY(-3px);
+      opacity: 1;
+    }
+  }
+  @keyframes vbm-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
+  }
+  @keyframes vbm-halo {
+    from {
+      transform: scale(0.9);
+      opacity: 0.8;
+    }
+    to {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vb-mini-avatar::after,
+    .vb-mini-dot,
+    .vb-typing span {
+      animation: none;
+    }
   }
 </style>
