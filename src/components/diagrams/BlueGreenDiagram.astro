@@ -1,81 +1,314 @@
 ---
 const steps = [
-  { label: 'Detect active', sublabel: 'nginx config' },
-  { label: 'Deploy target', sublabel: 'opposite color' },
-  { label: 'Health gate', sublabel: 'docker exec' },
-  { label: 'Switch proxy', sublabel: 'reload nginx' },
-  { label: 'Verify public', sublabel: 'host port' },
-  { label: 'Park old', sublabel: 'instant rollback' },
+  { label: "Detect active", sublabel: "nginx config" },
+  { label: "Deploy target", sublabel: "opposite color" },
+  { label: "Health gate", sublabel: "docker exec" },
+  { label: "Switch proxy", sublabel: "reload nginx" },
+  { label: "Verify public", sublabel: "host port" },
+  { label: "Park old", sublabel: "instant rollback" },
 ];
+
+// Duración de cada paso del autoplay (ms). El script la lee de esta variable.
+const STEP_MS = 1100;
+const dotDelays = [0, 0.8, 1.6];
 ---
 
-<div class="bluegreen-diagram w-full overflow-x-auto" data-component="bluegreen">
+<div
+  class="bluegreen-diagram w-full overflow-x-auto"
+  data-component="bluegreen"
+  style={`--step-ms:${STEP_MS}ms`}
+>
   <div class="min-w-[640px] px-4">
-    <svg viewBox="0 0 700 280" class="w-full h-auto" role="img" aria-label="Blue/Green deployment flow diagram">
+    <svg
+      viewBox="0 0 700 312"
+      class="bgd w-full h-auto"
+      role="img"
+      aria-label="Blue/Green deployment flow diagram"
+      data-live="blue"
+    >
       <defs>
-        <marker id="arrow-bg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#FF6B1C" />
+        <marker
+          id="bgd-arrow-blue"
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#FF6B1C"></path>
         </marker>
-        <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#16A34A" />
+        <marker
+          id="bgd-arrow-green"
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#16A34A"></path>
         </marker>
-        <filter id="bg-glow">
-          <feGaussianBlur stdDeviation="3" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
+
+        <!-- Reflejo de cristal: blanco arriba que se desvanece -->
+        <linearGradient id="bgd-gloss" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff" stop-opacity="0.55"></stop>
+          <stop offset="0.5" stop-color="#fff" stop-opacity="0.08"></stop>
+          <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+        </linearGradient>
+
+        <!-- Barrido de progreso dentro del paso activo -->
+        <linearGradient id="bgd-sweep" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#FF6B1C" stop-opacity="0"></stop>
+          <stop offset="1" stop-color="#FF6B1C" stop-opacity="0.22"></stop>
+        </linearGradient>
+
+        <!-- Rutas por las que viajan los paquetes: entrada → nginx → entorno -->
+        <path id="bgd-path-blue" d="M378,140 L280,140 L220,110 L160,70"></path>
+        <path id="bgd-path-green" d="M378,140 L280,140 L220,170 L160,210"
+        ></path>
       </defs>
 
-      <!-- Blue environment -->
-      <rect x="20" y="20" width="140" height="100" rx="8" fill="none" stroke="#FF6B1C" stroke-width="2" opacity="0.5" class="env-box" data-env="blue" />
-      <text x="90" y="55" text-anchor="middle" fill="#FF6B1C" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Blue</text>
-      <text x="90" y="75" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono, monospace" font-size="9">commons-blue:3000</text>
-      <rect x="50" y="90" width="80" height="4" rx="2" fill="#FF6B1C" opacity="0.4" class="health-bar" data-env="blue" />
-
-      <!-- Green environment -->
-      <rect x="20" y="160" width="140" height="100" rx="8" fill="none" stroke="#16A34A" stroke-width="2" opacity="0.3" class="env-box" data-env="green" />
-      <text x="90" y="195" text-anchor="middle" fill="#16A34A" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Green</text>
-      <text x="90" y="215" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono, monospace" font-size="9">commons-green:3000</text>
-      <rect x="50" y="225" width="80" height="4" rx="2" fill="#16A34A" opacity="0.3" class="health-bar" data-env="green" />
-
-      <!-- Nginx proxy -->
-      <rect x="220" y="80" width="120" height="120" rx="8" fill="#FFFFFF" stroke="#A8A29E" stroke-width="1.5" />
-      <text x="280" y="125" text-anchor="middle" fill="#27272A" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Nginx</text>
-      <text x="280" y="145" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono, monospace" font-size="9">commons-proxy</text>
-      <text x="280" y="165" text-anchor="middle" fill="#FF6B1C" font-family="JetBrains Mono, monospace" font-size="9" id="proxy-target">upstream: blue</text>
-
-      <!-- Traffic arrow from proxy to blue -->
-      <line x1="220" y1="110" x2="160" y2="70" stroke="#FF6B1C" stroke-width="2" marker-end="url(#arrow-bg)" class="traffic-line" id="traffic-blue" opacity="1" />
-      <!-- Traffic arrow from proxy to green (hidden) -->
-      <line x1="220" y1="170" x2="160" y2="210" stroke="#16A34A" stroke-width="2" marker-end="url(#arrow-green)" class="traffic-line" id="traffic-green" opacity="0.2" />
-
-      <!-- Traffic flow animation -->
-      <circle r="3" fill="#FF6B1C" id="traffic-dot" opacity="0">
-        <animateMotion dur="1.5s" repeatCount="indefinite" path="M380,140 L340,110 L280,110" />
-      </circle>
-
-      <!-- Steps flow -->
-      <g transform="translate(380, 30)">
-        {steps.map((step, i) => (
-          <g transform={`translate(0, ${i * 40})`}>
-            <rect x="0" y="0" width="280" height="32" rx="6" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1" class="step-box" data-step={i} />
-            <circle cx="16" cy="16" r="10" fill="none" stroke="#FF6B1C" stroke-width="1.5" class="step-circle" data-step={i} />
-            <text x="16" y="20" text-anchor="middle" fill="#FF6B1C" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">{String(i + 1).padStart(2, '0')}</text>
-            <text x="34" y="14" fill="#27272A" font-family="Inter, sans-serif" font-size="10" font-weight="500">{step.label}</text>
-            <text x="34" y="26" fill="#A8A29E" font-family="JetBrains Mono, monospace" font-size="8">{step.sublabel}</text>
-          </g>
-        ))}
-        {steps.slice(0, -1).map((_, i) => (
-          <line x1="140" y1={i * 40 + 32} x2="140" y2={(i + 1) * 40 + 4} stroke="#D6D3D1" stroke-width="1" stroke-dasharray="4 4" class="step-connector" data-step={i} />
-        ))}
+      <!-- ───────── Entornos ───────── -->
+      <g
+        class="env is-live"
+        data-env="blue"
+        role="button"
+        tabindex="0"
+        aria-label="Blue environment: make it live"
+      >
+        <rect class="env-box" x="20" y="20" width="140" height="100" rx="12"
+        ></rect>
+        <rect
+          class="env-gloss"
+          x="20"
+          y="20"
+          width="140"
+          height="100"
+          rx="12"
+          fill="url(#bgd-gloss)"></rect>
+        <text class="t env-name" x="90" y="52" text-anchor="middle">Blue</text>
+        <text class="t env-sub" x="90" y="70" text-anchor="middle"
+          >commons-blue:3000</text
+        >
+        <line class="health-track" x1="50" y1="88" x2="130" y2="88"></line>
+        <line
+          class="health-fill"
+          x1="50"
+          y1="88"
+          x2="130"
+          y2="88"
+          pathLength="100"></line>
+        <line class="health-shimmer" x1="50" y1="88" x2="130" y2="88"></line>
+        <text class="t env-status" x="90" y="109" text-anchor="middle"
+          >● LIVE</text
+        >
       </g>
 
-      <!-- Rollback badge -->
-      <g transform="translate(520, 250)">
-        <rect x="0" y="0" width="140" height="24" rx="4" fill="#15803D" opacity="0.15" stroke="#15803D" stroke-width="1" />
-        <text x="70" y="16" text-anchor="middle" fill="#16A34A" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">Rollback {"<"} 1min</text>
+      <g
+        class="env is-parked"
+        data-env="green"
+        transform="translate(0,140)"
+        role="button"
+        tabindex="0"
+        aria-label="Green environment: make it live"
+      >
+        <rect class="env-box" x="20" y="20" width="140" height="100" rx="12"
+        ></rect>
+        <rect
+          class="env-gloss"
+          x="20"
+          y="20"
+          width="140"
+          height="100"
+          rx="12"
+          fill="url(#bgd-gloss)"></rect>
+        <text class="t env-name" x="90" y="52" text-anchor="middle">Green</text>
+        <text class="t env-sub" x="90" y="70" text-anchor="middle"
+          >commons-green:3000</text
+        >
+        <line class="health-track" x1="50" y1="88" x2="130" y2="88"></line>
+        <line
+          class="health-fill"
+          x1="50"
+          y1="88"
+          x2="130"
+          y2="88"
+          pathLength="100"></line>
+        <line class="health-shimmer" x1="50" y1="88" x2="130" y2="88"></line>
+        <text class="t env-status" x="90" y="109" text-anchor="middle"
+          >◌ PARKED · ROLLBACK READY</text
+        >
+      </g>
+
+      <!-- ───────── Tráfico: líneas con flujo ───────── -->
+      <path
+        class="traffic-line traffic-blue is-live"
+        d="M220,110 L160,70"
+        marker-end="url(#bgd-arrow-blue)"></path>
+      <path
+        class="traffic-line traffic-green"
+        d="M220,170 L160,210"
+        marker-end="url(#bgd-arrow-green)"></path>
+
+      <!-- Entrada de usuarios -->
+      <line class="ingress" x1="378" y1="140" x2="346" y2="140"></line>
+      <text class="t ingress-label" x="361" y="131" text-anchor="middle"
+        >users</text
+      >
+
+      <!-- ───────── Nginx ───────── -->
+      <g class="proxy">
+        <circle class="ripple" cx="280" cy="140" r="60"></circle>
+        <rect class="proxy-box" x="220" y="80" width="120" height="120" rx="12"
+        ></rect>
+        <rect
+          class="env-gloss"
+          x="220"
+          y="80"
+          width="120"
+          height="120"
+          rx="12"
+          fill="url(#bgd-gloss)"></rect>
+        <text class="t proxy-name" x="280" y="118" text-anchor="middle"
+          >Nginx</text
+        >
+        <text class="t proxy-sub" x="280" y="136" text-anchor="middle"
+          >commons-proxy</text
+        >
+        <text class="t proxy-target" x="280" y="176" text-anchor="middle"
+          >upstream: blue</text
+        >
+        <circle class="reload-ring" cx="321" cy="99" r="6"></circle>
+      </g>
+
+      <!-- Paquetes viajando (animateMotion). Solo se ve el grupo del entorno vivo -->
+      <g class="dots dots-blue is-live">
+        {
+          dotDelays.map((d) => (
+            <circle r="3">
+              <animateMotion
+                dur="2.4s"
+                begin={`${d}s`}
+                repeatCount="indefinite"
+              >
+                <mpath href="#bgd-path-blue" />
+              </animateMotion>
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0"
+                keyTimes="0;0.12;0.85;1"
+                dur="2.4s"
+                begin={`${d}s`}
+                repeatCount="indefinite"
+              />
+            </circle>
+          ))
+        }
+      </g>
+      <g class="dots dots-green">
+        {
+          dotDelays.map((d) => (
+            <circle r="3">
+              <animateMotion
+                dur="2.4s"
+                begin={`${d}s`}
+                repeatCount="indefinite"
+              >
+                <mpath href="#bgd-path-green" />
+              </animateMotion>
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0"
+                keyTimes="0;0.12;0.85;1"
+                dur="2.4s"
+                begin={`${d}s`}
+                repeatCount="indefinite"
+              />
+            </circle>
+          ))
+        }
+      </g>
+
+      <!-- ───────── Pasos ───────── -->
+      <g transform="translate(380, 30)">
+        {
+          steps
+            .slice(0, -1)
+            .map((_, i) => (
+              <line
+                class="step-connector"
+                x1="140"
+                y1={i * 40 + 32}
+                x2="140"
+                y2={(i + 1) * 40}
+                data-step={i}
+              />
+            ))
+        }
+        {
+          steps.map((step, i) => (
+            <g
+              class="step"
+              transform={`translate(0, ${i * 40})`}
+              data-step={i}
+              tabindex="0"
+            >
+              <rect
+                class="step-box"
+                x="0"
+                y="0"
+                width="280"
+                height="32"
+                rx="8"
+              />
+              <rect
+                class="step-sweep"
+                x="0"
+                y="0"
+                width="280"
+                height="32"
+                rx="8"
+                fill="url(#bgd-sweep)"
+              />
+              <rect
+                class="env-gloss"
+                x="0"
+                y="0"
+                width="280"
+                height="32"
+                rx="8"
+                fill="url(#bgd-gloss)"
+              />
+              <circle class="step-circle" cx="16" cy="16" r="10" />
+              <text class="t step-num" x="16" y="19.5" text-anchor="middle">
+                {String(i + 1).padStart(2, "0")}
+              </text>
+              <path class="step-check" d="M11.5 16.5 L14.5 19.5 L20.5 12.5" />
+              <text class="step-label" x="34" y="14">
+                {step.label}
+              </text>
+              <text class="t step-sub" x="34" y="26">
+                {step.sublabel}
+              </text>
+            </g>
+          ))
+        }
+      </g>
+
+      <!-- Rollback: clic = vuelve el tráfico al entorno anterior al instante -->
+      <g
+        class="rollback"
+        transform="translate(520, 278)"
+        role="button"
+        tabindex="0"
+        aria-label="Trigger instant rollback"
+      >
+        <title>Click to flip traffic back instantly</title>
+        <rect x="0" y="0" width="140" height="24" rx="12"></rect>
+        <text class="t" x="70" y="16" text-anchor="middle"
+          >↺ Rollback {"<"} 1min</text
+        >
       </g>
     </svg>
   </div>
@@ -83,161 +316,810 @@ const steps = [
   <!-- Mobile fallback -->
   <div class="md:hidden mt-4 space-y-2 px-4">
     <p class="font-mono text-xs text-text-muted mb-3">Deployment flow:</p>
-    {steps.map((step, i) => (
-      <div class="flex items-center gap-3">
-        <span class="font-mono text-xs text-accent">{String(i + 1).padStart(2, '0')}</span>
-        <span class="text-text-secondary text-sm">{step.label}</span>
-        <span class="text-text-muted text-xs">{step.sublabel}</span>
-      </div>
-    ))}
+    {
+      steps.map((step, i) => (
+        <div class="mstep flex items-center gap-3" data-mstep={i}>
+          <span class="font-mono text-xs text-accent">
+            {String(i + 1).padStart(2, "0")}
+          </span>
+          <span class="text-text-secondary text-sm">{step.label}</span>
+          <span class="text-text-muted text-xs">{step.sublabel}</span>
+        </div>
+      ))
+    }
   </div>
 </div>
 
 <script>
+  type Env = "blue" | "green";
+  type EnvState = "live" | "parked" | "deploying" | "healthy" | "draining";
+
   function initBlueGreenDiagram() {
-    const diagram = document.querySelector('[data-component="bluegreen"]');
-    if (!diagram) return;
+    const root = document.querySelector<HTMLElement>(
+      '[data-component="bluegreen"]',
+    );
+    // Evita listeners duplicados (astro:page-load + llamada directa)
+    if (!root || root.dataset.ready) return;
+    root.dataset.ready = "true";
 
-    const proxyTarget = diagram.querySelector('#proxy-target');
-    const trafficBlue = diagram.querySelector('#traffic-blue');
-    const trafficGreen = diagram.querySelector('#traffic-green');
-    const trafficDot = diagram.querySelector('#traffic-dot');
-    const envBoxes = diagram.querySelectorAll('.env-box');
-    const healthBars = diagram.querySelectorAll('.health-bar');
-    const stepBoxes = diagram.querySelectorAll('.step-box');
-    const stepCircles = diagram.querySelectorAll('.step-circle');
-    const stepConnectors = diagram.querySelectorAll('.step-connector');
+    const svg = root.querySelector<SVGSVGElement>("svg.bgd")!;
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const stepMs =
+      parseFloat(getComputedStyle(root).getPropertyValue("--step-ms")) || 1100;
 
-    let activeEnv: 'blue' | 'green' = 'blue';
-    let activeStep = -1;
-    let animationInterval: ReturnType<typeof setInterval> | null = null;
+    const other = (e: Env): Env => (e === "blue" ? "green" : "blue");
 
-    function setEnvironment(env: 'blue' | 'green') {
-      activeEnv = env;
-      if (proxyTarget) {
-        proxyTarget.textContent = `upstream: ${env}`;
-        proxyTarget.setAttribute('fill', env === 'blue' ? '#FF6B1C' : '#16A34A');
-      }
+    const envEls: Record<Env, SVGGElement> = {
+      blue: svg.querySelector<SVGGElement>('.env[data-env="blue"]')!,
+      green: svg.querySelector<SVGGElement>('.env[data-env="green"]')!,
+    };
+    const statusEls: Record<Env, SVGTextElement> = {
+      blue: envEls.blue.querySelector<SVGTextElement>(".env-status")!,
+      green: envEls.green.querySelector<SVGTextElement>(".env-status")!,
+    };
+    const trafficLines: Record<Env, SVGElement> = {
+      blue: svg.querySelector<SVGElement>(".traffic-blue")!,
+      green: svg.querySelector<SVGElement>(".traffic-green")!,
+    };
+    const dotGroups: Record<Env, SVGElement> = {
+      blue: svg.querySelector<SVGElement>(".dots-blue")!,
+      green: svg.querySelector<SVGElement>(".dots-green")!,
+    };
 
-      envBoxes.forEach((box) => {
-        const el = box as SVGRectElement;
-        const boxEnv = el.dataset.env;
-        el.setAttribute('opacity', boxEnv === env ? '1' : '0.3');
-        el.setAttribute('stroke-width', boxEnv === env ? '3' : '1.5');
-      });
+    const proxyTarget = svg.querySelector<SVGTextElement>(".proxy-target")!;
+    const proxyBox = svg.querySelector<SVGRectElement>(".proxy-box")!;
+    const ripple = svg.querySelector<SVGCircleElement>(".ripple")!;
+    const reloadRing = svg.querySelector<SVGCircleElement>(".reload-ring")!;
+    const rollback = svg.querySelector<SVGGElement>(".rollback")!;
+    const stepEls = Array.from(svg.querySelectorAll<SVGGElement>(".step"));
+    const connectors = Array.from(
+      svg.querySelectorAll<SVGLineElement>(".step-connector"),
+    );
+    const mobileRows = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-mstep]"),
+    );
 
-      healthBars.forEach((bar) => {
-        const el = bar as SVGRectElement;
-        const barEnv = el.dataset.env;
-        el.setAttribute('opacity', barEnv === env ? '0.8' : '0.2');
-        el.setAttribute('width', barEnv === env ? '80' : '40');
-      });
+    const LABEL: Record<EnvState, string> = {
+      live: "● LIVE",
+      parked: "◌ PARKED · ROLLBACK READY",
+      deploying: "◐ DEPLOYING…",
+      healthy: "✓ HEALTH GATE OK",
+      draining: "◑ DRAINING…",
+    };
 
-      if (trafficBlue && trafficGreen) {
-        trafficBlue.setAttribute('opacity', env === 'blue' ? '1' : '0.2');
-        trafficGreen.setAttribute('opacity', env === 'green' ? '1' : '0.2');
-      }
+    let live: Env = "blue";
+    let step = -1;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let inView = false;
+    let pinned = false;
 
-      if (trafficDot) {
-        trafficDot.setAttribute('fill', env === 'blue' ? '#FF6B1C' : '#16A34A');
-      }
+    /** Reinicia una animación CSS asociada a una clase temporal */
+    function restart(el: Element, cls: string, ms: number) {
+      el.classList.remove(cls);
+      void el.getBoundingClientRect();
+      el.classList.add(cls);
+      window.setTimeout(() => el.classList.remove(cls), ms);
     }
 
-    function highlightStep(index: number) {
-      activeStep = index;
-      stepBoxes.forEach((box, i) => {
-        const el = box as SVGRectElement;
-        el.setAttribute('stroke', i === index ? '#FF6B1C' : '#D6D3D1');
-        el.setAttribute('stroke-width', i === index ? '2' : '1');
-        el.setAttribute('fill', i === index ? '#FFFFFF' : '#FFFFFF');
-      });
-      stepCircles.forEach((circle, i) => {
-        const el = circle as SVGCircleElement;
-        el.setAttribute('stroke', i === index ? '#FF6B1C' : '#FF6B1C');
-        el.setAttribute('stroke-width', i === index ? '2.5' : '1.5');
-        el.setAttribute('fill', i === index ? 'rgba(255, 107, 28, 0.15)' : 'none');
-      });
-      stepConnectors.forEach((conn, i) => {
-        const el = conn as SVGLineElement;
-        el.setAttribute('stroke', i === index ? '#FF6B1C' : '#D6D3D1');
-        el.setAttribute('stroke-width', i === index ? '2' : '1');
-      });
+    function setEnvState(e: Env, state: EnvState) {
+      const el = envEls[e];
+      el.classList.remove(
+        "is-live",
+        "is-parked",
+        "is-deploying",
+        "is-healthy",
+        "is-draining",
+      );
+      el.classList.add(`is-${state}`);
+      statusEls[e].textContent = LABEL[state];
     }
 
-    function resetSteps() {
-      stepBoxes.forEach((box) => {
-        const el = box as SVGRectElement;
-        el.setAttribute('stroke', '#D6D3D1');
-        el.setAttribute('stroke-width', '1');
-        el.setAttribute('fill', '#FFFFFF');
-      });
-      stepCircles.forEach((circle) => {
-        const el = circle as SVGCircleElement;
-        el.setAttribute('stroke', '#FF6B1C');
-        el.setAttribute('stroke-width', '1.5');
-        el.setAttribute('fill', 'none');
-      });
-      stepConnectors.forEach((conn) => {
-        const el = conn as SVGLineElement;
-        el.setAttribute('stroke', '#D6D3D1');
-        el.setAttribute('stroke-width', '1');
-      });
+    function resetStatuses() {
+      setEnvState(live, "live");
+      setEnvState(other(live), "parked");
     }
 
-    // Step hover + touch
-    stepBoxes.forEach((box, i) => {
-      box.addEventListener('mouseenter', () => highlightStep(i));
-      box.addEventListener('mouseleave', resetSteps);
-      box.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        highlightStep(i);
-        setTimeout(resetSteps, 2000);
-      }, { passive: false });
-    });
-
-    // Environment click to toggle
-    envBoxes.forEach((box) => {
-      box.style.cursor = 'pointer';
-      box.addEventListener('click', () => {
-        const env = (box as SVGRectElement).dataset.env as 'blue' | 'green';
-        if (env) setEnvironment(env);
+    function paintTraffic() {
+      (["blue", "green"] as Env[]).forEach((e) => {
+        const on = e === live;
+        trafficLines[e].classList.toggle("is-live", on);
+        dotGroups[e].classList.toggle("is-live", on);
       });
-    });
+      proxyTarget.textContent = `upstream: ${live}`;
+      svg.dataset.live = live;
+      restart(proxyTarget, "is-swap", 500);
+    }
 
-    // Auto-animate through steps on hover of diagram
-    diagram.addEventListener('mouseenter', () => {
-      let step = 0;
-      highlightStep(step);
-      animationInterval = setInterval(() => {
-        step = (step + 1) % steps.length;
-        highlightStep(step);
-        // Toggle environment at step 3 (switch proxy)
-        if (step === 3) {
-          setEnvironment(activeEnv === 'blue' ? 'green' : 'blue');
+    function flipTo(next: Env) {
+      live = next;
+      paintTraffic();
+      restart(ripple, "is-on", 950);
+      restart(proxyBox, "is-flash", 750);
+      restart(reloadRing, "is-spinning", 800);
+    }
+
+    function paintSteps(active: number) {
+      stepEls.forEach((s, i) => {
+        s.classList.toggle("is-active", i === active);
+        s.classList.toggle("is-done", i < active);
+      });
+      connectors.forEach((c, i) => {
+        c.classList.toggle("is-done", i < active);
+        c.classList.toggle("is-flowing", i === active);
+      });
+      mobileRows.forEach((r, i) => {
+        r.classList.toggle("is-active", i === active);
+        r.classList.toggle("is-done", i < active);
+      });
+      rollback.classList.toggle("is-lit", active === 5);
+    }
+
+    /** Cada paso del pipeline dispara su efecto en el diagrama */
+    function applyStep(i: number) {
+      paintSteps(i);
+      switch (i) {
+        case 0: // Detect active
+          setEnvState(live, "live");
+          setEnvState(other(live), "parked");
+          restart(envEls[live], "is-scan", 950);
+          break;
+        case 1: // Deploy target
+          setEnvState(other(live), "deploying");
+          break;
+        case 2: // Health gate
+          setEnvState(other(live), "healthy");
+          break;
+        case 3: {
+          // Switch proxy: el tráfico cambia de entorno
+          const old = live;
+          const next = other(live);
+          setEnvState(old, "draining");
+          flipTo(next);
+          setEnvState(next, "live");
+          break;
         }
-      }, 800);
+        case 4: // Verify public
+          restart(proxyBox, "is-flash", 900);
+          break;
+        case 5: // Park old
+          setEnvState(other(live), "parked");
+          break;
+      }
+    }
+
+    function stop() {
+      if (timer) clearTimeout(timer);
+      timer = null;
+    }
+
+    function loop() {
+      if (!inView || pinned || reduce) return;
+      step++;
+      if (step >= stepEls.length) {
+        // Mantiene el estado final un momento y reinicia el ciclo.
+        // En el siguiente ciclo los roles de color están invertidos.
+        timer = setTimeout(() => {
+          step = -1;
+          paintSteps(-1);
+          resetStatuses();
+          timer = setTimeout(loop, 600);
+        }, 2200);
+        return;
+      }
+      applyStep(step);
+      timer = setTimeout(loop, stepMs);
+    }
+
+    function resume(ms: number) {
+      stop();
+      timer = setTimeout(() => {
+        step = -1;
+        loop();
+      }, ms);
+    }
+
+    /** Clic manual: pone un entorno en vivo al instante */
+    function manualLive(e: Env) {
+      stop();
+      step = -1;
+      paintSteps(-1);
+      if (e !== live) {
+        setEnvState(live, "parked");
+        flipTo(e);
+        setEnvState(e, "live");
+      } else {
+        restart(envEls[e], "is-scan", 950);
+      }
+      resume(5000);
+    }
+
+    // Hover / foco / toque sobre un paso: lo fija y pausa el autoplay
+    stepEls.forEach((s, i) => {
+      const pin = () => {
+        pinned = true;
+        stop();
+        paintSteps(i);
+      };
+      const unpin = () => {
+        pinned = false;
+        paintSteps(-1);
+        resetStatuses();
+        resume(700);
+      };
+      s.addEventListener("mouseenter", pin);
+      s.addEventListener("mouseleave", unpin);
+      s.addEventListener("focus", pin);
+      s.addEventListener("blur", unpin);
+      s.addEventListener(
+        "touchstart",
+        () => {
+          pin();
+          window.setTimeout(unpin, 2000);
+        },
+        { passive: true },
+      );
     });
 
-    diagram.addEventListener('mouseleave', () => {
-      if (animationInterval) {
-        clearInterval(animationInterval);
-        animationInterval = null;
-      }
-      resetSteps();
+    // Clic en un entorno
+    (["blue", "green"] as Env[]).forEach((e) => {
+      const el = envEls[e];
+      el.addEventListener("click", () => manualLive(e));
+      el.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          manualLive(e);
+        }
+      });
     });
+
+    // Rollback instantáneo
+    const fireRollback = () => {
+      restart(rollback, "is-fired", 900);
+      manualLive(other(live));
+    };
+    rollback.addEventListener("click", fireRollback);
+    rollback.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        fireRollback();
+      }
+    });
+
+    // El autoplay solo corre mientras el diagrama es visible
+    svg.pauseAnimations();
+    new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        root.classList.toggle("is-paused", !inView);
+        if (inView) {
+          svg.unpauseAnimations();
+          if (!timer && !pinned) resume(500);
+        } else {
+          svg.pauseAnimations();
+          stop();
+        }
+      },
+      { threshold: 0.35 },
+    ).observe(root);
   }
 
-  document.addEventListener('astro:page-load', initBlueGreenDiagram);
+  document.addEventListener("astro:page-load", initBlueGreenDiagram);
   initBlueGreenDiagram();
 </script>
 
 <style>
-  .env-box {
+  /* ───────── Base ───────── */
+  .bgd {
+    overflow: visible;
+    --live: #ff6b1c;
+  }
+  .bgd[data-live="green"] {
+    --live: #16a34a;
+  }
+  .bgd text {
+    user-select: none;
+  }
+  .t {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+  }
+  .env-gloss {
+    pointer-events: none;
+  }
+
+  /* Pausa todo lo animado cuando el diagrama sale de pantalla */
+  .bluegreen-diagram.is-paused :global(*) {
+    animation-play-state: paused !important;
+  }
+
+  /* ───────── Entornos (liquid glass transparente) ───────── */
+  .env {
+    --c: #ff6b1c;
     cursor: pointer;
-    transition: all 0.3s ease;
+    outline: none;
+    transition: opacity 0.4s ease;
+  }
+  .env[data-env="green"] {
+    --c: #16a34a;
+  }
+  .env.is-parked {
+    opacity: 0.62;
+  }
+
+  .env-box {
+    fill: rgb(255 255 255 / 0.22);
+    stroke: var(--c);
+    stroke-width: 1.5;
+    opacity: 0.5;
+    transition:
+      opacity 0.4s ease,
+      stroke-width 0.4s ease,
+      fill 0.4s ease,
+      filter 0.4s ease;
+  }
+  .env.is-live .env-box,
+  .env.is-deploying .env-box,
+  .env.is-healthy .env-box {
+    opacity: 1;
+    stroke-width: 2.5;
+    fill: rgb(255 255 255 / 0.4);
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--c) 45%, transparent));
+  }
+  .env.is-draining .env-box {
+    opacity: 0.8;
+    stroke-width: 2;
+  }
+  .env:focus-visible .env-box {
+    stroke: #e53935;
+    stroke-width: 3;
+  }
+  .env.is-scan .env-box {
+    animation: bgd-scan 0.95s ease-out;
+  }
+
+  .env-name {
+    font-size: 11px;
+    font-weight: 600;
+    fill: var(--c);
+  }
+  .env-sub {
+    font-size: 9px;
+    fill: #78716c;
+  }
+  .env-status {
+    font-size: 7px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    fill: var(--c);
+    transition: fill 0.3s ease;
+  }
+  .env.is-parked .env-status {
+    fill: #78716c;
+  }
+  .env.is-live .env-status {
+    animation: bgd-breathe 2.4s ease-in-out infinite;
+  }
+
+  /* Barra de salud */
+  .health-track {
+    stroke: rgb(120 113 108 / 0.25);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+  .health-fill {
+    stroke: var(--c);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 100 100;
+    opacity: 0.25;
+    transition: opacity 0.4s ease;
+  }
+  .env.is-live .health-fill {
+    opacity: 0.95;
+  }
+  .env.is-draining .health-fill {
+    opacity: 0.5;
+  }
+  .env.is-deploying .health-fill {
+    opacity: 1;
+    animation: bgd-fill-a 0.95s var(--ease-out, ease-out) forwards;
+  }
+  .env.is-healthy .health-fill {
+    opacity: 1;
+    animation: bgd-fill-b 0.6s ease forwards;
+  }
+  .health-shimmer {
+    stroke: rgb(255 255 255 / 0.85);
+    stroke-width: 4;
+    stroke-dasharray: 3 9;
+    opacity: 0;
+  }
+  .env.is-deploying .health-shimmer {
+    opacity: 1;
+    animation: bgd-march 0.5s linear infinite;
+  }
+
+  /* ───────── Tráfico ───────── */
+  .traffic-line {
+    fill: none;
+    stroke-width: 2;
+    stroke-dasharray: 4 5;
+    opacity: 0.18;
+    transition: opacity 0.5s ease;
+  }
+  .traffic-blue {
+    stroke: #ff6b1c;
+  }
+  .traffic-green {
+    stroke: #16a34a;
+  }
+  .traffic-line.is-live {
+    opacity: 1;
+    animation: bgd-flow 0.8s linear infinite;
+  }
+
+  .ingress {
+    stroke: rgb(120 113 108 / 0.55);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 4;
+    animation: bgd-flow 0.9s linear infinite;
+  }
+  .ingress-label {
+    font-size: 7px;
+    fill: #a8a29e;
+  }
+
+  .dots {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+  .dots.is-live {
+    opacity: 1;
+  }
+  .dots-blue circle {
+    fill: #ff6b1c;
+    filter: drop-shadow(0 0 3px #ff6b1c);
+  }
+  .dots-green circle {
+    fill: #16a34a;
+    filter: drop-shadow(0 0 3px #16a34a);
+  }
+
+  /* ───────── Nginx ───────── */
+  .proxy-box {
+    fill: rgb(255 255 255 / 0.5);
+    stroke: rgb(120 113 108 / 0.45);
+    stroke-width: 1.5;
+  }
+  .proxy-box.is-flash {
+    animation: bgd-flash 0.75s ease-out;
+  }
+  .proxy-name {
+    font-size: 11px;
+    font-weight: 600;
+    fill: #27272a;
+  }
+  .proxy-sub {
+    font-size: 9px;
+    fill: #78716c;
+  }
+  .proxy-target {
+    font-size: 9px;
+    fill: var(--live);
+    transform-box: fill-box;
+    transition: fill 0.4s ease;
+  }
+  .proxy-target.is-swap {
+    animation: bgd-swap 0.5s ease-out;
+  }
+
+  .ripple {
+    fill: none;
+    stroke: var(--live);
+    stroke-width: 2;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .ripple.is-on {
+    animation: bgd-ripple 0.95s ease-out;
+  }
+
+  .reload-ring {
+    fill: none;
+    stroke: var(--live);
+    stroke-width: 1.5;
+    stroke-dasharray: 9 6;
+    stroke-linecap: round;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .reload-ring.is-spinning {
+    opacity: 1;
+    animation: bgd-spin 0.8s linear;
+  }
+
+  /* ───────── Pasos ───────── */
+  .step {
+    cursor: pointer;
+    outline: none;
   }
   .step-box {
+    fill: rgb(255 255 255 / 0.35);
+    stroke: rgb(120 113 108 / 0.28);
+    stroke-width: 1;
+    transition:
+      stroke 0.25s ease,
+      fill 0.25s ease,
+      filter 0.25s ease;
+  }
+  .step.is-done .step-box {
+    stroke: rgb(255 107 28 / 0.4);
+  }
+  .step.is-active .step-box,
+  .step:focus-visible .step-box {
+    stroke: #ff6b1c;
+    stroke-width: 1.75;
+    fill: rgb(255 255 255 / 0.6);
+    filter: drop-shadow(0 0 8px rgb(255 107 28 / 0.4));
+  }
+
+  .step-sweep {
+    pointer-events: none;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: left center;
+    transform: scaleX(0);
+  }
+  .step.is-active .step-sweep {
+    opacity: 1;
+    animation: bgd-sweep var(--step-ms, 1100ms) linear forwards;
+  }
+
+  .step-circle {
+    fill: none;
+    stroke: #ff6b1c;
+    stroke-width: 1.5;
+    transition:
+      fill 0.3s ease,
+      stroke-width 0.3s ease;
+  }
+  .step.is-active .step-circle {
+    fill: rgb(255 107 28 / 0.15);
+    stroke-width: 2.5;
+  }
+  .step.is-done .step-circle {
+    fill: #ff6b1c;
+  }
+
+  .step-num {
+    font-size: 9px;
+    font-weight: 600;
+    fill: #ff6b1c;
+    transition: opacity 0.25s ease;
+  }
+  .step.is-done .step-num {
+    opacity: 0;
+  }
+
+  .step-check {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 20;
+    stroke-dashoffset: 20;
+    transition: stroke-dashoffset 0.35s ease 0.1s;
+  }
+  .step.is-done .step-check {
+    stroke-dashoffset: 0;
+  }
+
+  .step-label {
+    font-family: Inter, sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    fill: #27272a;
+  }
+  .step-sub {
+    font-size: 8px;
+    fill: #a8a29e;
+    transition: fill 0.25s ease;
+  }
+  .step.is-active .step-sub {
+    fill: #78716c;
+  }
+
+  .step-connector {
+    stroke: rgb(120 113 108 / 0.3);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+    transition: stroke 0.3s ease;
+  }
+  .step-connector.is-done {
+    stroke: #ff6b1c;
+    stroke-width: 1.5;
+    stroke-dasharray: none;
+  }
+  .step-connector.is-flowing {
+    stroke: #ff6b1c;
+    stroke-width: 2;
+    stroke-dasharray: 4 4;
+    animation: bgd-flow-down 0.5s linear infinite;
+  }
+
+  /* ───────── Rollback ───────── */
+  .rollback {
     cursor: pointer;
-    transition: all 0.2s ease;
+    outline: none;
+  }
+  .rollback rect {
+    fill: rgb(21 128 61 / 0.12);
+    stroke: #15803d;
+    stroke-width: 1;
+    transition:
+      fill 0.25s ease,
+      filter 0.25s ease;
+  }
+  .rollback text {
+    font-size: 9px;
+    font-weight: 600;
+    fill: #16a34a;
+  }
+  .rollback:hover rect,
+  .rollback:focus-visible rect {
+    fill: rgb(21 128 61 / 0.22);
+    filter: drop-shadow(0 0 8px rgb(22 163 74 / 0.5));
+  }
+  .rollback.is-lit rect {
+    animation: bgd-lit 1s ease-in-out;
+  }
+  .rollback.is-fired rect {
+    animation: bgd-fired 0.9s ease-out;
+  }
+
+  /* ───────── Mobile ───────── */
+  .mstep {
+    opacity: 0.7;
+    transition:
+      opacity 0.3s ease,
+      translate 0.3s var(--ease-out, ease-out);
+  }
+  .mstep.is-active {
+    opacity: 1;
+    translate: 4px 0;
+  }
+  .mstep.is-done {
+    opacity: 0.5;
+  }
+
+  /* ───────── Keyframes ───────── */
+  @keyframes bgd-flow {
+    to {
+      stroke-dashoffset: -9;
+    }
+  }
+  @keyframes bgd-flow-down {
+    to {
+      stroke-dashoffset: -8;
+    }
+  }
+  @keyframes bgd-march {
+    to {
+      stroke-dashoffset: -12;
+    }
+  }
+  @keyframes bgd-fill-a {
+    from {
+      stroke-dasharray: 0 100;
+    }
+    to {
+      stroke-dasharray: 70 100;
+    }
+  }
+  @keyframes bgd-fill-b {
+    from {
+      stroke-dasharray: 70 100;
+    }
+    to {
+      stroke-dasharray: 100 100;
+    }
+  }
+  @keyframes bgd-sweep {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes bgd-ripple {
+    0% {
+      transform: scale(0.55);
+      opacity: 0.6;
+    }
+    100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+  @keyframes bgd-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes bgd-swap {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes bgd-flash {
+    0% {
+      filter: drop-shadow(0 0 0 transparent);
+    }
+    35% {
+      stroke: var(--live);
+      stroke-width: 2.5;
+      filter: drop-shadow(0 0 14px var(--live));
+    }
+    100% {
+      filter: drop-shadow(0 0 0 transparent);
+    }
+  }
+  @keyframes bgd-scan {
+    0% {
+      stroke-width: 2.5;
+    }
+    35% {
+      stroke-width: 5;
+      filter: drop-shadow(0 0 16px var(--c));
+    }
+    100% {
+      stroke-width: 2.5;
+    }
+  }
+  @keyframes bgd-breathe {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
+  @keyframes bgd-lit {
+    0%,
+    100% {
+      filter: drop-shadow(0 0 0 transparent);
+    }
+    50% {
+      filter: drop-shadow(0 0 12px rgb(22 163 74 / 0.75));
+    }
+  }
+  @keyframes bgd-fired {
+    0% {
+      fill: rgb(22 163 74 / 0.55);
+    }
+    100% {
+      fill: rgb(21 128 61 / 0.12);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .traffic-line.is-live,
+    .ingress,
+    .step-connector.is-flowing,
+    .env.is-live .env-status {
+      animation: none;
+    }
   }
 </style>
