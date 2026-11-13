@@ -18,15 +18,20 @@ const metrics = [
         baseFrequency="0.010 0.014"
         numOctaves="2"
         seed="7"
-        result="noise"></feTurbulence>
-      <feGaussianBlur in="noise" stdDeviation="2" result="softNoise"
+        result="noise"
+      ></feTurbulence>
+      <feGaussianBlur
+        in="noise"
+        stdDeviation="2"
+        result="softNoise"
       ></feGaussianBlur>
       <feDisplacementMap
         in="SourceGraphic"
         in2="softNoise"
         scale="26"
         xChannelSelector="R"
-        yChannelSelector="G"></feDisplacementMap>
+        yChannelSelector="G"
+      ></feDisplacementMap>
     </filter>
   </defs>
 </svg>
@@ -39,8 +44,7 @@ const metrics = [
     data-scrub="parallax"
     data-speed="0.06"
     aria-hidden="true"
-  >
-  </div>
+  ></div>
 
   <div class="relative z-10 mx-auto w-full max-w-7xl px-6">
     <div class="grid items-start gap-6 lg:grid-cols-12 lg:gap-0">
@@ -55,9 +59,7 @@ const metrics = [
       </div>
 
       <!-- Texto: más compacto, flota sobre el borde del ASCII -->
-      <div
-        class="relative z-20 order-2 min-w-0 lg:order-1 lg:col-span-5 lg:pt-0"
-      >
+      <div class="relative z-20 order-2 min-w-0 lg:order-1 lg:col-span-5 lg:pt-0">
         <p class="reveal mb-4 font-mono text-sm tracking-wide text-accent">
           backend / devops / systems
         </p>
@@ -111,16 +113,14 @@ const metrics = [
               stroke-linejoin="round"
               aria-hidden="true"
             >
-              <path
-                d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"
-              ></path>
+              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
               <rect x="2" y="9" width="4" height="12"></rect>
               <circle cx="4" cy="4" r="2"></circle>
             </svg>
             LinkedIn
           </a>
           <a
-            href="/cv-carlos-garcia.pdf"
+            href="/Carlos_Garcia_Garcia_CV.pdf"
             target="_blank"
             rel="noopener noreferrer"
             class="glass-chip glass-interactive rounded-full text-sm"
@@ -132,17 +132,13 @@ const metrics = [
     </div>
 
     <!-- Las métricas se montan sobre la base del ASCII para que el cristal refracte el arte -->
-    <div
-      class="relative z-20 mt-8 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6 lg:-mt-24"
-    >
-      {
-        metrics.map((m) => (
-          <div class={`metric-card reveal reveal-delay-${m.delay}`}>
-            <span class="metric-value count-up-value">{m.value}</span>
-            <p class="metric-label">{m.label}</p>
-          </div>
-        ))
-      }
+    <div class="relative z-20 mt-8 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6 lg:-mt-24">
+      {metrics.map((m) => (
+        <div class={`metric-card reveal reveal-delay-${m.delay}`}>
+          <span class="metric-value count-up-value">{m.value}</span>
+          <p class="metric-label">{m.label}</p>
+        </div>
+      ))}
     </div>
   </div>
 </section>
